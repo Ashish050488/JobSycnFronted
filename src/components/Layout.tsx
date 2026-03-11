@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { Menu, X, Sun, Moon, Zap } from 'lucide-react';
 import { useTheme } from '../theme/ThemeProvider';
-import { BRAND } from '../theme/brand';
+import { BRAND, COPY } from '../theme/brand';
 import Footer from './Footer';
 
 export default function Layout() {
@@ -101,8 +101,8 @@ export default function Layout() {
           </Link>
 
           <div className="hidden md:flex" style={{ alignItems: 'center', gap: 28 }}>
-            {navLink('/directory', 'Companies')}
-            {navLink('/jobs', 'Browse Jobs')}
+            {navLink('/directory', COPY.nav.companies)}
+            {navLink('/jobs', COPY.nav.browseJobs)}
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -129,7 +129,7 @@ export default function Layout() {
                 (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border-mid)';
                 (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-secondary)';
               }}
-              title={`Switch to ${mode === 'dark' ? 'light' : 'dark'} mode`}
+              title={mode === 'dark' ? COPY.nav.switchToLight : COPY.nav.switchToDark}
             >
               {mode === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
             </button>
@@ -164,8 +164,8 @@ export default function Layout() {
               gap: 16,
             }}
           >
-            {navLink('/directory', 'Companies')}
-            {navLink('/jobs', 'Browse Jobs')}
+            {navLink('/directory', COPY.nav.companies)}
+            {navLink('/jobs', COPY.nav.browseJobs)}
           </div>
         )}
       </nav>

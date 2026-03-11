@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { MapPin, Building2, ExternalLink, Clock, ChevronDown, ChevronUp } from 'lucide-react';
 import type { IJob } from '../types';
 import { Badge, Button } from './ui';
+import { COPY } from '../theme/brand';
 
 interface Props {
   job: IJob;
@@ -169,8 +170,8 @@ export default function JobCard({ job }: Props) {
                 >
                   <Clock size={12} />
                   {effectiveDate
-                    ? `Posted: ${new Date(effectiveDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
-                    : 'Posted: N/A'}
+                    ? `${COPY.jobs.postedPrefix} ${new Date(effectiveDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                    : COPY.jobs.postedNA}
                 </span>
               </div>
             </div>
@@ -226,11 +227,11 @@ export default function JobCard({ job }: Props) {
                   >
                     {expanded ? (
                       <>
-                        Show less <ChevronUp size={14} />
+                        {COPY.jobs.showLess} <ChevronUp size={14} />
                       </>
                     ) : (
                       <>
-                        Read more <ChevronDown size={14} />
+                        {COPY.jobs.readMore} <ChevronDown size={14} />
                       </>
                     )}
                   </button>
@@ -263,7 +264,7 @@ export default function JobCard({ job }: Props) {
       >
         <a href={job.ApplicationURL} target="_blank" rel="noopener noreferrer">
           <Button size="sm">
-            Apply Now <ExternalLink size={11} />
+            {COPY.jobs.applyNow} <ExternalLink size={11} />
           </Button>
         </a>
       </div>

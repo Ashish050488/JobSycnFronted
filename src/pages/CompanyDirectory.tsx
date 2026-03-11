@@ -7,6 +7,7 @@ import CompanyCard from '../components/DirectoryCard';
 import SkeletonCompanyCard from '../components/SkeletonCompanyCard';
 import Pagination from '../components/Pagination';
 import { Container, PageHeader, Badge, EmptyState } from '../components/ui';
+import { COPY } from '../theme/brand';
 
 const ITEMS_PER_PAGE = 24;
 
@@ -55,7 +56,7 @@ export default function CompanyDirectory() {
   }, [page, debouncedSearch, sort, setSearchParams]);
 
   useEffect(() => {
-    document.title = 'Tech Companies Hiring in India | Company Directory';
+    document.title = COPY.directory.documentTitle;
   }, []);
 
   const handlePageChange = (newPage: number) => {
@@ -73,7 +74,7 @@ export default function CompanyDirectory() {
       {/* ── Header ─────────────────────────────────────── */}
       <div style={{ background: 'var(--surface-solid)', borderBottom: '1.25px solid var(--border)', padding: '48px 0 40px' }}>
         <Container size="md" style={{ textAlign: 'center' }}>
-          <PageHeader label="Company directory" title={<>Tech Companies<br /><span style={{ color: 'var(--primary)' }}>Hiring in India</span></>} subtitle="Companies actively hiring across India — verified by our scraper daily." />
+          <PageHeader label={COPY.directory.pageLabel} title={<>{COPY.directory.pageTitle1}<br /><span style={{ color: 'var(--primary)' }}>{COPY.directory.pageTitle2}</span></>} subtitle={COPY.directory.subtitle} />
         </Container>
       </div>
 
@@ -87,8 +88,8 @@ export default function CompanyDirectory() {
               <Search size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--subtle-ink)', pointerEvents: 'none' }} />
               <input
                 type="text"
-                placeholder="Search companies…"
-                aria-label="Search companies"
+                placeholder={COPY.directory.searchPlaceholder}
+                aria-label={COPY.directory.searchAriaLabel}
                 value={searchInput}
                 onChange={e => handleSearchChange(e.target.value)}
                 style={{
@@ -109,7 +110,7 @@ export default function CompanyDirectory() {
             <select
               value={sort}
               onChange={e => handleSortChange(e.target.value as SortOption)}
-              aria-label="Sort companies"
+              aria-label={COPY.directory.sortAriaLabel}
               style={{
                 padding: '8px 32px 8px 10px', fontFamily: 'inherit', fontSize: '0.85rem',
                 background: 'var(--paper2)', color: 'var(--ink)', border: '1.25px solid var(--border)',
@@ -119,9 +120,9 @@ export default function CompanyDirectory() {
                 backgroundRepeat: 'no-repeat', backgroundPosition: 'right 10px center',
               }}
             >
-              <option value="a-z">A → Z</option>
-              <option value="z-a">Z → A</option>
-              <option value="most-hiring">Most Hiring</option>
+              <option value="a-z">{COPY.directory.sortAZ}</option>
+              <option value="z-a">{COPY.directory.sortZA}</option>
+              <option value="most-hiring">{COPY.directory.sortMostHiring}</option>
             </select>
           </div>
         </div>
@@ -132,7 +133,7 @@ export default function CompanyDirectory() {
             {Array.from({ length: 8 }).map((_, i) => <SkeletonCompanyCard key={i} />)}
           </div>
         ) : companies.length === 0 ? (
-          <EmptyState title="No companies found" body="Try a different search term or clear your filters." />
+          <EmptyState title={COPY.directory.noCompaniesTitle} body={COPY.directory.noCompaniesBody} />
         ) : (
           <>
             <div className="companies-grid stagger">

@@ -6,7 +6,7 @@ import JobCard from '../components/JobCard';
 import CompanyCard from '../components/DirectoryCard';
 import type { IJob, ICompany } from '../types';
 import { Button, Badge, Container } from '../components/ui';
-import { BRAND } from '../theme/brand';
+import { BRAND, COPY } from '../theme/brand';
 
 export default function Home() {
   const [jobs, setJobs] = useState<IJob[]>([]);
@@ -39,19 +39,19 @@ export default function Home() {
         <div className="grid-bg" style={{ position: 'absolute', inset: 0, opacity: 0.5 }} />
         <div className="orb" style={{ width: 500, height: 500, top: -200, left: '50%', transform: 'translateX(-50%)', background: 'var(--primary-soft)' }} />
         <Container style={{ position: 'relative', zIndex: 1, paddingTop: 96, paddingBottom: 80, textAlign: 'center' }}>
-          <div className="anim-up" style={{ marginBottom: 20 }}><Badge variant="primary"><Briefcase size={10} />{BRAND.tagline}</Badge></div>
+          <div className="anim-up" style={{ marginBottom: 20 }}><Badge variant="primary"><Briefcase size={10} />{COPY.home.heroLabel}</Badge></div>
           <h1 className="anim-up" style={{ animationDelay: '0.07s', fontSize: 'clamp(2.4rem,6.5vw,4.5rem)', fontWeight: 700, color: 'var(--ink)', lineHeight: 1.1, letterSpacing: '-0.03em', marginBottom: 24 }}>
-            Find Your Next<br /><span className="font-sketch" style={{ color: 'var(--primary)', fontSize: '1.1em' }}>Tech Role in India</span>
+            {COPY.home.heroTitle1}<br /><span className="font-sketch" style={{ color: 'var(--primary)', fontSize: '1.1em' }}>{COPY.home.heroTitle2}</span>
           </h1>
           <p className="anim-up" style={{ animationDelay: '0.14s', fontSize: '1.05rem', color: 'var(--muted-ink)', lineHeight: 1.75, maxWidth: 500, margin: '0 auto 36px' }}>
-            We scrape top Indian tech companies daily — fresh roles, direct apply links.
+            {COPY.home.heroSubtitle}
           </p>
           <div className="anim-up" style={{ animationDelay: '0.2s', display: 'flex', justifyContent: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <Link to="/jobs"><Button size="lg">Browse Jobs <ArrowRight size={15} /></Button></Link>
-            <Link to="/directory"><Button variant="ghost" size="lg">View Companies</Button></Link>
+            <Link to="/jobs"><Button size="lg">{COPY.home.heroCTA} <ArrowRight size={15} /></Button></Link>
+            <Link to="/directory"><Button variant="ghost" size="lg">{COPY.home.heroSecondaryCTA}</Button></Link>
           </div>
           <div className="anim-up" style={{ animationDelay: '0.28s', display: 'flex', justifyContent: 'center', gap: 48, marginTop: 60, flexWrap: 'wrap', paddingTop: 40, borderTop: '1.25px solid var(--border)' }}>
-            {[['50+', 'Companies'], ['Daily', 'Fresh scrapes']].map(([v, l]) => (
+            {[[COPY.home.stat1Value, COPY.home.stat1Label], [COPY.home.stat2Value, COPY.home.stat2Label]].map(([v, l]) => (
               <div key={l} style={{ textAlign: 'center' }}>
                 <div className="font-sketch" style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--primary)' }}>{v}</div>
                 <div style={{ fontSize: '0.78rem', letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--subtle-ink)', marginTop: 4 }}>{l}</div>
@@ -66,23 +66,23 @@ export default function Home() {
         <Container>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 36, flexWrap: 'wrap', gap: 14 }}>
             <div>
-              <p className="font-sketch" style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--primary)', marginBottom: 8 }}>Hiring now</p>
-              <h2 style={{ fontSize: 'clamp(1.5rem,3vw,2.2rem)', fontWeight: 700, color: 'var(--ink)' }}>Top companies in <span style={{ color: 'var(--primary)' }}>India</span></h2>
+              <p className="font-sketch" style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--primary)', marginBottom: 8 }}>{COPY.home.companiesSectionLabel}</p>
+              <h2 style={{ fontSize: 'clamp(1.5rem,3vw,2.2rem)', fontWeight: 700, color: 'var(--ink)' }}>{COPY.home.companiesSectionTitle1} <span style={{ color: 'var(--primary)' }}>{COPY.home.companiesSectionTitle2}</span></h2>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <button onClick={() => scrollCarousel('left')} aria-label="Scroll left"
+              <button onClick={() => scrollCarousel('left')} aria-label={COPY.home.scrollLeft}
                 style={{ background: 'var(--surface-solid)', border: '1.25px solid var(--border)', borderRadius: 10, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--ink)', transition: 'all 0.22s' }}
                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--primary)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--primary)'; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--ink)'; }}>
                 <ChevronLeft size={16} />
               </button>
-              <button onClick={() => scrollCarousel('right')} aria-label="Scroll right"
+              <button onClick={() => scrollCarousel('right')} aria-label={COPY.home.scrollRight}
                 style={{ background: 'var(--surface-solid)', border: '1.25px solid var(--border)', borderRadius: 10, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--ink)', transition: 'all 0.22s' }}
                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--primary)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--primary)'; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--ink)'; }}>
                 <ChevronRight size={16} />
               </button>
-              <Link to="/directory"><Button variant="ghost">Full directory <ArrowRight size={13} /></Button></Link>
+              <Link to="/directory"><Button variant="ghost">{COPY.home.fullDirectory} <ArrowRight size={13} /></Button></Link>
             </div>
           </div>
 
@@ -101,14 +101,14 @@ export default function Home() {
         <Container size="lg">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 32, flexWrap: 'wrap', gap: 12 }}>
             <div>
-              <p className="font-sketch" style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--primary)', marginBottom: 8 }}>Fresh picks</p>
-              <h2 style={{ fontSize: 'clamp(1.5rem,3vw,2.2rem)', fontWeight: 700, color: 'var(--ink)' }}>Latest opportunities</h2>
+              <p className="font-sketch" style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--primary)', marginBottom: 8 }}>{COPY.home.jobsSectionLabel}</p>
+              <h2 style={{ fontSize: 'clamp(1.5rem,3vw,2.2rem)', fontWeight: 700, color: 'var(--ink)' }}>{COPY.home.jobsSectionTitle}</h2>
             </div>
-            <Link to="/jobs"><Button variant="ghost">View all <ArrowRight size={13} /></Button></Link>
+            <Link to="/jobs"><Button variant="ghost">{COPY.home.viewAll} <ArrowRight size={13} /></Button></Link>
           </div>
           {loading ? <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>{[1, 2, 3].map(i => <div key={i} className="skeleton" style={{ height: 140 }} />)}</div>
             : <div className="stagger" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>{jobs.map(j => <JobCard key={j._id} job={j} />)}</div>}
-          <div style={{ textAlign: 'center', marginTop: 36 }}><Link to="/jobs"><Button variant="outline">Load more <ArrowRight size={13} /></Button></Link></div>
+          <div style={{ textAlign: 'center', marginTop: 36 }}><Link to="/jobs"><Button variant="outline">{COPY.home.loadMore} <ArrowRight size={13} /></Button></Link></div>
         </Container>
       </section>
     </div>

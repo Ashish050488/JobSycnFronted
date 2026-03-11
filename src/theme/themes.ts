@@ -20,13 +20,13 @@ export const lightVars: Record<string, string> = {
   '--surface-alt': 'rgba(250,247,241,0.75)',
 
   // Brand
-  '--primary': '#1F6FEB',
-  '--primary-hover': '#1B5FD0',
-  '--primary-soft': 'rgba(31,111,235,0.12)',
+  '--primary': '#2D6A4F',
+  '--primary-hover': '#1B4D38',
+  '--primary-soft': 'rgba(45,106,79,0.12)',
 
   // Semantic
-  '--success': '#1F9D55',
-  '--success-soft': 'rgba(31,157,85,0.10)',
+  '--success': '#40916C',
+  '--success-soft': 'rgba(64,145,108,0.10)',
   '--warning': '#D97706',
   '--warning-soft': 'rgba(217,119,6,0.10)',
   '--danger': '#DC2626',
@@ -35,8 +35,8 @@ export const lightVars: Record<string, string> = {
   '--info-soft': 'rgba(31,111,235,0.10)',
 
   // Focus
-  '--focus-ring': '0 0 0 3px rgba(31,111,235,0.30)',
-  '--link': '#1F6FEB',
+  '--focus-ring': '0 0 0 3px rgba(45,106,79,0.30)',
+  '--link': '#2D6A4F',
 
   // Shadows (stacked-paper feel: soft shadow + highlight edge)
   '--shadow-sm': '0 1px 0 rgba(0,0,0,0.06), 0 6px 16px rgba(0,0,0,0.06)',
@@ -60,7 +60,7 @@ export const lightVars: Record<string, string> = {
   '--sketch-rotate': '-0.15deg',
 
   // Marker highlight
-  '--marker-color': 'rgba(31,111,235,0.12)',
+  '--marker-color': 'rgba(45,106,79,0.10)',
   '--marker-blend': 'multiply',
   '--marker-opacity': '0.55',
 };
@@ -80,12 +80,12 @@ export const darkVars: Record<string, string> = {
   '--surface-solid': '#12141A',
   '--surface-alt': 'rgba(14,15,18,0.75)',
 
-  '--primary': '#6EA8FF',
-  '--primary-hover': '#8AB8FF',
-  '--primary-soft': 'rgba(110,168,255,0.14)',
+  '--primary': '#74C69D',
+  '--primary-hover': '#95D5B2',
+  '--primary-soft': 'rgba(116,198,157,0.14)',
 
-  '--success': '#34D399',
-  '--success-soft': 'rgba(52,211,153,0.10)',
+  '--success': '#74C69D',
+  '--success-soft': 'rgba(116,198,157,0.10)',
   '--warning': '#FBBF24',
   '--warning-soft': 'rgba(251,191,36,0.10)',
   '--danger': '#F87171',
@@ -93,8 +93,8 @@ export const darkVars: Record<string, string> = {
   '--info': '#6EA8FF',
   '--info-soft': 'rgba(110,168,255,0.14)',
 
-  '--focus-ring': '0 0 0 3px rgba(110,168,255,0.30)',
-  '--link': '#8AB8FF',
+  '--focus-ring': '0 0 0 3px rgba(116,198,157,0.30)',
+  '--link': '#95D5B2',
 
   '--shadow-sm': '0 1px 0 rgba(0,0,0,0.20), 0 6px 16px rgba(0,0,0,0.25)',
   '--shadow-md': '0 1px 0 rgba(0,0,0,0.25), 0 10px 24px rgba(0,0,0,0.30)',
@@ -115,7 +115,7 @@ export const darkVars: Record<string, string> = {
   '--sketch-rotate': '0.12deg',
 
   // Marker highlight
-  '--marker-color': 'rgba(110,168,255,0.14)',
+  '--marker-color': 'rgba(116,198,157,0.12)',
   '--marker-blend': 'soft-light',
   '--marker-opacity': '0.50',
 };
