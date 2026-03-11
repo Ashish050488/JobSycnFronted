@@ -1,6 +1,6 @@
 // FILE: src/components/JobCard.tsx
 import { useState } from 'react';
-import { MapPin, Building2, ExternalLink, Clock, ChevronDown, ChevronUp } from 'lucide-react';
+import { MapPin, Building2, ExternalLink, Clock } from 'lucide-react';
 import type { IJob } from '../types';
 import { Badge, Button } from './ui';
 import { COPY } from '../theme/brand';
@@ -11,7 +11,6 @@ interface Props {
 
 export default function JobCard({ job }: Props) {
   const [imgErr, setImgErr] = useState(false);
-  const [expanded, setExpanded] = useState(false);
 
   const relTime = (d: string | null) => {
     if (!d) return null;
@@ -25,6 +24,24 @@ export default function JobCard({ job }: Props) {
     return `${Math.floor(diff / 30)}mo ago`;
   };
 
+  const workplaceBadge = (): { label: string; bg: string; color: string } | null => {
+    const wt = (job.WorkplaceType ?? '').toLowerCase();
+    if (wt === 'remote' || job.IsRemote) return { label: '🌐 Remote', bg: '#d1fae5', color: '#065f46' };
+    if (wt === 'hybrid') return { label: '⚡ Hybrid', bg: '#fef3c7', color: '#92400e' };
+    if (wt === 'on-site' || wt === 'onsite') return { label: '🏢 On-site', bg: '#dbeafe', color: '#1e40af' };
+    return null;
+  };
+
+  const salaryDisplay = (): string | null => {
+    if (job.SalaryInfo) return job.SalaryInfo;
+    if (job.SalaryMin && job.SalaryMax) {
+      const fmt = (n: number) => (job.SalaryCurrency === 'INR' || !job.SalaryCurrency) && n >= 100000 ? `${(n / 100000).toFixed(1)}L` : `${(n / 1000).toFixed(0)}K`;
+      const curr = job.SalaryCurrency === 'INR' ? '₹' : job.SalaryCurrency === 'USD' ? '$' : (job.SalaryCurrency ? job.SalaryCurrency + ' ' : '');
+      return `${curr}${fmt(job.SalaryMin)} – ${curr}${fmt(job.SalaryMax)}`;
+    }
+    return null;
+  };
+
   const domain = (url: string) => {
     try {
       return new URL(url).hostname.replace('www.', '');
@@ -35,7 +52,6 @@ export default function JobCard({ job }: Props) {
 
   const effectiveDate = job.PostedDate || job.scrapedAt || null;
   const rt = relTime(effectiveDate);
-  const hasLongDesc = job.Description && job.Description.length > 300;
 
   return (
     <div
@@ -176,69 +192,6 @@ export default function JobCard({ job }: Props) {
               </div>
             </div>
 
-            {/* Expandable Description */}
-            {job.Description && (
-              <div style={{ marginTop: 12 }}>
-                <div
-                  style={{
-                    fontSize: '0.84rem',
-                    color: 'var(--text-secondary)',
-                    lineHeight: 1.7,
-                    maxHeight: expanded ? 'none' : '80px',
-                    overflow: 'hidden',
-                    position: 'relative',
-                    transition: 'max-height 0.3s ease',
-                  }}
-                >
-                  {job.Description}
-                  {!expanded && hasLongDesc && (
-                    <div
-                      style={{
-                        position: 'absolute',
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        height: 40,
-                        background: 'linear-gradient(to bottom, transparent, var(--bg-surface))',
-                      }}
-                    />
-                  )}
-                </div>
-                {hasLongDesc && (
-                  <button
-                    onClick={() => setExpanded(!expanded)}
-                    style={{
-                      marginTop: 8,
-                      background: 'none',
-                      border: 'none',
-                      color: 'var(--acid)',
-                      fontSize: '0.78rem',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 4,
-                      padding: 0,
-                      fontFamily: 'inherit',
-                      transition: 'opacity 0.2s',
-                    }}
-                    onMouseEnter={e => ((e.currentTarget.style.opacity = '0.7'))}
-                    onMouseLeave={e => ((e.currentTarget.style.opacity = '1'))}
-                  >
-                    {expanded ? (
-                      <>
-                        {COPY.jobs.showLess} <ChevronUp size={14} />
-                      </>
-                    ) : (
-                      <>
-                        {COPY.jobs.readMore} <ChevronDown size={14} />
-                      </>
-                    )}
-                  </button>
-                )}
-              </div>
-            )}
-
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 12 }}>
               {job.ContractType && job.ContractType !== 'N/A' && (
                 <Badge variant="neutral">{job.ContractType}</Badge>
@@ -246,6 +199,12 @@ export default function JobCard({ job }: Props) {
               {job.Department && job.Department !== 'N/A' && job.Department !== '' && (
                 <Badge variant="neutral">{job.Department}</Badge>
               )}
+              {(() => { const wb = workplaceBadge(); return wb ? (
+                <span style={{ fontSize: '0.65rem', padding: '2px 8px', borderRadius: 999, background: wb.bg, color: wb.color, fontWeight: 600 }}>{wb.label}</span>
+              ) : null; })()}
+              {(() => { const sal = salaryDisplay(); return sal ? (
+                <span style={{ fontSize: '0.65rem', padding: '2px 8px', borderRadius: 999, background: '#f0fdf4', color: '#166534', fontWeight: 600 }}>💰 {sal}</span>
+              ) : null; })()}
             </div>
           </div>
         </div>
@@ -262,7 +221,7 @@ export default function JobCard({ job }: Props) {
           alignItems: 'center',
         }}
       >
-        <a href={job.ApplicationURL} target="_blank" rel="noopener noreferrer">
+        <a href={job.DirectApplyURL || job.ApplicationURL} target="_blank" rel="noopener noreferrer">
           <Button size="sm">
             {COPY.jobs.applyNow} <ExternalLink size={11} />
           </Button>

@@ -13,6 +13,32 @@ export interface IJob {
   sourceSite?: string;
   Status?: string;
   scrapedAt?: string;
+
+  // --- ATS source data ---
+  DirectApplyURL?: string | null;
+  Team?: string | null;
+  AllLocations?: string[];
+  Tags?: string[];
+  WorkplaceType?: string | null;
+  IsRemote?: boolean | null;
+
+  // --- Description variants ---
+  DescriptionPlain?: string | null;
+  DescriptionLists?: Array<{ text: string; content: string }>;
+  AdditionalInfo?: string | null;
+
+  // --- Salary ---
+  SalaryMin?: number | null;
+  SalaryMax?: number | null;
+  SalaryCurrency?: string | null;
+  SalaryInterval?: string | null;
+  SalaryInfo?: string | null;
+
+  // --- Office/Location detail ---
+  Office?: string | null;
+
+  // --- ATS platform ---
+  ATSPlatform?: string | null;
 }
 
 export interface ICompany {
