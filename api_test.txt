@@ -1,0 +1,1247 @@
+﻿{
+    "value":  [
+                  {
+                      "_id":  "698ed9c9bfcfe417ad16882f",
+                      "companyName":  "dsf",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "sdvc"
+                                 ],
+                      "domain":  "sdf",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e03",
+                      "companyName":  "3D Spark",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Hamburg"
+                                 ],
+                      "domain":  "https://www.3dspark.de/career",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e04",
+                      "companyName":  "3M",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Neuss"
+                                 ],
+                      "domain":  "https://www.3mdeutschland.de/3M/de_DE/karriere-de/",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e05",
+                      "companyName":  "4flow",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://www.4flow.com/career/",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e06",
+                      "companyName":  "AHEAD",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Munich"
+                                 ],
+                      "domain":  "https://ahead.auto/career",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e07",
+                      "companyName":  "Ada Health",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://ada.com/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e08",
+                      "companyName":  "Accenture",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Multiple (Munich",
+                                     "Frankfurt",
+                                     "Berlin)"
+                                 ],
+                      "domain":  "https://www.accenture.com/de-de/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e09",
+                      "companyName":  "Adesso",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Dortmund"
+                                 ],
+                      "domain":  "https://www.adesso.de/de/karriere/",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e0a",
+                      "companyName":  "Adidas",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Herzogenaurach"
+                                 ],
+                      "domain":  "https://careers.adidas-group.com",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e0b",
+                      "companyName":  "Aldi Nord",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Essen"
+                                 ],
+                      "domain":  "https://www.aldi-nord.de/karriere.html",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e0c",
+                      "companyName":  "Aldi Süd",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Mülheim an der Ruhr"
+                                 ],
+                      "domain":  "https://karriere.aldi-sued.de",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e0d",
+                      "companyName":  "Allianz",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Munich"
+                                 ],
+                      "domain":  "https://careers.allianz.com",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e0e",
+                      "companyName":  "Alstom",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://www.alstom.com/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e0f",
+                      "companyName":  "Alvarez \u0026 Marsal",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Frankfurt"
+                                 ],
+                      "domain":  "https://careers.alvarezandmarsal.com",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e10",
+                      "companyName":  "Amazon",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin / Munich"
+                                 ],
+                      "domain":  "https://www.amazon.jobs",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e11",
+                      "companyName":  "Amazon Web Services (AWS)",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin / Munich"
+                                 ],
+                      "domain":  "https://aws.amazon.com/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e12",
+                      "companyName":  "Antler",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://www.antler.co/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e13",
+                      "companyName":  "Airbus",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Hamburg"
+                                 ],
+                      "domain":  "https://www.airbus.com/en/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e14",
+                      "companyName":  "Applike Group",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Hamburg"
+                                 ],
+                      "domain":  "https://applike-group.com/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e15",
+                      "companyName":  "Auto1 Group",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://careers.auto1-group.com",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e16",
+                      "companyName":  "AutoScout24",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Munich"
+                                 ],
+                      "domain":  "https://www.autoscout24.com/company/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e17",
+                      "companyName":  "Awin",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://www.awin.com/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e18",
+                      "companyName":  "Babbel",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://about.babbel.com/en/jobs",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e19",
+                      "companyName":  "Bain \u0026 Company",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Munich"
+                                 ],
+                      "domain":  "https://www.bain.com/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e1a",
+                      "companyName":  "BASF",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Ludwigshafen"
+                                 ],
+                      "domain":  "https://www.basf.com/global/en/careers.html",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e1b",
+                      "companyName":  "BCG Platinion",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://careers.bcg.com",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e1c",
+                      "companyName":  "Beiersdorf",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Hamburg"
+                                 ],
+                      "domain":  "https://www.beiersdorf.com/career",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e1d",
+                      "companyName":  "Bigpoint",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Hamburg"
+                                 ],
+                      "domain":  "https://corporate.bigpoint.com/career",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e1e",
+                      "companyName":  "Billie",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://www.billie.io/en/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e1f",
+                      "companyName":  "BioNTech",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Mainz"
+                                 ],
+                      "domain":  "https://biontech.de/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e20",
+                      "companyName":  "BIT Capital",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://bitcap.com/career",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e21",
+                      "companyName":  "Blacklane",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://www.blacklane.com/en/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e22",
+                      "companyName":  "Blinkist",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://www.blinkist.com/en/jobs",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e23",
+                      "companyName":  "BMW",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Munich"
+                                 ],
+                      "domain":  "https://www.bmwgroup.jobs",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e24",
+                      "companyName":  "Bolt",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://bolt.eu/en/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e25",
+                      "companyName":  "Bonial",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://www.bonial.com/company/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e26",
+                      "companyName":  "Bosch",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Stuttgart"
+                                 ],
+                      "domain":  "https://www.bosch.de/karriere",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e27",
+                      "companyName":  "Boston Consulting Group (BCG)",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin / Munich"
+                                 ],
+                      "domain":  "https://careers.bcg.com",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e28",
+                      "companyName":  "Brenntag",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Essen"
+                                 ],
+                      "domain":  "https://www.brenntag.com/en/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e29",
+                      "companyName":  "Capgemini",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://www.capgemini.com/de-de/karriere",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e2a",
+                      "companyName":  "Celonis",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Munich"
+                                 ],
+                      "domain":  "https://www.celonis.com/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e2b",
+                      "companyName":  "CureVac",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Tübingen"
+                                 ],
+                      "domain":  "https://www.curevac.com/en/career",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e2c",
+                      "companyName":  "DataGuard",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Munich"
+                                 ],
+                      "domain":  "https://www.dataguard.com/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e2d",
+                      "companyName":  "DeepL",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Cologne"
+                                 ],
+                      "domain":  "https://www.deepl.com/en/jobs",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e2e",
+                      "companyName":  "Delivery Hero",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://careers.deliveryhero.com",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e2f",
+                      "companyName":  "Deloitte",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Multiple"
+                                 ],
+                      "domain":  "https://www2.deloitte.com/de/de/careers.html",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e30",
+                      "companyName":  "DKB Code Factory",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://www.dkbcodefactory.com/career",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e31",
+                      "companyName":  "Dr. Oetker",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Bielefeld"
+                                 ],
+                      "domain":  "https://www.oetker.com/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e32",
+                      "companyName":  "E.ON",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Essen"
+                                 ],
+                      "domain":  "https://www.eon.com/en/careers.html",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e33",
+                      "companyName":  "Ecosia",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://info.ecosia.org/jobs",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e34",
+                      "companyName":  "Enpal",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://www.enpal.de/karriere",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e35",
+                      "companyName":  "epilot",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Cologne"
+                                 ],
+                      "domain":  "https://epilot.cloud/en/career",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e36",
+                      "companyName":  "Eurowings Digital",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Cologne"
+                                 ],
+                      "domain":  "https://eurowings.digital/career",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e37",
+                      "companyName":  "Expatrio",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://www.expatrio.com/about/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e38",
+                      "companyName":  "eyeo",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Cologne"
+                                 ],
+                      "domain":  "https://eyeo.com/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e39",
+                      "companyName":  "Fashion Cloud",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Hamburg"
+                                 ],
+                      "domain":  "https://fashion.cloud/en/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e3a",
+                      "companyName":  "Flink",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://jobs.goflink.com",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e3b",
+                      "companyName":  "Flix",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Munich"
+                                 ],
+                      "domain":  "https://flix.careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e3c",
+                      "companyName":  "Forto",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://forto.com/en/career",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e3d",
+                      "companyName":  "Getsafe",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Heidelberg"
+                                 ],
+                      "domain":  "https://www.getsafe.com/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e3e",
+                      "companyName":  "GetYourGuide",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://careers.getyourguide.com",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e3f",
+                      "companyName":  "Google",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin / Munich"
+                                 ],
+                      "domain":  "https://careers.google.com",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e40",
+                      "companyName":  "Grover",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://www.grover.com/de-en/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e41",
+                      "companyName":  "HelloFresh",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://www.hellofreshgroup.com/en/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e42",
+                      "companyName":  "Henkel",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Düsseldorf"
+                                 ],
+                      "domain":  "https://www.henkel.com/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e43",
+                      "companyName":  "Hive",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://hive.app/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e44",
+                      "companyName":  "Holidu",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Munich"
+                                 ],
+                      "domain":  "https://www.holidu.com/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e45",
+                      "companyName":  "Infineon",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Munich"
+                                 ],
+                      "domain":  "https://www.infineon.com/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e46",
+                      "companyName":  "Intel",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Munich"
+                                 ],
+                      "domain":  "https://jobs.intel.com",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e47",
+                      "companyName":  "Isar Aerospace",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Munich"
+                                 ],
+                      "domain":  "https://www.isaraerospace.com/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e48",
+                      "companyName":  "JUCR",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://jucr.com/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e49",
+                      "companyName":  "Kaufland e-commerce",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Cologne"
+                                 ],
+                      "domain":  "https://kaufland-ecommerce.com/en/career",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e4a",
+                      "companyName":  "Klarna",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://www.klarna.com/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e4b",
+                      "companyName":  "KoRo",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://www.korodrogerie.de/karriere",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e4c",
+                      "companyName":  "lemon.markets",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://www.lemon.markets/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e4d",
+                      "companyName":  "L\u0027Oréal",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Düsseldorf"
+                                 ],
+                      "domain":  "https://careers.loreal.com",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e4e",
+                      "companyName":  "Mars",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Verden"
+                                 ],
+                      "domain":  "https://careers.mars.com",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e4f",
+                      "companyName":  "McKinsey \u0026 Company",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Multiple"
+                                 ],
+                      "domain":  "https://www.mckinsey.com/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e50",
+                      "companyName":  "Mercedes-Benz",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Stuttgart"
+                                 ],
+                      "domain":  "https://group.mercedes-benz.com/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e51",
+                      "companyName":  "Merck",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Darmstadt"
+                                 ],
+                      "domain":  "https://www.merckgroup.com/en/careers.html",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e52",
+                      "companyName":  "Metro AG",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Düsseldorf"
+                                 ],
+                      "domain":  "https://careers.metroag.de",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e53",
+                      "companyName":  "Microsoft",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Munich"
+                                 ],
+                      "domain":  "https://careers.microsoft.com",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e54",
+                      "companyName":  "Munich Re",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Munich"
+                                 ],
+                      "domain":  "https://www.munichre.com/en/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e55",
+                      "companyName":  "N26",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://n26.com/en-eu/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e56",
+                      "companyName":  "NVIDIA",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Munich"
+                                 ],
+                      "domain":  "https://www.nvidia.com/en-us/about-nvidia/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e57",
+                      "companyName":  "Omio",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://www.omio.com/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e58",
+                      "companyName":  "Palantir",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://www.palantir.com/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e59",
+                      "companyName":  "Parloa",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://www.parloa.com/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e5a",
+                      "companyName":  "PayPal",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://www.paypal.com/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e5b",
+                      "companyName":  "Personio",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Munich"
+                                 ],
+                      "domain":  "https://www.personio.com/about-personio/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e5c",
+                      "companyName":  "Picnic",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Düsseldorf"
+                                 ],
+                      "domain":  "https://picnic.app/de/karriere",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e5d",
+                      "companyName":  "Porsche",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Stuttgart"
+                                 ],
+                      "domain":  "https://www.porsche.com/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e5e",
+                      "companyName":  "Procter \u0026 Gamble (P\u0026G)",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Schwalbach am Taunus"
+                                 ],
+                      "domain":  "https://www.pgcareers.com",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e5f",
+                      "companyName":  "Project A",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://www.project-a.com/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e60",
+                      "companyName":  "Puma",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Herzogenaurach"
+                                 ],
+                      "domain":  "https://about.puma.com/en/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e61",
+                      "companyName":  "Qonto",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://qonto.com/en/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e62",
+                      "companyName":  "Raisin",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://www.raisin.com/en/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e63",
+                      "companyName":  "Redcare Pharmacy",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Cologne"
+                                 ],
+                      "domain":  "https://corporate.redcare-pharmacy.com/en/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e64",
+                      "companyName":  "SAP",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Walldorf"
+                                 ],
+                      "domain":  "https://jobs.sap.com",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e65",
+                      "companyName":  "Schaeffler",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Herzogenaurach"
+                                 ],
+                      "domain":  "https://www.schaeffler.com/en/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e66",
+                      "companyName":  "Semrush",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://www.semrush.com/company/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e67",
+                      "companyName":  "Siemens",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Munich"
+                                 ],
+                      "domain":  "https://www.siemens.com/global/en/company/jobs.html",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e68",
+                      "companyName":  "Solaris",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://www.solarisgroup.com/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e69",
+                      "companyName":  "Staffbase",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Chemnitz"
+                                 ],
+                      "domain":  "https://staffbase.com/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e6a",
+                      "companyName":  "Stripe",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://stripe.com/jobs",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e6b",
+                      "companyName":  "SumUp",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://www.sumup.com/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e6c",
+                      "companyName":  "Taxfix",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://taxfix.de/en/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e6d",
+                      "companyName":  "TeamViewer",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Göppingen"
+                                 ],
+                      "domain":  "https://www.teamviewer.com/en/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e6e",
+                      "companyName":  "TikTok",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://careers.tiktok.com",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e6f",
+                      "companyName":  "Tomorrow Bank",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Hamburg"
+                                 ],
+                      "domain":  "https://www.tomorrow.one/en/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e70",
+                      "companyName":  "Trade Republic",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://traderepublic.com/en-de/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e71",
+                      "companyName":  "Trivago",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Düsseldorf"
+                                 ],
+                      "domain":  "https://careers.trivago.com",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e72",
+                      "companyName":  "Uber Eats",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://www.uber.com/global/en/careers/",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e73",
+                      "companyName":  "Uniper",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Düsseldorf"
+                                 ],
+                      "domain":  "https://www.uniper.energy/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e74",
+                      "companyName":  "Verivox",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Heidelberg"
+                                 ],
+                      "domain":  "https://www.verivox.de/karriere",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e75",
+                      "companyName":  "Volkswagen",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Wolfsburg"
+                                 ],
+                      "domain":  "https://www.volkswagen-karriere.de",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e76",
+                      "companyName":  "Volocopter",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Bruchsal"
+                                 ],
+                      "domain":  "https://www.volocopter.com/en/career",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e77",
+                      "companyName":  "Wefox",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://www.wefox.com/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e78",
+                      "companyName":  "Wolt",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://careers.wolt.com",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e79",
+                      "companyName":  "Wunderflats",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://wunderflats.com/page/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e7a",
+                      "companyName":  "xChange",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Hamburg"
+                                 ],
+                      "domain":  "https://www.container-xchange.com/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e7b",
+                      "companyName":  "Zalando",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Berlin"
+                                 ],
+                      "domain":  "https://jobs.zalando.com",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e7c",
+                      "companyName":  "Zeiss",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Oberkochen"
+                                 ],
+                      "domain":  "https://www.zeiss.com/corporate/careers",
+                      "source":  "manual"
+                  },
+                  {
+                      "_id":  "698eda3854b5b5d24d1e8e7d",
+                      "companyName":  "Zoi",
+                      "openRoles":  0,
+                      "cities":  [
+                                     "Stuttgart"
+                                 ],
+                      "domain":  "https://www.zoi.tech/careers",
+                      "source":  "manual"
+                  }
+              ],
+    "Count":  124
+}

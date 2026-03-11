@@ -1,0 +1,24 @@
+﻿
+D:\Desktop\frontend\src\components\ui\index.tsx
+  60:70  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Desktop\frontend\src\context\AuthContext.tsx
+  63:17  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+D:\Desktop\frontend\src\pages\AdminDashboard.tsx
+  22:38  warning  React Hook useEffect has a missing dependency: 'fetchStats'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\Desktop\frontend\src\pages\Dashboard.tsx
+  21:50  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Desktop\frontend\src\pages\Login.tsx
+  21:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Desktop\frontend\src\pages\Signup.tsx
+  26:17  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Desktop\frontend\src\theme\ThemeProvider.tsx
+  41:14  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+✖ 7 problems (6 errors, 1 warning)
+

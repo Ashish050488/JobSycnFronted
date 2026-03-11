@@ -1,0 +1,655 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&display=swap');
+
+/* ── Reset ────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* ── Base ─────────────────────────────────────────── */
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  transition: background 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* ═══════════════════════════════════════════════════
+   PAPER TEXTURE — dual-layer global overlay
+   Tune: --paper-grain-opacity, --paper-fiber-opacity,
+         --paper-contrast, --paper-noise-scale,
+         --paper-drift-distance, --paper-drift-duration
+   ═══════════════════════════════════════════════════ */
+
+/* Layer B: Grain/noise (stronger, animated drift) */
+body::after {
+  content: '';
+  position: fixed;
+  inset: -20px;
+  /* bleed hides drift edge seams */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size: calc(var(--paper-noise-scale, 200) * 1px) calc(var(--paper-noise-scale, 200) * 1px);
+  pointer-events: none;
+  z-index: 9999;
+  opacity: var(--paper-grain-opacity, 0.11);
+  mix-blend-mode: multiply;
+  filter: contrast(var(--paper-contrast, 1.0));
+  will-change: transform;
+  animation: grain-drift var(--paper-drift-duration, 14s) ease-in-out infinite alternate;
+}
+
+/* Layer A: Paper fibers (softer, static depth) */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.45' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23f)' opacity='0.06'/%3E%3C/svg%3E");
+  background-size: 300px 300px;
+  pointer-events: none;
+  z-index: 9998;
+  opacity: var(--paper-fiber-opacity, 0.06);
+  mix-blend-mode: overlay;
+}
+
+/* Grain drift */
+@keyframes grain-drift {
+  0% {
+    transform: translate(0, 0);
+  }
+
+  50% {
+    transform: translate(var(--paper-drift-distance, 12px), calc(var(--paper-drift-distance, 12px) * -0.6));
+  }
+
+  100% {
+    transform: translate(calc(var(--paper-drift-distance, 12px) * -0.4), var(--paper-drift-distance, 12px));
+  }
+}
+
+/* ── Typography helpers ───────────────────────────── */
+.font-sketch {
+  font-family: 'Caveat', 'Patrick Hand', 'Comic Neue', ui-sans-serif;
+}
+
+.font-sketch-num {
+  font-family: 'Caveat', 'Patrick Hand', ui-sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Scrollbar ────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--paper2);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 3px;
+}
+
+.thin-scroll::-webkit-scrollbar {
+  width: 3px;
+}
+
+/* ── Focus ring ───────────────────────────────────── */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* ═══════════════════════════════════════════════════
+   TICKER
+   ═══════════════════════════════════════════════════ */
+@keyframes ticker {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.ticker-track {
+  animation: ticker 40s linear infinite;
+}
+
+.ticker-wrap::before,
+.ticker-wrap::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.ticker-wrap::before {
+  left: 0;
+  background: linear-gradient(to right, var(--paper), transparent);
+}
+
+.ticker-wrap::after {
+  right: 0;
+  background: linear-gradient(to left, var(--paper), transparent);
+}
+
+/* ═══════════════════════════════════════════════════
+   ENTRANCE ANIMATIONS
+   ═══════════════════════════════════════════════════ */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: -300% 0;
+  }
+
+  to {
+    background-position: 300% 0;
+  }
+}
+
+/* Draw-in: stroke-dasharray reveal for borders */
+@keyframes drawIn {
+  from {
+    clip-path: inset(0 100% 0 0);
+    opacity: 0;
+  }
+
+  to {
+    clip-path: inset(0 0 0 0);
+    opacity: 1;
+  }
+}
+
+/* Wobble settle: element drawn then settles */
+@keyframes wobbleSettle {
+  0% {
+    transform: rotate(calc(var(--card-tilt, 0) * 2.5)) scale(0.97);
+    opacity: 0;
+  }
+
+  50% {
+    transform: rotate(calc(var(--card-tilt, 0) * -1.5));
+    opacity: 1;
+  }
+
+  70% {
+    transform: rotate(calc(var(--card-tilt, 0) * 0.8));
+  }
+
+  100% {
+    transform: rotate(var(--card-tilt, 0)) translateX(var(--card-shift, 0)) scale(1);
+  }
+}
+
+.anim-up {
+  animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.anim-in {
+  animation: fadeIn 0.35s ease both;
+}
+
+.anim-scale {
+  animation: scaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.anim-draw {
+  animation: drawIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.stagger>* {
+  animation: wobbleSettle 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.stagger>*:nth-child(1) {
+  animation-delay: .04s
+}
+
+.stagger>*:nth-child(2) {
+  animation-delay: .09s
+}
+
+.stagger>*:nth-child(3) {
+  animation-delay: .14s
+}
+
+.stagger>*:nth-child(4) {
+  animation-delay: .19s
+}
+
+.stagger>*:nth-child(5) {
+  animation-delay: .24s
+}
+
+.stagger>*:nth-child(6) {
+  animation-delay: .29s
+}
+
+.stagger>*:nth-child(n+7) {
+  animation-delay: .34s
+}
+
+/* ── Skeleton ─────────────────────────────────────── */
+.skeleton {
+  background: linear-gradient(90deg, var(--paper2) 25%, var(--surface-solid) 50%, var(--paper2) 75%);
+  background-size: 300% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+  border-radius: 10px;
+}
+
+/* ── Dot grid pattern (notebook paper feel) ───────── */
+.grid-bg {
+  background-image: radial-gradient(circle, var(--border) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* ═══════════════════════════════════════════════════
+   NAV — hand-drawn tabs / bookmarks
+   ═══════════════════════════════════════════════════ */
+.nav-blur {
+  background: color-mix(in srgb, var(--paper) 82%, transparent);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+}
+
+/* Nav link: sketched underline that draws in when active */
+.nav-tab {
+  position: relative;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 5px 2px;
+  transition: color 0.22s;
+}
+
+.nav-tab::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: -2px;
+  right: -2px;
+  height: 2.5px;
+  background: var(--primary);
+  border-radius: 2px;
+  transform: scaleX(0) rotate(-0.5deg);
+  transform-origin: left center;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nav-tab.active::after {
+  transform: scaleX(1) rotate(-0.5deg);
+}
+
+.nav-tab:hover::after {
+  transform: scaleX(0.6) rotate(-0.5deg);
+}
+
+.nav-tab.active:hover::after {
+  transform: scaleX(1) rotate(-0.5deg);
+}
+
+/* ═══════════════════════════════════════════════════
+   JOB CARD hover bar (sketch ink accent)
+   ═══════════════════════════════════════════════════ */
+.job-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.job-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--primary);
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.job-card:hover::before {
+  transform: scaleY(1);
+}
+
+.job-card:hover {
+  border-color: var(--primary) !important;
+}
+
+/* ═══════════════════════════════════════════════════
+   SKETCH-INK: double-stroke illusion for components
+   Apply .sketch-ink to any bordered element.
+   ═══════════════════════════════════════════════════ */
+.sketch-ink {
+  position: relative;
+}
+
+.sketch-ink::before,
+.sketch-ink::after {
+  content: '';
+  position: absolute;
+  inset: calc(-1 * var(--sketch-wobble, 0.6px));
+  border: 1px solid var(--ink-border, var(--border));
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.sketch-ink::before {
+  transform: rotate(var(--sketch-rotate, -0.15deg));
+  opacity: 0.20;
+}
+
+.sketch-ink::after {
+  transform: rotate(calc(-1 * var(--sketch-rotate, -0.15deg))) translateX(calc(var(--sketch-wobble, 0.6px) * 0.3));
+  opacity: 0.12;
+}
+
+/* ═══════════════════════════════════════════════════
+   SKETCH-CARD: double-stroke + surface highlight
+   ═══════════════════════════════════════════════════ */
+.sketch-card {
+  position: relative;
+  border: 1.25px solid var(--ink-border, var(--border));
+  border-radius: 14px;
+  box-shadow: var(--highlight-edge, none);
+}
+
+.sketch-card::before {
+  content: '';
+  position: absolute;
+  inset: calc(-1 * var(--sketch-wobble, 0.6px));
+  border: 1px solid var(--ink-border, var(--border));
+  border-radius: 15px;
+  opacity: var(--sketch-outline-opacity, 0.22);
+  pointer-events: none;
+  transform: rotate(var(--sketch-rotate, -0.15deg));
+}
+
+.sketch-card::after {
+  content: '';
+  position: absolute;
+  inset: calc(-1 * var(--sketch-wobble, 0.6px) * 0.5);
+  border: 1px solid var(--ink-border, var(--border));
+  border-radius: 15px;
+  opacity: calc(var(--sketch-outline-opacity, 0.22) * 0.5);
+  pointer-events: none;
+  transform: rotate(calc(-1 * var(--sketch-rotate, -0.15deg)));
+}
+
+/* ── Sketch surface highlight (stacked paper) ─────── */
+.sketch-surface {
+  box-shadow: var(--highlight-edge, none), var(--shadow-sm);
+}
+
+/* ── Sketch border utility ────────────────────────── */
+.sketch-border {
+  border: 1.25px solid var(--ink-border, var(--border));
+  border-radius: 14px;
+}
+
+/* ═══════════════════════════════════════════════════
+   MARKER HIGHLIGHT hover effect
+   A translucent "marker stroke" behind hovered elements
+   ═══════════════════════════════════════════════════ */
+.marker-hover {
+  position: relative;
+  z-index: 0;
+}
+
+.marker-hover::before {
+  content: '';
+  position: absolute;
+  inset: -2px -4px;
+  background: var(--marker-color, var(--primary-soft));
+  border-radius: 6px;
+  opacity: 0;
+  z-index: -1;
+  transform: scaleX(0.92) rotate(-0.3deg);
+  transform-origin: left center;
+  transition: opacity 0.25s, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  mix-blend-mode: var(--marker-blend, multiply);
+}
+
+.marker-hover:hover::before {
+  opacity: var(--marker-opacity, 0.55);
+  transform: scaleX(1) rotate(-0.3deg);
+}
+
+/* ═══════════════════════════════════════════════════
+   MICRO-IMPERFECTIONS — deterministic per-card tilt
+   Uses nth-child to assign tiny rotation/offset.
+   Max tilt 0.4deg, max shift ~1.5px.
+   ═══════════════════════════════════════════════════ */
+.micro-imperfect>*:nth-child(6n+1) {
+  --card-tilt: 0.15deg;
+  --card-shift: 0.5px;
+}
+
+.micro-imperfect>*:nth-child(6n+2) {
+  --card-tilt: -0.25deg;
+  --card-shift: -1px;
+}
+
+.micro-imperfect>*:nth-child(6n+3) {
+  --card-tilt: 0.35deg;
+  --card-shift: 0.8px;
+}
+
+.micro-imperfect>*:nth-child(6n+4) {
+  --card-tilt: -0.12deg;
+  --card-shift: -0.5px;
+}
+
+.micro-imperfect>*:nth-child(6n+5) {
+  --card-tilt: 0.28deg;
+  --card-shift: 1.2px;
+}
+
+.micro-imperfect>*:nth-child(6n+6) {
+  --card-tilt: -0.38deg;
+  --card-shift: -0.3px;
+}
+
+.micro-imperfect>* {
+  transform: rotate(var(--card-tilt, 0)) translateX(var(--card-shift, 0));
+}
+
+/* ═══════════════════════════════════════════════════
+   PENCIL CHART styles — hand-drawn feel for SVG charts
+   Target chart container with .pencil-chart class
+   ═══════════════════════════════════════════════════ */
+.pencil-chart line,
+.pencil-chart .recharts-cartesian-grid-horizontal line,
+.pencil-chart .recharts-cartesian-grid-vertical line {
+  stroke-dasharray: 4 3;
+  stroke-opacity: 0.25;
+  stroke-width: 0.75;
+}
+
+.pencil-chart path {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pencil-chart .recharts-dot circle {
+  r: 3;
+  stroke-width: 1.5;
+}
+
+.pencil-chart text {
+  font-family: 'Caveat', ui-sans-serif;
+  font-size: 0.8rem;
+}
+
+/* Pencil line draw-in animation */
+.pencil-chart .recharts-line-curve {
+  stroke-dasharray: 2000;
+  stroke-dashoffset: 2000;
+  animation: pencilDraw 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes pencilDraw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   GLOW ORB
+   ═══════════════════════════════════════════════════ */
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+}
+
+/* ═══════════════════════════════════════════════════
+   LAYOUT UTILITIES
+   ═══════════════════════════════════════════════════ */
+
+/* Snap carousel */
+.snap-carousel {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+}
+
+.snap-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.snap-carousel>* {
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
+
+/* Sticky filter bar */
+.sticky-filter-bar {
+  position: sticky;
+  top: 60px;
+  z-index: 40;
+  padding: 14px 18px;
+  background: color-mix(in srgb, var(--surface-solid) 92%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1.25px solid var(--ink-border, var(--border));
+  border-radius: 14px;
+  margin-bottom: 24px;
+}
+
+/* Companies grid */
+.companies-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+  align-items: stretch;
+}
+
+@media (max-width: 600px) {
+  .companies-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   ACCESSIBILITY — prefers-reduced-motion
+   Disables all animations globally for users who
+   prefer reduced motion. Grain drift, wobble settle,
+   draw-in, marker hover transitions all disabled.
+   ═══════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  body::after {
+    animation: none;
+    will-change: auto;
+  }
+
+  .stagger>* {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .micro-imperfect>* {
+    transform: none !important;
+  }
+
+  .anim-up,
+  .anim-in,
+  .anim-scale,
+  .anim-draw {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .marker-hover::before {
+    transition: none !important;
+  }
+
+  .pencil-chart .recharts-line-curve {
+    animation: none;
+    stroke-dasharray: none;
+    stroke-dashoffset: 0;
+  }
+
+  .nav-tab::after {
+    transition: none;
+  }
+}

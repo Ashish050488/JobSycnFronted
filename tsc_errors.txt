@@ -1,0 +1,6 @@
+﻿src/pages/CompanyDirectory.tsx(4,33): error TS6133: 'Input' is declared but its value is never read.
+src/pages/CompanyDirectory.tsx(5,1): error TS6133: 'BRAND' is declared but its value is never read.
+src/pages/Dashboard.tsx(3,21): error TS6133: 'Building2' is declared but its value is never read.
+src/pages/Dashboard.tsx(3,32): error TS6133: 'ChevronRight' is declared but its value is never read.
+src/pages/Dashboard.tsx(6,41): error TS6133: 'Badge' is declared but its value is never read.
+src/pages/Home.tsx(4,39): error TS6133: 'Globe' is declared but its value is never read.
