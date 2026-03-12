@@ -1,4 +1,14 @@
 // FILE: src/types/index.ts
+export interface IJobAutoTags {
+  techStack: string[];
+  roleCategory: string | null;
+  experienceBand: string | null;
+  isEntryLevel: boolean | null;
+  domain: string[];
+  urgency: string | null;
+  education: string | null;
+}
+
 export interface IJob {
   _id: string;
   JobID: string;
@@ -25,6 +35,7 @@ export interface IJob {
   // --- Description variants ---
   DescriptionPlain?: string | null;
   DescriptionLists?: Array<{ text: string; content: string }>;
+  DescriptionCleaned?: string | null;
   AdditionalInfo?: string | null;
 
   // --- Salary ---
@@ -39,6 +50,21 @@ export interface IJob {
 
   // --- ATS platform ---
   ATSPlatform?: string | null;
+
+  // --- Entry-level tagging ---
+  isEntryLevel?: boolean | null;
+  autoTags?: IJobAutoTags | null;
+}
+
+export interface AppliedJobEntry {
+  jobId: string;
+  appliedAt: string;
+}
+
+export interface AppliedJobDetail extends AppliedJobEntry {
+  jobTitle: string;
+  company: string;
+  applicationURL: string | null;
 }
 
 export interface ICompany {

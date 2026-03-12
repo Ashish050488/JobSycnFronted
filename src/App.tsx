@@ -5,20 +5,35 @@ import Layout from './components/Layout';
 import Home from './pages/Home';
 import CompanyDirectory from './pages/CompanyDirectory';
 import Dashboard from './pages/Dashboard';
+import Progress from './pages/Progress';
 import Legal from './pages/Legal';
+import NamePicker from './components/NamePicker';
+import { useUser } from './context/UserContext';
+
+function AppRoutes() {
+  const { currentUser, isLoading } = useUser();
+
+  if (isLoading) return null;
+  if (!currentUser) return <NamePicker />;
+
+  return (
+    <Routes>
+      <Route path="/" element={<Layout />}>
+        <Route index element={<Home />} />
+        <Route path="directory" element={<CompanyDirectory />} />
+        <Route path="jobs" element={<Dashboard />} />
+        <Route path="progress" element={<Progress />} />
+        <Route path="legal" element={<Legal />} />
+      </Route>
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
 
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Home />} />
-          <Route path="directory" element={<CompanyDirectory />} />
-          <Route path="jobs" element={<Dashboard />} />
-          <Route path="legal" element={<Legal />} />
-        </Route>
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <AppRoutes />
     </BrowserRouter>
   );
 }

@@ -2,7 +2,7 @@
 // ─── Brand Constants ─────────────────────────────────────────────────────────
 // Change these to rebrand the entire app instantly
 
-export const BRAND = {
+const BRAND = {
   appName: 'TechJobs',
   tagline: 'Tech Jobs in India — No Fluff',
   fullName: 'Tech Jobs in India',
@@ -12,11 +12,11 @@ export const BRAND = {
 } as const;
 
 // Sketch-accent font for tiny labels & badges
-export const SKETCH_FONT = "'Caveat', 'Patrick Hand', 'Comic Neue', ui-sans-serif";
+const SKETCH_FONT = "'Caveat', 'Patrick Hand', 'Comic Neue', ui-sans-serif";
 
 // Semantic colour roles — used only for inline JS references,
 // all runtime styling goes through CSS variables set by ThemeProvider.
-export const PALETTE = {
+const PALETTE = {
   primary: '#2D6A4F',
   primarySoft: 'rgba(45,106,79,0.12)',
   success: '#40916C',
@@ -28,10 +28,11 @@ export const PALETTE = {
 // ─── Centralised UI copy ────────────────────────────────────────────────────
 // Every piece of visible text lives here so a single edit updates the whole app.
 
-export const COPY = {
+const COPY = {
   nav: {
     companies: 'Companies',
     browseJobs: 'Browse Jobs',
+    myProgress: 'My Progress',
     switchToLight: 'Switch to light mode',
     switchToDark: 'Switch to dark mode',
   },
@@ -80,6 +81,17 @@ export const COPY = {
     rolesLabel: 'roles',
     filterLabel: 'Filter',
   },
+  progress: {
+    pageLabel: 'Tracking',
+    pageTitle: 'My Progress',
+    backToJobs: 'Back to jobs',
+    todayLabel: "Today's Snapshot",
+    noStreak: 'No streak yet',
+    historyLabel: 'Recent Applications',
+    historySubtitle: 'Your latest applied jobs, useful for follow-ups and interview prep.',
+    emptyTitle: 'No applications tracked yet',
+    emptyBody: 'Start applying from the jobs feed and your recent history will appear here.',
+  },
   directory: {
     pageLabel: 'Company directory',
     pageTitle1: 'Tech Companies',
@@ -122,5 +134,15 @@ export const COPY = {
   },
   site: {
     documentTitleJobs: 'Browse Tech Jobs in India',
+    documentTitleProgress: 'My Progress | Tech Jobs in India',
   },
 } as const;
+
+export { BRAND, SKETCH_FONT, PALETTE, COPY };
+
+export default {
+  BRAND,
+  SKETCH_FONT,
+  PALETTE,
+  COPY,
+};
