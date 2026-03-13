@@ -1,5 +1,5 @@
 ﻿// FILE: src/pages/Dashboard.tsx
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Briefcase, X, SlidersHorizontal, MapPin, Building2, Clock, ExternalLink, Loader2, ArrowLeft, Search, CheckCircle2, Eye, EyeOff, Sparkles, GraduationCap, Filter } from 'lucide-react';
 import { useUser } from '../context/UserContext';
@@ -133,6 +133,124 @@ function compactJobBadges(job: IJob) {
   return badges.slice(0, 5);
 }
 
+function logoDomainFromUrl(url: string) {
+  try {
+    return new URL(url).hostname.replace('www.', '');
+  } catch {
+    return 'example.com';
+  }
+}
+
+function relTime(d: string | null) {
+  if (!d) return null;
+  const posted = new Date(d);
+  if (isNaN(posted.getTime())) return null;
+  const diff = Math.floor((Date.now() - posted.getTime()) / 86400000);
+  if (diff <= 0) return 'Today';
+  if (diff === 1) return '1d ago';
+  if (diff < 7) return `${diff}d ago`;
+  if (diff < 30) return `${Math.floor(diff / 7)}w ago`;
+  return `${Math.floor(diff / 30)}mo ago`;
+}
+
+type CompactBadge = { key: string; label: string; bg: string; color: string };
+
+interface JobListItemProps {
+  job: IJob;
+  isSelected: boolean;
+  isApplied: boolean;
+  isComeBack: boolean;
+  comeBackNote: string;
+  isNew: boolean;
+  relativeTime: string | null;
+  visibleBadges: CompactBadge[];
+  showSkillMatch: boolean;
+  skillMatchText: string;
+  skillMatchBg: string;
+  skillMatchColor: string;
+  onSelect: (job: IJob) => void;
+}
+
+const JobListItem = memo(function JobListItem({
+  job,
+  isSelected,
+  isApplied,
+  isComeBack,
+  comeBackNote,
+  isNew,
+  relativeTime,
+  visibleBadges,
+  showSkillMatch,
+  skillMatchText,
+  skillMatchBg,
+  skillMatchColor,
+  onSelect,
+}: JobListItemProps) {
+  const [logoError, setLogoError] = useState(false);
+  return (
+    <div
+      onClick={() => onSelect(job)}
+      style={{
+        padding: '14px 16px', borderBottom: '1px solid var(--border)', cursor: 'pointer',
+        background: isSelected ? 'var(--primary-soft)' : 'transparent',
+        borderLeft: isSelected ? '3px solid var(--primary)' : '3px solid transparent',
+        transition: 'all 0.18s',
+        opacity: isApplied ? 0.55 : 1,
+      }}
+      onMouseEnter={e => { if (!isSelected) (e.currentTarget as HTMLDivElement).style.background = 'var(--paper2)'; }}
+      onMouseLeave={e => { if (!isSelected) (e.currentTarget as HTMLDivElement).style.background = 'transparent'; }}
+    >
+      <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+        <div style={{ width: 32, height: 32, flexShrink: 0, background: 'var(--surface-solid)', border: '1px solid var(--border)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: 4 }}>
+          {logoError ? (
+            <span style={{ fontFamily: "'Playfair Display',serif", fontSize: '1rem', color: 'var(--primary)', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
+              {(job.Company || '?').charAt(0)}
+            </span>
+          ) : (
+            <img
+              src={`https://logo.clearbit.com/${logoDomainFromUrl(job.ApplicationURL)}`}
+              alt={job.Company}
+              style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+              onError={() => setLogoError(true)}
+            />
+          )}
+        </div>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--ink)', lineHeight: 1.3, display: 'flex', alignItems: 'flex-start', gap: 5 }}>
+            <span style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{job.JobTitle}</span>
+            {isApplied && <CheckCircle2 size={14} style={{ flexShrink: 0, color: '#16a34a', marginTop: 2 }} />}
+            {!isApplied && isComeBack && <Clock size={14} style={{ flexShrink: 0, color: '#d97706', marginTop: 2 }} />}
+          </div>
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 4, fontSize: '0.78rem', color: 'var(--muted-ink)' }}>
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{job.Company}</span>
+            <span style={{ opacity: 0.4 }}>|</span>
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{job.Location}</span>
+          </div>
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
+        {isNew && <span style={{ fontSize: '0.6rem', padding: '1px 7px', borderRadius: 999, background: '#FF6B6B', color: '#fff', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>NEW</span>}
+        {relativeTime && <Badge variant="acid" style={{ fontSize: '0.62rem' }}><Clock size={8} />{relativeTime}</Badge>}
+        {visibleBadges.map(badge => (
+          <span key={badge.key} style={{ fontSize: '0.6rem', padding: '1px 7px', borderRadius: 999, background: badge.bg, color: badge.color, fontWeight: 600 }}>
+            {badge.label}
+          </span>
+        ))}
+        {showSkillMatch && (
+          <span style={{ fontSize: '0.6rem', padding: '1px 7px', borderRadius: 999, background: skillMatchBg, color: skillMatchColor, fontWeight: 600 }}>
+            {skillMatchText}
+          </span>
+        )}
+      </div>
+      {isComeBack && comeBackNote && (
+        <div style={{ fontSize: '0.72rem', color: '#92400e', fontStyle: 'italic', marginTop: 5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', opacity: 0.85 }}>
+          {comeBackNote.length > 45 ? comeBackNote.slice(0, 45) + '\u2026' : comeBackNote}
+        </div>
+      )}
+    </div>
+  );
+});
+
 export default function Dashboard() {
   const [sp, setSp] = useSearchParams();
   const [jobs, setJobs] = useState<IJob[]>([]);
@@ -157,6 +275,11 @@ export default function Dashboard() {
   const [sortBy, setSortBy] = useState<'default' | 'match'>('default');
   const [comeBackMap, setComeBackMap] = useState<Map<string, { note: string; addedAt: string }>>(new Map());
   const [showComeBackOnly, setShowComeBackOnly] = useState(false);
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const detailPanelRef = useRef<HTMLDivElement | null>(null);
+  const visibleJobsRef = useRef<IJob[]>([]);
+  const savedListScrollTopRef = useRef<number | null>(null);
+  const initializedSelectionRef = useRef(false);
   const isMobile = useIsMobile();
   const { currentUser, userSkills, appliedJobIds, previousVisitAt, toggleApplied } = useUser();
 
@@ -240,10 +363,9 @@ export default function Dashboard() {
       setTotalJobs(jd.totalJobs ?? 0);
       setHasMore(pageNum < (jd.totalPages ?? 1));
       setJobs(prev => append ? [...prev, ...newJobs] : newJobs);
-      if (!append && newJobs.length > 0 && !selectedJobParam) setSelectedJob(newJobs[0]);
     } catch (e) { console.error(e); }
     finally { setLoading(false); setLoadingMore(false); }
-  }, [sel, selectedJobParam]);
+  }, [sel]);
 
   // Initial load + directory
   useEffect(() => {
@@ -410,15 +532,94 @@ export default function Dashboard() {
     return filtered;
   }, [jobs, searchQuery, workplaceFilter, platformFilter, dateFilter, hideApplied, appliedJobIds, showNewOnly, isJobNew, entryLevelFilter, roleCategoryFilter, experienceBandFilter, sortBy, userSkills, skillMatchMap, showComeBackOnly, comeBackMap]);
 
-  // Auto-select first job when filters change
   useEffect(() => {
-    if (selectedJobParam) return;
+    visibleJobsRef.current = visibleJobs;
+  }, [visibleJobs]);
+
+  const listRenderMeta = useMemo(() => {
+    return visibleJobs.map(job => {
+      const autoTags = getAutoTags(job);
+      const score = skillMatchMap.get(job._id) ?? 0;
+      return {
+        job,
+        isApplied: appliedJobIds.has(job._id),
+        isComeBack: comeBackMap.has(job._id),
+        comeBackNote: comeBackMap.get(job._id)?.note ?? '',
+        isNew: isJobNew(job),
+        relativeTime: relTime(job.PostedDate || job.scrapedAt || null),
+        visibleBadges: compactJobBadges(job),
+        showSkillMatch: userSkills.length > 0 && !autoTags.techStack.length,
+        skillMatchText: `${score}/${userSkills.length} match`,
+        skillMatchBg: score === 0 ? 'var(--paper2)' : score <= 2 ? '#fef3c7' : '#dcfce7',
+        skillMatchColor: score === 0 ? 'var(--muted-ink)' : score <= 2 ? '#92400e' : '#166534',
+      };
+    });
+  }, [visibleJobs, skillMatchMap, appliedJobIds, comeBackMap, isJobNew, userSkills]);
+
+  const filterSelectionKey = useMemo(() => JSON.stringify({
+    workplaceFilter,
+    platformFilter,
+    dateFilter,
+    sel,
+    searchQuery,
+    hideApplied,
+    entryLevelFilter,
+    roleCategoryFilter,
+    experienceBandFilter,
+    showNewOnly,
+    showComeBackOnly,
+  }), [
+    workplaceFilter,
+    platformFilter,
+    dateFilter,
+    sel,
+    searchQuery,
+    hideApplied,
+    entryLevelFilter,
+    roleCategoryFilter,
+    experienceBandFilter,
+    showNewOnly,
+    showComeBackOnly,
+  ]);
+
+  // Initial load selection only once
+  useEffect(() => {
+    if (initializedSelectionRef.current) return;
+    if (selectedJobParam || isMobile) return;
+    if (loading) return;
     if (visibleJobs.length === 0) {
       setSelectedJob(null);
       return;
     }
-    setSelectedJob(prev => (prev && visibleJobs.some(job => job._id === prev._id)) ? prev : visibleJobs[0]);
-  }, [visibleJobs, selectedJobParam]);
+    setSelectedJob(visibleJobs[0]);
+    initializedSelectionRef.current = true;
+  }, [loading, visibleJobs, selectedJobParam, isMobile]);
+
+  // Filter/search changes should reset list position and select first result
+  useEffect(() => {
+    if (selectedJobParam || isMobile) return;
+    const jobsNow = visibleJobsRef.current;
+    if (jobsNow.length === 0) {
+      setSelectedJob(null);
+      if (listRef.current) listRef.current.scrollTop = 0;
+      return;
+    }
+    setSelectedJob(jobsNow[0]);
+    if (listRef.current) listRef.current.scrollTop = 0;
+  }, [filterSelectionKey, selectedJobParam, isMobile]);
+
+  useEffect(() => {
+    if (savedListScrollTopRef.current !== null && listRef.current) {
+      listRef.current.scrollTop = savedListScrollTopRef.current;
+      savedListScrollTopRef.current = null;
+    }
+  }, [selectedJob?._id]);
+
+  useEffect(() => {
+    if (detailPanelRef.current) {
+      detailPanelRef.current.scrollTop = 0;
+    }
+  }, [selectedJob?._id]);
 
   const clearAllFilters = () => { setSp({}); setWorkplaceFilter(null); setPlatformFilter(null); setDateFilter(null); setSearchQuery(''); setHideApplied(false); setShowNewOnly(false); setEntryLevelFilter(false); setRoleCategoryFilter(null); setExperienceBandFilter(null); setSortBy('default'); setShowComeBackOnly(false); };
 
@@ -610,18 +811,6 @@ export default function Dashboard() {
     </>
   );
 
-  const relTime = (d: string | null) => {
-    if (!d) return null;
-    const posted = new Date(d);
-    if (isNaN(posted.getTime())) return null;
-    const diff = Math.floor((Date.now() - posted.getTime()) / 86400000);
-    if (diff <= 0) return 'Today';
-    if (diff === 1) return '1d ago';
-    if (diff < 7) return `${diff}d ago`;
-    if (diff < 30) return `${Math.floor(diff / 7)}w ago`;
-    return `${Math.floor(diff / 30)}mo ago`;
-  };
-
   const logoDomain = (url: string) => { try { return new URL(url).hostname.replace('www.', ''); } catch { return 'example.com'; } };
 
   const workplaceBadge = (job: IJob): { label: string; bg: string; color: string } | null => {
@@ -664,83 +853,16 @@ export default function Dashboard() {
     </button>
   );
 
-  /* Left-panel compact job card */
-  const JobListItem = ({ job }: { job: IJob }) => {
-    const isSelected = selectedJob?._id === job._id;
-    const isApplied = appliedJobIds.has(job._id);
-    const autoTags = getAutoTags(job);
-    const visibleBadges = compactJobBadges(job);
-    const effectiveDate = job.PostedDate || job.scrapedAt || null;
-    const rt = relTime(effectiveDate);
-    return (
-      <div
-        onClick={() => {
-          const next = new URLSearchParams(sp);
-          next.set('selectedJob', job._id);
-          setSp(next);
-          setSelectedJob(job);
-          if (isMobile) setMobileSheetOpen(true);
-        }}
-        style={{
-          padding: '14px 16px', borderBottom: '1px solid var(--border)', cursor: 'pointer',
-          background: isSelected ? 'var(--primary-soft)' : 'transparent',
-          borderLeft: isSelected ? '3px solid var(--primary)' : '3px solid transparent',
-          transition: 'all 0.18s',
-          opacity: isApplied ? 0.55 : 1,
-        }}
-        onMouseEnter={e => { if (!isSelected) (e.currentTarget as HTMLDivElement).style.background = 'var(--paper2)'; }}
-        onMouseLeave={e => { if (!isSelected) (e.currentTarget as HTMLDivElement).style.background = 'transparent'; }}
-      >
-        {/* Row 1: logo + title */}
-        <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-          <div style={{ width: 32, height: 32, flexShrink: 0, background: 'var(--surface-solid)', border: '1px solid var(--border)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: 4 }}>
-            <LogoImg job={job} size={32} />
-          </div>
-          <div style={{ minWidth: 0, flex: 1 }}>
-            <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--ink)', lineHeight: 1.3, display: 'flex', alignItems: 'flex-start', gap: 5 }}>
-              <span style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{job.JobTitle}</span>
-              {isApplied && <CheckCircle2 size={14} style={{ flexShrink: 0, color: '#16a34a', marginTop: 2 }} />}
-              {!isApplied && comeBackMap.has(job._id) && <Clock size={14} style={{ flexShrink: 0, color: '#d97706', marginTop: 2 }} />}
-            </div>
-            {/* Row 2: company and location */}
-            <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 4, fontSize: '0.78rem', color: 'var(--muted-ink)' }}>
-              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{job.Company}</span>
-              <span style={{ opacity: 0.4 }}>|</span>
-              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{job.Location}</span>
-            </div>
-          </div>
-        </div>
-        {/* Row 3: badges */}
-        <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
-          {isJobNew(job) && <span style={{ fontSize: '0.6rem', padding: '1px 7px', borderRadius: 999, background: '#FF6B6B', color: '#fff', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>NEW</span>}
-          {rt && <Badge variant="acid" style={{ fontSize: '0.62rem' }}><Clock size={8} />{rt}</Badge>}
-          {visibleBadges.map(badge => (
-            <span key={badge.key} style={{ fontSize: '0.6rem', padding: '1px 7px', borderRadius: 999, background: badge.bg, color: badge.color, fontWeight: 600 }}>
-              {badge.label}
-            </span>
-          ))}
-          {userSkills.length > 0 && !autoTags.techStack.length && (() => {
-            const score = skillMatchMap.get(job._id) ?? 0;
-            const bg = score === 0 ? 'var(--paper2)' : score <= 2 ? '#fef3c7' : '#dcfce7';
-            const col = score === 0 ? 'var(--muted-ink)' : score <= 2 ? '#92400e' : '#166534';
-            return (
-              <span style={{ fontSize: '0.6rem', padding: '1px 7px', borderRadius: 999, background: bg, color: col, fontWeight: 600 }}>
-                {score}/{userSkills.length} match
-              </span>
-            );
-          })()}
-        </div>
-        {/* Come back note preview */}
-        {comeBackMap.has(job._id) && comeBackMap.get(job._id)!.note && (
-          <div style={{ fontSize: '0.72rem', color: '#92400e', fontStyle: 'italic', marginTop: 5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', opacity: 0.85 }}>
-            {comeBackMap.get(job._id)!.note.length > 45
-              ? comeBackMap.get(job._id)!.note.slice(0, 45) + '\u2026'
-              : comeBackMap.get(job._id)!.note}
-          </div>
-        )}
-      </div>
-    );
-  };
+  const handleSelectJob = useCallback((job: IJob) => {
+    if (listRef.current) {
+      savedListScrollTopRef.current = listRef.current.scrollTop;
+    }
+    const next = new URLSearchParams(window.location.search);
+    next.set('selectedJob', job._id);
+    setSp(next);
+    setSelectedJob(job);
+    if (isMobile) setMobileSheetOpen(true);
+  }, [setSp, isMobile]);
 
   /* Right-panel detail view */
   const DetailPanel = ({ job, mobileMode = false }: { job: IJob; mobileMode?: boolean }) => {
@@ -1293,8 +1415,28 @@ export default function Dashboard() {
             ) : (
               <div style={{ display: 'flex', gap: 0, height: 'calc(100vh - 180px)', overflow: 'hidden', border: '1.25px solid var(--border)', borderRadius: 14, background: 'var(--surface-solid)' }}>
                 {/* Left Panel: Job List */}
-                <div className="thin-scroll" style={{ width: isMobile ? '100%' : 380, flexShrink: 0, overflowY: 'auto', borderRight: isMobile ? 'none' : '1.25px solid var(--border)' }}>
-                  {visibleJobs.map(j => <JobListItem key={j._id} job={j} />)}
+                <div ref={listRef} className="thin-scroll" style={{ width: isMobile ? '100%' : 380, flexShrink: 0, overflowY: 'auto', borderRight: isMobile ? 'none' : '1.25px solid var(--border)' }}>
+                  {listRenderMeta.map(meta => {
+                    const j = meta.job;
+                    return (
+                      <JobListItem
+                        key={j._id}
+                        job={j}
+                        isSelected={selectedJob?._id === j._id}
+                        isApplied={meta.isApplied}
+                        isComeBack={meta.isComeBack}
+                        comeBackNote={meta.comeBackNote}
+                        isNew={meta.isNew}
+                        relativeTime={meta.relativeTime}
+                        visibleBadges={meta.visibleBadges}
+                        showSkillMatch={meta.showSkillMatch}
+                        skillMatchText={meta.skillMatchText}
+                        skillMatchBg={meta.skillMatchBg}
+                        skillMatchColor={meta.skillMatchColor}
+                        onSelect={handleSelectJob}
+                      />
+                    );
+                  })}
                   {/* Infinite-scroll sentinel */}
                   {hasMore && (
                     <div ref={sentinelRef} style={{ display: 'flex', justifyContent: 'center', padding: '16px 0' }}>
@@ -1307,7 +1449,7 @@ export default function Dashboard() {
                 </div>
                 {/* Right Panel: Detail */}
                 {!isMobile && (
-                  <div className="thin-scroll" style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}>
+                  <div ref={detailPanelRef} className="thin-scroll" style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}>
                     {selectedJob ? <DetailPanel job={selectedJob} /> : (
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
                         <EmptyState icon={<Briefcase size={36} />} title="Select a job" body="Click a job on the left to view details." />
