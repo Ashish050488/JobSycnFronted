@@ -24,7 +24,7 @@ function useIsMobile(breakpoint = 768) {
 
 export default function Progress() {
   const isMobile = useIsMobile();
-  const { currentUser, appliedJobs, todayCount, streak, dailyGoal, saveDailyGoal } = useUser();
+  const { currentUser, appliedJobs, appliedCount, todayCount, streak, dailyGoal, saveDailyGoal } = useUser();
   const [recentApplied, setRecentApplied] = useState<AppliedJobDetail[]>([]);
   const [loadingRecent, setLoadingRecent] = useState(true);
 
@@ -63,6 +63,7 @@ export default function Progress() {
 
   const goalMetDays = useMemo(() => getGoalMetDays(appliedJobs, dailyGoal, 7), [appliedJobs, dailyGoal]);
   const thisWeekApplied = useMemo(() => getThisWeekApplied(appliedJobs), [appliedJobs]);
+  const totalApplied = appliedCount ?? appliedJobs.length;
 
   if (!currentUser) {
     return <Navigate to="/jobs" replace />;
@@ -102,6 +103,7 @@ export default function Progress() {
           <section>
             <ActivityChart appliedJobs={appliedJobs} dailyGoal={dailyGoal} isMobile={isMobile} barMaxHeight={120} />
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px 18px', marginTop: 12, padding: '0 4px', fontSize: '0.86rem', color: 'var(--muted-ink)' }}>
+              <span>Total applied: {totalApplied}</span>
               <span>⭐ Hit goal {goalMetDays} of last 7 days</span>
               <span>Applied to {thisWeekApplied} jobs this week</span>
             </div>

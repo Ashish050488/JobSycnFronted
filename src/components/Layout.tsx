@@ -1,7 +1,7 @@
 // FILE: src/components/Layout.tsx
 import { useState, useRef, useEffect, type ReactNode } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { Menu, X, Sun, Moon, Zap, LogOut, BookOpen, BarChart3 } from 'lucide-react';
+import { Menu, X, Sun, Moon, Zap, LogOut, BookOpen, BarChart3, Loader2 } from 'lucide-react';
 import { useTheme } from '../theme/ThemeProvider';
 import { BRAND, COPY } from '../theme/brand';
 import { useUser } from '../context/UserContext';
@@ -14,7 +14,47 @@ export default function Layout() {
   const { currentUser, switchUser, skillsEditorOpen, openSkillsEditor, closeSkillsEditor, todayCount, streak } = useUser();
   const [open, setOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [recleaning, setRecleaning] = useState(false);
+  const [recleanResult, setRecleanResult] = useState<{ success: boolean; updated?: number; skipped?: number; errored?: number; error?: string } | null>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
+  const [viewport, setViewport] = useState(() => ({
+    width: typeof window !== 'undefined' ? window.innerWidth : 1280,
+    height: typeof window !== 'undefined' ? window.innerHeight : 720,
+  }));
+
+  useEffect(() => {
+    const onResize = () => setViewport({ width: window.innerWidth, height: window.innerHeight });
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  const isMobileNav = viewport.width < 640;
+  const is3xl = viewport.width >= 1536;
+  const isShortLandscape = viewport.width > viewport.height && viewport.height < 500;
+  const navHeight = isShortLandscape && isMobileNav ? 48 : 60;
+
+  const handleRecleanDescriptions = async () => {
+    setRecleaning(true);
+    setRecleanResult(null);
+    try {
+      const response = await fetch('/api/admin/reclean-descriptions', { method: 'POST' });
+      const data = await response.json();
+      if (!response.ok || !data?.success) {
+        throw new Error(data?.error || 'Request failed');
+      }
+      setRecleanResult({
+        success: true,
+        updated: data.updated ?? 0,
+        skipped: data.skipped ?? 0,
+        errored: data.errored ?? 0,
+      });
+    } catch (err) {
+      setRecleanResult({ success: false, error: err instanceof Error ? err.message : 'Unknown error' });
+    } finally {
+      setRecleaning(false);
+    }
+  };
 
   // Close user dropdown on outside click
   useEffect(() => {
@@ -26,6 +66,10 @@ export default function Layout() {
     if (userMenuOpen) document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, [userMenuOpen]);
+
+  useEffect(() => {
+    setOpen(false);
+  }, [loc.pathname]);
 
   const active = (path: string) => loc.pathname === path;
   const navLink = (path: string, label: string, icon?: ReactNode) => (
@@ -66,7 +110,7 @@ export default function Layout() {
   );
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
       <nav
         className="nav-blur"
         style={{
@@ -78,10 +122,10 @@ export default function Layout() {
       >
         <div
           style={{
-            maxWidth: 1200,
+            maxWidth: is3xl ? 1600 : 1200,
             margin: '0 auto',
-            padding: '0 24px',
-            height: 60,
+            padding: isMobileNav ? '0 14px' : '0 24px',
+            height: navHeight,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -119,13 +163,47 @@ export default function Layout() {
             </span>
           </Link>
 
-          <div className="hidden md:flex" style={{ alignItems: 'center', gap: 28 }}>
+          <div className="hidden md:flex nav-links" style={{ alignItems: 'center', gap: is3xl ? 32 : 28 }}>
             {navLink('/directory', COPY.nav.companies)}
             {navLink('/jobs', COPY.nav.browseJobs)}
             {navLink('/progress', COPY.nav.myProgress, <BarChart3 size={14} />)}
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div className="hidden md:flex" style={{ alignItems: 'center', gap: 8 }}>
+              <button
+                onClick={handleRecleanDescriptions}
+                disabled={recleaning}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  border: '1px solid var(--border)',
+                  borderRadius: 8,
+                  padding: '6px 10px',
+                  background: 'var(--surface-solid)',
+                  color: 'var(--muted-ink)',
+                  fontSize: '0.74rem',
+                  fontWeight: 600,
+                  cursor: recleaning ? 'not-allowed' : 'pointer',
+                  opacity: recleaning ? 0.7 : 1,
+                }}
+              >
+                {recleaning && <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} />}
+                {recleaning ? 'Cleaning...' : 'Re-Clean JDs'}
+              </button>
+              {recleanResult?.success && (
+                <span style={{ fontSize: '0.72rem', color: '#16a34a', whiteSpace: 'nowrap' }}>
+                  Updated {recleanResult.updated} | Skipped {recleanResult.skipped} | Errors {recleanResult.errored}
+                </span>
+              )}
+              {recleanResult && !recleanResult.success && (
+                <span style={{ fontSize: '0.72rem', color: '#dc2626', maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  Failed: {recleanResult.error}
+                </span>
+              )}
+            </div>
+
             {currentUser && (
               <>
                 <Link
@@ -296,7 +374,7 @@ export default function Layout() {
             )}
 
             <button
-              className="md:hidden"
+              className="md:hidden nav-hamburger"
               onClick={() => setOpen(!open)}
               style={{
                 background: 'none',
@@ -313,24 +391,65 @@ export default function Layout() {
             </button>
           </div>
         </div>
+      </nav>
 
-        {open && (
+      {open && isMobileNav && (
+        <>
           <div
+            onClick={() => setOpen(false)}
             style={{
-              borderTop: '1px solid var(--border)',
-              background: 'var(--bg-surface)',
-              padding: '16px 24px',
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(0,0,0,0.42)',
+              zIndex: 80,
+            }}
+          />
+          <div
+            ref={drawerRef}
+            onTouchStart={e => {
+              (e.currentTarget as HTMLDivElement).dataset.touchX = String(e.touches[0].clientX);
+            }}
+            onTouchEnd={e => {
+              const startX = Number((e.currentTarget as HTMLDivElement).dataset.touchX || '0');
+              const endX = e.changedTouches[0]?.clientX ?? startX;
+              if (startX - endX > 55) setOpen(false);
+            }}
+            style={{
+              position: 'fixed',
+              right: 0,
+              top: 0,
+              bottom: 0,
+              width: 280,
+              background: 'var(--surface-solid)',
+              borderLeft: '1px solid var(--border)',
+              zIndex: 81,
               display: 'flex',
               flexDirection: 'column',
-              gap: 16,
+              paddingTop: 18,
+              animation: 'drawerIn 0.22s ease',
             }}
           >
-            {navLink('/directory', COPY.nav.companies)}
-            {navLink('/jobs', COPY.nav.browseJobs)}
-            {navLink('/progress', COPY.nav.myProgress, <BarChart3 size={14} />)}
+            <style>{`@keyframes drawerIn { from { transform: translateX(100%); } to { transform: translateX(0); } }`}</style>
+            <button
+              onClick={() => setOpen(false)}
+              style={{
+                alignSelf: 'flex-end',
+                marginRight: 12,
+                marginBottom: 8,
+                border: 'none',
+                background: 'none',
+                color: 'var(--muted-ink)',
+                cursor: 'pointer',
+              }}
+            >
+              <X size={20} />
+            </button>
+            <Link to="/directory" onClick={() => setOpen(false)} style={{ textDecoration: 'none', color: 'var(--ink)', padding: '16px 24px', fontSize: 18, borderTop: '1px solid var(--border)' }}>{COPY.nav.companies}</Link>
+            <Link to="/jobs" onClick={() => setOpen(false)} style={{ textDecoration: 'none', color: 'var(--ink)', padding: '16px 24px', fontSize: 18, borderTop: '1px solid var(--border)' }}>{COPY.nav.browseJobs}</Link>
+            <Link to="/progress" onClick={() => setOpen(false)} style={{ textDecoration: 'none', color: 'var(--ink)', padding: '16px 24px', fontSize: 18, borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>{COPY.nav.myProgress}</Link>
           </div>
-        )}
-      </nav>
+        </>
+      )}
 
       <main style={{ flex: 1 }}>
         <Outlet />

@@ -15,9 +15,32 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+:root {
+  --font-body: 14px;
+  --font-small: 12px;
+  --font-heading: 16px;
+  --font-title: 20px;
+}
+
+@media (max-width: 479px) {
+  :root {
+    --font-body: 13px;
+    --font-small: 11px;
+  }
+}
+
+@media (min-width: 1536px) {
+  :root {
+    --font-body: 15px;
+    --font-heading: 18px;
+    --font-title: 22px;
+  }
+}
+
 /* ── Base ─────────────────────────────────────────── */
 body {
   font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-size: var(--font-body);
   background: var(--paper);
   color: var(--ink);
   line-height: 1.5;
@@ -25,6 +48,23 @@ body {
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
   transition: background 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (max-width: 639px) {
+  button,
+  .btn,
+  a.nav-link {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+@media (min-width: 1536px) {
+  button,
+  .btn,
+  a.nav-link {
+    min-height: 52px;
+  }
 }
 
 /* ═══════════════════════════════════════════════════

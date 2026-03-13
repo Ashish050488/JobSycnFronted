@@ -16,6 +16,7 @@ interface UserCtx {
   isUserDataLoading: boolean;
   userSkills: string[];
   appliedJobs: AppliedJobEntry[];
+  appliedCount: number;
   appliedJobIds: Set<string>;
   previousVisitAt: string | null;
   todayCount: number;
@@ -57,6 +58,7 @@ const Ctx = createContext<UserCtx>({
   isUserDataLoading: false,
   userSkills: [],
   appliedJobs: [],
+  appliedCount: 0,
   appliedJobIds: new Set(),
   previousVisitAt: null,
   todayCount: 0,
@@ -78,6 +80,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [isUserDataLoading, setIsUserDataLoading] = useState(false);
   const [userSkills, setUserSkills] = useState<string[]>([]);
   const [appliedJobs, setAppliedJobs] = useState<AppliedJobEntry[]>([]);
+  const [appliedCount, setAppliedCount] = useState(0);
   const [previousVisitAt, setPreviousVisitAt] = useState<string | null>(null);
   const [dailyGoal, setDailyGoal] = useState(5);
   const [skillsEditorOpen, setSkillsEditorOpen] = useState(false);
@@ -102,6 +105,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     if (!currentUser) {
       setUserSkills([]);
       setAppliedJobs([]);
+      setAppliedCount(0);
       setPreviousVisitAt(null);
       setDailyGoal(5);
       setIsUserDataLoading(false);
@@ -117,11 +121,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
       fetch(`/api/users/${slug}/applied`).then(r => r.ok ? r.json() : []),
       fetch(`/api/users/${slug}/visit`, { method: 'PATCH' }).then(r => r.ok ? r.json() : null),
     ])
-      .then(([userData, appliedData, visitData]: [{ skills?: string[]; dailyGoal?: number } | null, AppliedJobEntry[], { previousVisitAt: string | null } | null]) => {
+      .then(([userData, appliedData, visitData]: [{ skills?: string[]; dailyGoal?: number; appliedCount?: number } | null, AppliedJobEntry[], { previousVisitAt: string | null } | null]) => {
         if (cancelled) return;
         setUserSkills(Array.isArray(userData?.skills) ? userData.skills : []);
         setDailyGoal(userData?.dailyGoal ?? 5);
-        setAppliedJobs(Array.isArray(appliedData) ? appliedData : []);
+        const nextAppliedJobs = Array.isArray(appliedData) ? appliedData : [];
+        setAppliedJobs(nextAppliedJobs);
+        setAppliedCount(userData?.appliedCount ?? nextAppliedJobs.length);
         setPreviousVisitAt(visitData?.previousVisitAt ?? null);
       })
       .catch(() => {})
@@ -145,6 +151,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     setCurrentUser(null);
     setUserSkills([]);
     setAppliedJobs([]);
+    setAppliedCount(0);
     setPreviousVisitAt(null);
     setDailyGoal(5);
   }, []);
@@ -195,6 +202,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const existingEntry = appliedJobs.find(entry => entry.jobId === jobId) ?? null;
     const optimisticEntry = { jobId, appliedAt: new Date().toISOString() };
 
+    if (!exists) setAppliedCount(prev => prev + 1);
+
     setAppliedJobs(prev => exists ? prev.filter(entry => entry.jobId !== jobId) : [...prev, optimisticEntry]);
 
     try {
@@ -203,6 +212,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       const data = await response.json() as AppliedJobEntry[];
       setAppliedJobs(Array.isArray(data) ? data : []);
     } catch {
+      if (!exists) setAppliedCount(prev => Math.max(0, prev - 1));
       setAppliedJobs(prev => exists
         ? (existingEntry ? [...prev, existingEntry] : prev)
         : prev.filter(entry => entry.jobId !== jobId)
@@ -211,7 +221,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   }, [currentUser, appliedJobIds, appliedJobs]);
 
   return (
-    <Ctx.Provider value={{ currentUser, isLoading, isUserDataLoading, userSkills, appliedJobs, appliedJobIds, previousVisitAt, todayCount, streak, dailyGoal, skillsEditorOpen, openSkillsEditor, closeSkillsEditor, saveSkills, saveDailyGoal, toggleApplied, switchUser, selectUser }}>
+    <Ctx.Provider value={{ currentUser, isLoading, isUserDataLoading, userSkills, appliedJobs, appliedCount, appliedJobIds, previousVisitAt, todayCount, streak, dailyGoal, skillsEditorOpen, openSkillsEditor, closeSkillsEditor, saveSkills, saveDailyGoal, toggleApplied, switchUser, selectUser }}>
       {children}
     </Ctx.Provider>
   );
