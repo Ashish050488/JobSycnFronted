@@ -1,5 +1,5 @@
 // FILE: src/components/JobDetailPanel.tsx
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { MapPin, Building2, Clock, ExternalLink, CheckCircle2 } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { Badge, Button } from './ui';
