@@ -1,10 +1,51 @@
 ﻿import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Briefcase, X, ExternalLink, ArrowLeft, Search, CheckCircle2, Eye, EyeOff, Sparkles, GraduationCap } from 'lucide-react';
+import { useUser } from '../context/UserContext';
 import type { IJob } from '../types';
 import { Container, PageHeader, Button, EmptyState } from '../components/ui';
 import { COPY } from '../theme/brand';
 import JobListItem from '../components/JobListItem';
-import JobDetailPanel from '../components/JobDetailPanel';
+import type { CompactBadge } from '../components/JobListItem';
+import JobDetailPanel, { inferWorkplace, stripHtmlText, buildSkillsRegex, relTime, getAutoTags, roleBadgeStyle } from '../components/JobDetailPanel';
+// Viewport info hook
+function useViewportInfo() {
+  const [viewport, setViewport] = useState(() => ({
+    width: typeof window !== 'undefined' ? window.innerWidth : 1280,
+    height: typeof window !== 'undefined' ? window.innerHeight : 720,
+  }));
+  useEffect(() => {
+    const onResize = () => setViewport({ width: window.innerWidth, height: window.innerHeight });
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+  const { width, height } = viewport;
+  const isXsSm = width < 640;
+  const isMd = width >= 640 && width < 768;
+  const isLg = width >= 768 && width < 1024;
+  const is3xl = width >= 1536;
+  const isShortLandscape = width > height && height < 500;
+  const useSplitView = width >= 768 && height >= 500;
+  return { isXsSm, isMd, isLg, is3xl, isShortLandscape, useSplitView };
+}
+
+interface CS { companyName: string; openRoles: number; }
+
+function compactJobBadges(job: IJob): CompactBadge[] {
+  const autoTags = getAutoTags(job);
+  const badges: CompactBadge[] = [];
+  if (autoTags.urgency === 'Urgent') badges.push({ key: 'urgent', label: 'Urgent', bg: '#fee2e2', color: '#b91c1c' });
+  if (autoTags.roleCategory) {
+    const tone = roleBadgeStyle(autoTags.roleCategory);
+    badges.push({ key: 'role', label: autoTags.roleCategory, bg: tone.bg, color: tone.color });
+  }
+  if (autoTags.experienceBand) badges.push({ key: 'exp', label: autoTags.experienceBand, bg: 'var(--paper2)', color: 'var(--muted-ink)' });
+  if (autoTags.isEntryLevel) badges.push({ key: 'entry', label: 'Fresher Friendly', bg: '#dcfce7', color: '#166534' });
+  for (const tech of autoTags.techStack.slice(0, 2)) {
+    badges.push({ key: `tech-${tech}`, label: tech, bg: 'var(--paper2)', color: 'var(--subtle-ink)' });
+  }
+  return badges.slice(0, 5);
+}
 
 // --- Filter option constants (restored as required) ---
 const ROLE_FILTER_OPTIONS = [
@@ -32,9 +73,12 @@ const EXPERIENCE_FILTER_OPTIONS = [
 const PAGE_SIZE = 30;
 
 export default function Dashboard() {
+  // URL params
+  const [sp, setSp] = useSearchParams();
+  const sel = sp.get('company') || '';
+  const selectedJobParam = sp.get('selectedJob') || '';
 
-  // --- State and refs ---
-  const [sp, setSp] = useState<any>(new URLSearchParams(window.location.search));
+  // Filters
   const [roleCategoryFilter, setRoleCategoryFilter] = useState<string | null>(null);
   const [experienceBandFilter, setExperienceBandFilter] = useState<string | null>(null);
   const [entryLevelFilter, setEntryLevelFilter] = useState<boolean>(false);
@@ -46,6 +90,8 @@ export default function Dashboard() {
   const [showNewOnly, setShowNewOnly] = useState<boolean>(false);
   const [showComeBackOnly, setShowComeBackOnly] = useState<boolean>(false);
   const [sortBy, setSortBy] = useState<'default' | 'match'>('default');
+
+  // Pagination
   const [jobs, setJobs] = useState<IJob[]>([]);
   const [totalJobs, setTotalJobs] = useState<number>(0);
   const [totalPages, setTotalPages] = useState<number>(1);
@@ -53,56 +99,87 @@ export default function Dashboard() {
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [selectedJob, setSelectedJob] = useState<IJob | null>(null);
-  const [cos, setCos] = useState<any[]>([]);
+  const [cos, setCos] = useState<CS[]>([]);
+
+  // UI
   const [mobileSheetOpen, setMobileSheetOpen] = useState<boolean>(false);
   const [filterModalOpen, setFilterModalOpen] = useState<boolean>(false);
+
+  // Refs
   const listRef = useRef<HTMLDivElement | null>(null);
   const detailPanelRef = useRef<HTMLDivElement | null>(null);
   const visibleJobsRef = useRef<IJob[]>([]);
   const initializedSelectionRef = useRef<boolean>(false);
   const savedListScrollTopRef = useRef<number | null>(null);
-  // The following are placeholders for context/props/hooks that should be imported or passed in:
-  const is3xl = false; // TODO: Replace with actual logic or prop
-  const isLg = false; // TODO: Replace with actual logic or prop
-  const isMd = false; // TODO: Replace with actual logic or prop
-  const isXsSm = false; // TODO: Replace with actual logic or prop
-  const isShortLandscape = false; // TODO: Replace with actual logic or prop
-  const useBottomSheet = false; // TODO: Replace with actual logic or prop
-  const currentUser = null; // TODO: Replace with actual user context
-  const previousVisitAt = null; // TODO: Replace with actual value
-  const appliedJobIds: Set<string> = new Set(); // TODO: Replace with actual applied job IDs
-  const comeBackMap = new Map(); // TODO: Replace with actual come back map
-  const userSkills: string[] = []; // TODO: Replace with actual user skills
-  // Helper functions (should be imported or defined elsewhere)
-  // Placeholder helpers to avoid unused warnings
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const inferWorkplace = (_job: IJob) => '';
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const stripHtmlText = (_text: string) => _text;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const buildSkillsRegex = (_skills: string[]): RegExp | null => null;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const relTime = (_date: string | null) => '';
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const compactJobBadges = (_job: IJob) => [];
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleToggleApplied = async (_id: string): Promise<void> => {};
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const toggleComeBack = (_id: string) => {};
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const removeComeBack = (_id: string) => {};
-  // (constants now declared at module level)
 
+  // Viewport and user context
+  const { isXsSm, isMd, isLg, is3xl, isShortLandscape, useSplitView } = useViewportInfo();
+  const useBottomSheet = !useSplitView;
+  const { currentUser, userSkills, appliedJobIds, previousVisitAt, toggleApplied } = useUser();
+
+  // ComeBack logic
+  const [comeBackMap, setComeBackMap] = useState<Map<string, { note: string; addedAt: string }>>(new Map());
+  useEffect(() => {
+    if (!currentUser) { setComeBackMap(new Map()); return; }
+    let cancelled = false;
+    fetch(`/api/users/${encodeURIComponent(currentUser.slug)}/comeback`)
+      .then(r => r.ok ? r.json() : [])
+      .then((entries: { jobId: string; note: string; addedAt: string }[]) => {
+        if (!cancelled) setComeBackMap(new Map(entries.map(e => [e.jobId, { note: e.note, addedAt: e.addedAt }])));
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [currentUser?.slug]);
+
+  const toggleComeBack = useCallback((jobId: string, note: string) => {
+    if (!currentUser) return;
+    const slug = encodeURIComponent(currentUser.slug);
+    const id = encodeURIComponent(jobId);
+    setComeBackMap(prev => { const next = new Map(prev); next.set(jobId, { note, addedAt: new Date().toISOString() }); return next; });
+    fetch(`/api/users/${slug}/comeback/${id}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ note }),
+    }).then(r => r.ok ? r.json() : null)
+      .then((entries: { jobId: string; note: string; addedAt: string }[] | null) => {
+        if (entries) setComeBackMap(new Map(entries.map(e => [e.jobId, { note: e.note, addedAt: e.addedAt }])));
+      }).catch(() => {});
+  }, [currentUser]);
+
+  const removeComeBack = useCallback((jobId: string) => {
+    if (!currentUser) return;
+    const slug = encodeURIComponent(currentUser.slug);
+    const id = encodeURIComponent(jobId);
+    setComeBackMap(prev => { const next = new Map(prev); next.delete(jobId); return next; });
+    fetch(`/api/users/${slug}/comeback/${id}`, { method: 'DELETE' })
+      .then(r => r.ok ? r.json() : null)
+      .then((entries: { jobId: string; note: string; addedAt: string }[] | null) => {
+        if (entries) setComeBackMap(new Map(entries.map(e => [e.jobId, { note: e.note, addedAt: e.addedAt }])));
+      }).catch(() => {});
+  }, [currentUser]);
+
+  const handleToggleApplied = useCallback(async (jobId: string) => {
+    const wasApplied = appliedJobIds.has(jobId);
+    await toggleApplied(jobId);
+    if (!wasApplied && comeBackMap.has(jobId)) removeComeBack(jobId);
+  }, [appliedJobIds, toggleApplied, comeBackMap, removeComeBack]);
+
+  const handleSelectJob = useCallback((job: IJob) => {
+    if (listRef.current) savedListScrollTopRef.current = listRef.current.scrollTop;
+    setSp(prev => { const next = new URLSearchParams(prev); next.set('selectedJob', job._id); return next; });
+    setSelectedJob(job);
+    if (useBottomSheet) setMobileSheetOpen(true);
+  }, [setSp, useBottomSheet]);
+
+  useEffect(() => {
+    if (mobileSheetOpen) { document.body.style.overflow = 'hidden'; }
+    else { document.body.style.overflow = ''; }
+    return () => { document.body.style.overflow = ''; };
+  }, [mobileSheetOpen]);
   useEffect(() => {
     if (!useBottomSheet) setMobileSheetOpen(false);
     if (!isMd) setFilterModalOpen(false);
   }, [useBottomSheet, isMd]);
   useEffect(() => { document.title = COPY.site.documentTitleJobs; }, []);
-  const sel = sp.get('company') || '';
-  const selectedJobParam = sp.get('selectedJob') || '';
-
   // --- Server-side filter state ---
-  // These are the filters that should trigger a new API call
   const serverFilters = {
     roleCategory: roleCategoryFilter,
     experienceBand: experienceBandFilter,
@@ -112,23 +189,18 @@ export default function Dashboard() {
     company: sel,
   };
 
-  // Refactored fetchJobs to accept all server-side filter params
-  const fetchJobs = useCallback(async (pageNum: number, append: boolean) => {
-    if (append) {
-      setIsLoadingMore(true);
-    } else {
-      setLoading(true);
-      setCurrentPage(1);
-      setJobs([]);
-    }
+  const fetchJobs = useCallback(async (pageNum: number, append: boolean, filters?: typeof serverFilters) => {
+    const f = filters ?? serverFilters;
+    if (append) { setIsLoadingMore(true); }
+    else { setLoading(true); setCurrentPage(1); setJobs([]); }
     try {
       const params = new URLSearchParams({ page: String(pageNum), limit: String(PAGE_SIZE) });
-      if (serverFilters.company) params.set('company', serverFilters.company);
-      if (serverFilters.roleCategory) params.set('roleCategory', serverFilters.roleCategory);
-      if (serverFilters.experienceBand) params.set('experienceBand', serverFilters.experienceBand);
-      if (serverFilters.entryLevel) params.set('entryLevel', 'true');
-      if (serverFilters.remote) params.set('remote', 'true');
-      if (serverFilters.platform) params.set('platform', serverFilters.platform);
+      if (f.company) params.set('company', f.company);
+      if (f.roleCategory) params.set('roleCategory', f.roleCategory);
+      if (f.experienceBand) params.set('experienceBand', f.experienceBand);
+      if (f.entryLevel || f.experienceBand === 'Fresher (0-1y)') params.set('entryLevel', 'true');
+      if (f.remote) params.set('remote', 'true');
+      if (f.platform) params.set('platform', f.platform);
       const jr = await fetch(`/api/jobs?${params}`);
       const jd = await jr.json() as { jobs?: IJob[]; totalJobs?: number; totalPages?: number; currentPage?: number };
       const newJobs = jd.jobs ?? [];
@@ -137,17 +209,12 @@ export default function Dashboard() {
       setCurrentPage(jd.currentPage ?? pageNum);
       setJobs(prev => append ? [...prev, ...newJobs] : newJobs);
     } catch (e) { console.error(e); }
-    finally {
-      if (append) setIsLoadingMore(false);
-      else setLoading(false);
-    }
-  }, [serverFilters.company, serverFilters.roleCategory, serverFilters.experienceBand, serverFilters.entryLevel, serverFilters.remote, serverFilters.platform]);
+    finally { if (append) setIsLoadingMore(false); else setLoading(false); }
+  }, [sel, roleCategoryFilter, experienceBandFilter, entryLevelFilter, workplaceFilter, platformFilter]);
 
-  // Watch all server-side filters and reset to page 1 on change
   useEffect(() => {
     fetchJobs(1, false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [serverFilters.company, serverFilters.roleCategory, serverFilters.experienceBand, serverFilters.entryLevel, serverFilters.remote, serverFilters.platform]);
+  }, [sel, roleCategoryFilter, experienceBandFilter, entryLevelFilter, workplaceFilter, platformFilter]);
   // --- Load More logic ---
   const hasMore = currentPage < totalPages;
 
@@ -330,16 +397,6 @@ export default function Dashboard() {
     fetchJobs(1, false);
   };
 
-  const handleSelectJob = useCallback((job: IJob) => {
-    if (listRef.current) {
-      savedListScrollTopRef.current = listRef.current.scrollTop;
-    }
-    const next = new URLSearchParams(window.location.search);
-    next.set('selectedJob', job._id);
-    setSp(next);
-    setSelectedJob(job);
-    if (useBottomSheet) setMobileSheetOpen(true);
-  }, [setSp, useBottomSheet]);
 
   const SheetActions = ({ job }: { job: IJob }) => {
     const applied = appliedJobIds.has(job._id);
@@ -509,6 +566,9 @@ export default function Dashboard() {
                 <option value="lever">Lever</option>
                 <option value="greenhouse">Greenhouse</option>
                 <option value="ashby">Ashby</option>
+                <option value="workable">Workable</option>
+                <option value="recruitee">Recruitee</option>
+                <option value="workday">Workday</option>
               </select>
               <select value={sel} onChange={e => { const company = e.target.value; if (!company) { setSp({}); } else { setSp({ company }); } }} style={{ padding: '8px 12px', borderRadius: 999, border: '1.25px solid var(--border)', background: sel ? 'var(--primary-soft)' : 'var(--surface-solid)', color: sel ? 'var(--primary)' : 'var(--muted-ink)', fontFamily: 'inherit', fontSize: '0.82rem' }}>
                 <option value="">Companies: All</option>
