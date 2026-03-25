@@ -70,7 +70,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [previousVisitAt, setPreviousVisitAt] = useState<string | null>(null);
   const [dailyGoal, setDailyGoal] = useState(5);
   const [skillsEditorOpen, setSkillsEditorOpen] = useState(false);
-  const [authError, setAuthError] = useState<string | null>(null);
 
   // On mount — check session via /api/auth/me
   useEffect(() => {
