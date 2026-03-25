@@ -34,8 +34,6 @@ interface UserCtx {
   login: (credential: string) => Promise<void>;
 }
 
-
-
 /* ─── context ───────────────────────────────────────────────────── */
 const Ctx = createContext<UserCtx>({
   currentUser: null,
@@ -59,7 +57,6 @@ const Ctx = createContext<UserCtx>({
   login: async () => {},
 });
 
-
 export function UserProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -70,7 +67,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [previousVisitAt, setPreviousVisitAt] = useState<string | null>(null);
   const [dailyGoal, setDailyGoal] = useState(5);
   const [skillsEditorOpen, setSkillsEditorOpen] = useState(false);
-  const [authError, setAuthError] = useState<string | null>(null);
 
   // On mount — check session via /api/auth/me
   useEffect(() => {
@@ -133,24 +129,17 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const todayCount = useMemo(() => getTodayCount(appliedJobs), [appliedJobs]);
   const streak = useMemo(() => getStreak(appliedJobs), [appliedJobs]);
 
-
-  // Google login
+  // Google login — throws on failure so LoginScreen can catch and show error
   const login = useCallback(async (credential: string) => {
-    setAuthError(null);
-    try {
-      const r = await fetch('/api/auth/google', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ credential }),
-      });
-      if (!r.ok) throw new Error('Google login failed');
-      const { user } = await r.json();
-      setCurrentUser(user);
-    } catch (err: any) {
-      setAuthError('Google login failed');
-      setCurrentUser(null);
-    }
+    const r = await fetch('/api/auth/google', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ credential }),
+    });
+    if (!r.ok) throw new Error('Google login failed');
+    const { user } = await r.json();
+    setCurrentUser(user);
   }, []);
 
   // Logout
@@ -180,7 +169,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         const data = await r.json() as string[];
         setUserSkills(Array.isArray(data) ? data : skills);
       }
-    } catch {}
+    } catch { /* silently fail */ }
   }, [currentUser]);
 
   const saveDailyGoal = useCallback(async (goal: number) => {
@@ -198,7 +187,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         const data = await response.json() as { dailyGoal?: number };
         if (typeof data.dailyGoal === 'number') setDailyGoal(data.dailyGoal);
       }
-    } catch {}
+    } catch { /* leave optimistic value */ }
   }, [currentUser]);
 
   const toggleApplied = useCallback(async (jobId: string) => {
