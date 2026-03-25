@@ -1,4 +1,11 @@
 // FILE: src/types/index.ts
+export interface AppUser {
+  name: string;
+  email: string;
+  picture: string;
+  slug: string;
+}
+
 export interface IJobAutoTags {
   techStack: string[];
   roleCategory: string | null;

@@ -7,6 +7,8 @@ import { getStreak, getTodayCount } from '../utils/progress';
 /* ─── types ─────────────────────────────────────────────────────── */
 export interface AppUser {
   name: string;
+  email: string;
+  picture: string;
   slug: string;
 }
 
@@ -28,28 +30,11 @@ interface UserCtx {
   saveSkills: (skills: string[]) => Promise<void>;
   saveDailyGoal: (goal: number) => Promise<void>;
   toggleApplied: (jobId: string) => Promise<void>;
-  /** Clear cookie + reset state → picker will re-appear */
-  switchUser: () => void;
-  /** Called by NamePicker once user taps a name */
-  selectUser: (user: AppUser) => void;
+  logout: () => void;
+  login: (credential: string) => Promise<void>;
 }
 
-const COOKIE_NAME = 'tj_user';
-const COOKIE_MAX_AGE = 365 * 24 * 60 * 60; // 1 year in seconds
 
-/* ─── cookie helpers ────────────────────────────────────────────── */
-function getCookie(name: string): string | null {
-  const match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
-  return match ? decodeURIComponent(match[1]) : null;
-}
-
-function setCookie(name: string, value: string) {
-  document.cookie = `${name}=${encodeURIComponent(value)};path=/;max-age=${COOKIE_MAX_AGE};SameSite=Lax`;
-}
-
-function deleteCookie(name: string) {
-  document.cookie = `${name}=;path=/;max-age=0`;
-}
 
 /* ─── context ───────────────────────────────────────────────────── */
 const Ctx = createContext<UserCtx>({
@@ -70,9 +55,10 @@ const Ctx = createContext<UserCtx>({
   saveSkills: async () => {},
   saveDailyGoal: async () => {},
   toggleApplied: async () => {},
-  switchUser: () => {},
-  selectUser: () => {},
+  logout: () => {},
+  login: async () => {},
 });
+
 
 export function UserProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
@@ -84,21 +70,21 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [previousVisitAt, setPreviousVisitAt] = useState<string | null>(null);
   const [dailyGoal, setDailyGoal] = useState(5);
   const [skillsEditorOpen, setSkillsEditorOpen] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
-  // On mount — read cookie, resolve name from stored JSON
+  // On mount — check session via /api/auth/me
   useEffect(() => {
-    const raw = getCookie(COOKIE_NAME);
-    if (raw) {
-      try {
-        const parsed: AppUser = JSON.parse(raw);
-        if (parsed.slug && parsed.name) {
-          setCurrentUser(parsed);
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then(async r => {
+        if (r.ok) {
+          const user = await r.json();
+          setCurrentUser(user);
+        } else {
+          setCurrentUser(null);
         }
-      } catch {
-        deleteCookie(COOKIE_NAME);
-      }
-    }
-    setIsLoading(false);
+      })
+      .catch(() => setCurrentUser(null))
+      .finally(() => setIsLoading(false));
   }, []);
 
   useEffect(() => {
@@ -113,13 +99,15 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
 
     let cancelled = false;
-    const slug = encodeURIComponent(currentUser.slug);
     setIsUserDataLoading(true);
 
     Promise.all([
-      fetch(`/api/users/${slug}`).then(r => r.ok ? r.json() : null),
-      fetch(`/api/users/${slug}/applied`).then(r => r.ok ? r.json() : []),
-      fetch(`/api/users/${slug}/visit`, { method: 'PATCH' }).then(r => r.ok ? r.json() : null),
+      fetch('/api/me', { credentials: 'include' }).then(r => {
+        if (r.status === 401) throw new Error('Unauthorized');
+        return r.ok ? r.json() : null;
+      }),
+      fetch('/api/me/applied', { credentials: 'include' }).then(r => r.ok ? r.json() : []),
+      fetch('/api/me/visit', { method: 'PATCH', credentials: 'include' }).then(r => r.ok ? r.json() : null),
     ])
       .then(([userData, appliedData, visitData]: [{ skills?: string[]; dailyGoal?: number; appliedCount?: number } | null, AppliedJobEntry[], { previousVisitAt: string | null } | null]) => {
         if (cancelled) return;
@@ -130,24 +118,44 @@ export function UserProvider({ children }: { children: ReactNode }) {
         setAppliedCount(userData?.appliedCount ?? nextAppliedJobs.length);
         setPreviousVisitAt(visitData?.previousVisitAt ?? null);
       })
-      .catch(() => {})
+      .catch((err) => {
+        if (err.message === 'Unauthorized') {
+          setCurrentUser(null);
+        }
+      })
       .finally(() => {
         if (!cancelled) setIsUserDataLoading(false);
       });
     return () => { cancelled = true; };
-  }, [currentUser?.slug]);
+  }, [currentUser?.email]);
 
   const appliedJobIds = useMemo(() => new Set(appliedJobs.map(entry => entry.jobId)), [appliedJobs]);
   const todayCount = useMemo(() => getTodayCount(appliedJobs), [appliedJobs]);
   const streak = useMemo(() => getStreak(appliedJobs), [appliedJobs]);
 
-  const selectUser = useCallback((user: AppUser) => {
-    setCookie(COOKIE_NAME, JSON.stringify(user));
-    setCurrentUser(user);
+
+  // Google login
+  const login = useCallback(async (credential: string) => {
+    setAuthError(null);
+    try {
+      const r = await fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ credential }),
+      });
+      if (!r.ok) throw new Error('Google login failed');
+      const { user } = await r.json();
+      setCurrentUser(user);
+    } catch (err: any) {
+      setAuthError('Google login failed');
+      setCurrentUser(null);
+    }
   }, []);
 
-  const switchUser = useCallback(() => {
-    deleteCookie(COOKIE_NAME);
+  // Logout
+  const logout = useCallback(async () => {
+    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
     setCurrentUser(null);
     setUserSkills([]);
     setAppliedJobs([]);
@@ -162,16 +170,17 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const saveSkills = useCallback(async (skills: string[]) => {
     if (!currentUser) return;
     try {
-      const r = await fetch(`/api/users/${encodeURIComponent(currentUser.slug)}/skills`, {
+      const r = await fetch('/api/me/skills', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ skills }),
       });
       if (r.ok) {
-        const data = await r.json() as { skills: string[] };
-        setUserSkills(data.skills ?? skills);
+        const data = await r.json() as string[];
+        setUserSkills(Array.isArray(data) ? data : skills);
       }
-    } catch { /* silently fail — local state already has new skills */ }
+    } catch {}
   }, [currentUser]);
 
   const saveDailyGoal = useCallback(async (goal: number) => {
@@ -179,35 +188,29 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const nextGoal = Math.max(1, Math.min(50, goal || 5));
     setDailyGoal(nextGoal);
     try {
-      const response = await fetch(`/api/users/${encodeURIComponent(currentUser.slug)}/goal`, {
+      const response = await fetch('/api/me/goal', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ dailyGoal: nextGoal }),
+        credentials: 'include',
+        body: JSON.stringify({ goal: nextGoal }),
       });
       if (response.ok) {
         const data = await response.json() as { dailyGoal?: number };
         if (typeof data.dailyGoal === 'number') setDailyGoal(data.dailyGoal);
       }
-    } catch {
-      // leave optimistic value in place
-    }
+    } catch {}
   }, [currentUser]);
 
   const toggleApplied = useCallback(async (jobId: string) => {
     if (!currentUser) return;
-
-    const slug = encodeURIComponent(currentUser.slug);
     const encodedJobId = encodeURIComponent(jobId);
     const exists = appliedJobIds.has(jobId);
     const existingEntry = appliedJobs.find(entry => entry.jobId === jobId) ?? null;
     const optimisticEntry = { jobId, appliedAt: new Date().toISOString() };
-
     if (!exists) setAppliedCount(prev => prev + 1);
-
     setAppliedJobs(prev => exists ? prev.filter(entry => entry.jobId !== jobId) : [...prev, optimisticEntry]);
-
     try {
-      const response = await fetch(`/api/users/${slug}/applied/${encodedJobId}`, { method: exists ? 'DELETE' : 'POST' });
+      const response = await fetch(`/api/me/applied/${encodedJobId}`, { method: exists ? 'DELETE' : 'POST', credentials: 'include' });
       if (!response.ok) throw new Error('Failed to toggle applied');
       const data = await response.json() as AppliedJobEntry[];
       setAppliedJobs(Array.isArray(data) ? data : []);
@@ -221,7 +224,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   }, [currentUser, appliedJobIds, appliedJobs]);
 
   return (
-    <Ctx.Provider value={{ currentUser, isLoading, isUserDataLoading, userSkills, appliedJobs, appliedCount, appliedJobIds, previousVisitAt, todayCount, streak, dailyGoal, skillsEditorOpen, openSkillsEditor, closeSkillsEditor, saveSkills, saveDailyGoal, toggleApplied, switchUser, selectUser }}>
+    <Ctx.Provider value={{ currentUser, isLoading, isUserDataLoading, userSkills, appliedJobs, appliedCount, appliedJobIds, previousVisitAt, todayCount, streak, dailyGoal, skillsEditorOpen, openSkillsEditor, closeSkillsEditor, saveSkills, saveDailyGoal, toggleApplied, logout, login }}>
       {children}
     </Ctx.Provider>
   );

@@ -7,14 +7,14 @@ import CompanyDirectory from './pages/CompanyDirectory';
 import Dashboard from './pages/Dashboard';
 import Progress from './pages/Progress';
 import Legal from './pages/Legal';
-import NamePicker from './components/NamePicker';
+import LoginScreen from './components/LoginScreen';
 import { useUser } from './context/UserContext';
 
 function AppRoutes() {
   const { currentUser, isLoading } = useUser();
 
   if (isLoading) return null;
-  if (!currentUser) return <NamePicker />;
+  if (!currentUser) return <LoginScreen />;
 
   return (
     <Routes>

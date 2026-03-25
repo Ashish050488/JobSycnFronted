@@ -1,7 +1,7 @@
 // FILE: src/components/Layout.tsx
 import { useState, useRef, useEffect, type ReactNode } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { Menu, X, Sun, Moon, Zap, LogOut, BookOpen, BarChart3, Loader2 } from 'lucide-react';
+import { Menu, X, Sun, Moon, Zap, LogOut, BookOpen, BarChart3 } from 'lucide-react';
 import { useTheme } from '../theme/ThemeProvider';
 import { BRAND, COPY } from '../theme/brand';
 import { useUser } from '../context/UserContext';
@@ -11,11 +11,11 @@ import Footer from './Footer';
 export default function Layout() {
   const loc = useLocation();
   const { mode, toggle } = useTheme();
-  const { currentUser, switchUser, skillsEditorOpen, openSkillsEditor, closeSkillsEditor, todayCount, streak } = useUser();
+  const { currentUser, logout, skillsEditorOpen, openSkillsEditor, closeSkillsEditor, todayCount, streak } = useUser();
   const [open, setOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [recleaning, setRecleaning] = useState(false);
-  const [recleanResult, setRecleanResult] = useState<{ success: boolean; updated?: number; skipped?: number; errored?: number; error?: string } | null>(null);
+  // const [recleaning, setRecleaning] = useState(false);
+  // const [recleanResult, setRecleanResult] = useState<{ success: boolean; updated?: number; skipped?: number; errored?: number; error?: string } | null>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
   const [viewport, setViewport] = useState(() => ({
@@ -34,27 +34,9 @@ export default function Layout() {
   const isShortLandscape = viewport.width > viewport.height && viewport.height < 500;
   const navHeight = isShortLandscape && isMobileNav ? 48 : 60;
 
-  const handleRecleanDescriptions = async () => {
-    setRecleaning(true);
-    setRecleanResult(null);
-    try {
-      const response = await fetch('/api/admin/reclean-descriptions', { method: 'POST' });
-      const data = await response.json();
-      if (!response.ok || !data?.success) {
-        throw new Error(data?.error || 'Request failed');
-      }
-      setRecleanResult({
-        success: true,
-        updated: data.updated ?? 0,
-        skipped: data.skipped ?? 0,
-        errored: data.errored ?? 0,
-      });
-    } catch (err) {
-      setRecleanResult({ success: false, error: err instanceof Error ? err.message : 'Unknown error' });
-    } finally {
-      setRecleaning(false);
-    }
-  };
+  // const handleRecleanDescriptions = async () => {
+  //   // Deprecated admin-only reclean handler
+  // };
 
   // Close user dropdown on outside click
   useEffect(() => {
@@ -170,39 +152,7 @@ export default function Layout() {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div className="hidden md:flex" style={{ alignItems: 'center', gap: 8 }}>
-              <button
-                onClick={handleRecleanDescriptions}
-                disabled={recleaning}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  border: '1px solid var(--border)',
-                  borderRadius: 8,
-                  padding: '6px 10px',
-                  background: 'var(--surface-solid)',
-                  color: 'var(--muted-ink)',
-                  fontSize: '0.74rem',
-                  fontWeight: 600,
-                  cursor: recleaning ? 'not-allowed' : 'pointer',
-                  opacity: recleaning ? 0.7 : 1,
-                }}
-              >
-                {recleaning && <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} />}
-                {recleaning ? 'Cleaning...' : 'Re-Clean JDs'}
-              </button>
-              {recleanResult?.success && (
-                <span style={{ fontSize: '0.72rem', color: '#16a34a', whiteSpace: 'nowrap' }}>
-                  Updated {recleanResult.updated} | Skipped {recleanResult.skipped} | Errors {recleanResult.errored}
-                </span>
-              )}
-              {recleanResult && !recleanResult.success && (
-                <span style={{ fontSize: '0.72rem', color: '#dc2626', maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  Failed: {recleanResult.error}
-                </span>
-              )}
-            </div>
+            {/* Admin button removed or gate behind admin check if needed */}
 
             {currentUser && (
               <>
@@ -274,6 +224,7 @@ export default function Layout() {
                     fontSize: '0.78rem',
                     fontWeight: 700,
                     transition: 'border-color 0.18s',
+                    overflow: 'hidden',
                   }}
                   onMouseEnter={e => {
                     (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--primary)';
@@ -283,7 +234,15 @@ export default function Layout() {
                   }}
                   title={currentUser.name}
                 >
-                  {currentUser.name.charAt(0).toUpperCase()}
+                  <img
+                    src={currentUser.picture}
+                    alt={currentUser.name}
+                    style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover', background: '#eee' }}
+                    onError={e => {
+                      (e.currentTarget as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                  <span style={{ position: 'absolute', left: 0, right: 0, textAlign: 'center', fontWeight: 700, fontSize: '0.78rem', color: 'var(--primary)', display: 'none' }}>{currentUser.name.charAt(0).toUpperCase()}</span>
                 </button>
 
                 {userMenuOpen && (
@@ -343,7 +302,7 @@ export default function Layout() {
                     <button
                       onClick={() => {
                         setUserMenuOpen(false);
-                        switchUser();
+                        logout();
                       }}
                       style={{
                         width: '100%',
@@ -366,7 +325,7 @@ export default function Layout() {
                       }}
                     >
                       <LogOut size={13} />
-                      Switch User
+                      Sign Out
                     </button>
                   </div>
                 )}
