@@ -19,10 +19,10 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<Layout />}>
         <Route index element={<Home />} />
-        <Route path="directory" element={<CompanyDirectory />} />
-        <Route path="jobs" element={<Dashboard />} />
-        <Route path="progress" element={currentUser ? <Progress /> : <LoginScreen />} />
         <Route path="legal" element={<Legal />} />
+        <Route path="directory" element={currentUser ? <CompanyDirectory /> : <LoginScreen />} />
+        <Route path="jobs" element={currentUser ? <Dashboard /> : <LoginScreen />} />
+        <Route path="progress" element={currentUser ? <Progress /> : <LoginScreen />} />
       </Route>
       <Route path="login" element={<LoginScreen />} />
       <Route path="*" element={<Navigate to="/" replace />} />
