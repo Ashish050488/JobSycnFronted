@@ -3,9 +3,9 @@
 // Change these to rebrand the entire app instantly
 
 const BRAND = {
-  appName: 'TechJobs',
+  appName: 'JobMesh',
   tagline: 'Tech Jobs in India — No Fluff',
-  fullName: 'Tech Jobs in India',
+  fullName: 'JobMesh',
   description: 'Fresh tech jobs scraped daily from top Indian companies. Direct apply links, no middlemen.',
   twitter: '',
   contact: '/legal',
@@ -105,7 +105,7 @@ const COPY = {
     sortAZ: 'A \u2192 Z',
     sortZA: 'Z \u2192 A',
     sortMostHiring: 'Most Hiring',
-    documentTitle: 'Tech Companies Hiring in India | Company Directory',
+    documentTitle: 'Tech Companies Hiring in India | JobMesh',
   },
   footer: {
     navigateTitle: 'Navigate',
@@ -120,21 +120,21 @@ const COPY = {
   legal: {
     pageLabel: 'Legal',
     pageTitle: 'Legal Information',
-    lastUpdated: 'Last updated: 28 January 2026',
+    lastUpdated: 'Last updated: March 2026',
     contactTitle: 'Contact',
-    contactBody: 'For questions, data deletion requests, or legal enquiries, please use the contact details available on the legal page or reach out via the footer links.',
+    contactBody: 'For questions, data deletion requests, or legal enquiries, reach out to us at layer3studios.team@gmail.com.',
     sections: [
-      { title: '1. Project Purpose', body: 'This website is a personal, non-commercial project created to aggregate and share tech job opportunities in India. The purpose is to make it easier for professionals to discover roles at top Indian tech companies. All information is for informational and educational purposes only. This site does not provide recruitment, hiring, legal, immigration, or career advisory services.' },
+      { title: '1. Project Purpose', body: 'This website is a non-commercial project created by Layer3 Studios to aggregate and share tech job opportunities in India. The purpose is to make it easier for professionals to discover roles at top Indian tech companies. All information is for informational and educational purposes only. This site does not provide recruitment, hiring, legal, immigration, or career advisory services.' },
       { title: '2. No Recruitment or Hiring Service', body: 'This website is not a recruitment agency, does not represent employers, and does not guarantee interviews, responses, or job offers. All job listings link to external company career pages. Any hiring decisions, requirements, or communications are handled entirely by the respective employers.' },
       { title: '3. Accuracy & Filtering Disclaimer', body: 'Job listings are aggregated using automated scraping systems. However: job details may change or become outdated; requirements may change over time; employers may assess candidates differently during interviews. Users are responsible for verifying all job details directly with the employer.' },
       { title: '4. Use of the Website', body: 'You may use this website for personal, non-commercial purposes only. You agree not to scrape, copy, or redistribute job listings in bulk; republish or commercialize site content; or use the site for misleading, unlawful, or harmful purposes. All job descriptions, trademarks, company names, and related content remain the property of their respective owners.' },
       { title: '5. Third-Party Links', body: 'This website contains links to third-party websites (employer career pages). We do not control, endorse, or take responsibility for the content, accuracy, availability, or policies of external sites.' },
-      { title: '6. Privacy & Data', body: 'When you submit your email address, it is stored for the purpose of sending job-related email notifications. We do not sell or share your email with third parties. You may request deletion of your data at any time by contacting us via the legal page.' },
+      { title: '6. Privacy & Data', body: 'When you sign in with Google, we store your name, email, and profile picture for authentication. We also store your skills, applied jobs, and notes to power the job tracker. We do not sell or share your data with third parties. You may request deletion of your data at any time by contacting layer3studios.team@gmail.com.' },
     ],
   },
   site: {
-    documentTitleJobs: 'Browse Tech Jobs in India',
-    documentTitleProgress: 'My Progress | Tech Jobs in India',
+    documentTitleJobs: 'Browse Tech Jobs in India | JobMesh',
+    documentTitleProgress: 'My Progress | JobMesh',
   },
 } as const;
 
