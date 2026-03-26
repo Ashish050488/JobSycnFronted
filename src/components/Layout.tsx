@@ -3,7 +3,7 @@ import { useState, useRef, useEffect, type ReactNode } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { Menu, X, Sun, Moon, Zap, LogOut, BookOpen, BarChart3 } from 'lucide-react';
 import { useTheme } from '../theme/ThemeProvider';
-import { BRAND, COPY } from '../theme/brand';
+import { BRAND_SPLIT, COPY } from '../theme/brand';
 import { useUser } from '../context/UserContext';
 import SkillsEditor from './SkillsEditor';
 import Footer from './Footer';
@@ -14,8 +14,6 @@ export default function Layout() {
   const { currentUser, logout, skillsEditorOpen, openSkillsEditor, closeSkillsEditor, todayCount, streak } = useUser();
   const [open, setOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  // const [recleaning, setRecleaning] = useState(false);
-  // const [recleanResult, setRecleanResult] = useState<{ success: boolean; updated?: number; skipped?: number; errored?: number; error?: string } | null>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
   const [viewport, setViewport] = useState(() => ({
@@ -34,11 +32,6 @@ export default function Layout() {
   const isShortLandscape = viewport.width > viewport.height && viewport.height < 500;
   const navHeight = isShortLandscape && isMobileNav ? 48 : 60;
 
-  // const handleRecleanDescriptions = async () => {
-  //   // Deprecated admin-only reclean handler
-  // };
-
-  // Close user dropdown on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
@@ -140,8 +133,8 @@ export default function Layout() {
                 letterSpacing: '-0.02em',
               }}
             >
-              {BRAND.appName.replace('Jobs', '')}
-              <span style={{ color: 'var(--acid)' }}>Jobs</span>
+              {BRAND_SPLIT.first}
+              <span style={{ color: 'var(--acid)' }}>{BRAND_SPLIT.accent}</span>
             </span>
           </Link>
 
@@ -152,8 +145,6 @@ export default function Layout() {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            {/* Admin button removed or gate behind admin check if needed */}
-
             {currentUser && (
               <>
                 <Link
@@ -205,7 +196,6 @@ export default function Layout() {
               {mode === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
             </button>
 
-            {/* ─── User pill ─── */}
             {currentUser && (
               <div ref={userMenuRef} style={{ position: 'relative' }}>
                 <button

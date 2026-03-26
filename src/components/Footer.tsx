@@ -1,7 +1,7 @@
 // FILE: src/components/Footer.tsx
 import { Link } from 'react-router-dom';
 import { Briefcase } from 'lucide-react';
-import { BRAND, COPY } from '../theme/brand';
+import { BRAND, BRAND_SPLIT, COPY } from '../theme/brand';
 import { Divider } from './ui';
 
 export default function Footer() {
@@ -31,7 +31,7 @@ export default function Footer() {
                 <Briefcase size={13} color="var(--primary)" />
               </div>
               <span style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--ink)' }}>
-                {BRAND.appName.replace('Jobs', '')}<span className="font-sketch" style={{ color: 'var(--primary)', fontSize: '1.1rem' }}>Jobs</span>
+                {BRAND_SPLIT.first}<span className="font-sketch" style={{ color: 'var(--primary)', fontSize: '1.1rem' }}>{BRAND_SPLIT.accent}</span>
               </span>
             </Link>
             <p style={{ fontSize: '0.85rem', color: 'var(--muted-ink)', lineHeight: 1.7, maxWidth: 300 }}>
