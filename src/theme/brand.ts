@@ -11,6 +11,12 @@ const BRAND = {
   contact: '/legal',
 } as const;
 
+// Split brand name for rendering: first part + accent-colored part
+const BRAND_SPLIT = {
+  first: 'Job',
+  accent: 'Mesh',
+} as const;
+
 // Sketch-accent font for tiny labels & badges
 const SKETCH_FONT = "'Caveat', 'Patrick Hand', 'Comic Neue', ui-sans-serif";
 
@@ -138,10 +144,11 @@ const COPY = {
   },
 } as const;
 
-export { BRAND, SKETCH_FONT, PALETTE, COPY };
+export { BRAND, BRAND_SPLIT, SKETCH_FONT, PALETTE, COPY };
 
 export default {
   BRAND,
+  BRAND_SPLIT,
   SKETCH_FONT,
   PALETTE,
   COPY,
