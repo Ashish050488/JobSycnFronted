@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Mail, Shield, FileText, Eye, Trash2, Database, Globe, Lock, ChevronDown, ChevronUp, Zap } from 'lucide-react';
+import { Mail, Shield, FileText, Eye, Trash2, Database, Globe, Lock, ChevronDown, Zap } from 'lucide-react';
 import { Container, Divider } from '../components/ui';
 import { BRAND } from '../theme/brand';
 
