@@ -14,7 +14,6 @@ function AppRoutes() {
   const { currentUser, isLoading } = useUser();
 
   if (isLoading) return null;
-  if (!currentUser) return <LoginScreen />;
 
   return (
     <Routes>
@@ -22,9 +21,10 @@ function AppRoutes() {
         <Route index element={<Home />} />
         <Route path="directory" element={<CompanyDirectory />} />
         <Route path="jobs" element={<Dashboard />} />
-        <Route path="progress" element={<Progress />} />
+        <Route path="progress" element={currentUser ? <Progress /> : <LoginScreen />} />
         <Route path="legal" element={<Legal />} />
       </Route>
+      <Route path="login" element={<LoginScreen />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
