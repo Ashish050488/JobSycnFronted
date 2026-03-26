@@ -111,6 +111,15 @@ export default function Home() {
           <div style={{ textAlign: 'center', marginTop: 36 }}><Link to="/jobs"><Button variant="outline">{COPY.home.loadMore} <ArrowRight size={13} /></Button></Link></div>
         </Container>
       </section>
+
+      {/* ── Privacy & Terms link (required for Google verification) ── */}
+      <div style={{ textAlign: 'center', padding: '24px 0', borderTop: '1.25px solid var(--border)', background: 'var(--surface-solid)' }}>
+        <Link to="/legal" style={{ fontSize: '0.82rem', color: 'var(--muted-ink)', textDecoration: 'none', transition: 'color 0.2s' }}
+          onMouseEnter={e => (e.currentTarget.style.color = 'var(--primary)')}
+          onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted-ink)')}>
+          Privacy Policy & Terms of Service
+        </Link>
+      </div>
     </div>
   );
 }
