@@ -1,7 +1,7 @@
 // FILE: src/components/Layout.tsx
 import { useState, useRef, useEffect, type ReactNode } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { Menu, X, Sun, Moon, Zap, LogOut, BookOpen, BarChart3 } from 'lucide-react';
+import { Sun, Moon, Zap, LogOut, BookOpen, BarChart3 } from 'lucide-react';
 import { useTheme } from '../theme/ThemeProvider';
 import { BRAND_SPLIT, COPY } from '../theme/brand';
 import { useUser } from '../context/UserContext';
@@ -12,10 +12,8 @@ export default function Layout() {
   const loc = useLocation();
   const { mode, toggle } = useTheme();
   const { currentUser, logout, skillsEditorOpen, openSkillsEditor, closeSkillsEditor, todayCount, streak } = useUser();
-  const [open, setOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
-  const drawerRef = useRef<HTMLDivElement>(null);
   const [viewport, setViewport] = useState(() => ({
     width: typeof window !== 'undefined' ? window.innerWidth : 1280,
     height: typeof window !== 'undefined' ? window.innerHeight : 720,
@@ -42,68 +40,78 @@ export default function Layout() {
     return () => document.removeEventListener('mousedown', handleClick);
   }, [userMenuOpen]);
 
-  useEffect(() => {
-    setOpen(false);
-  }, [loc.pathname]);
-
   const active = (path: string) => loc.pathname === path;
   const navLink = (path: string, label: string, icon?: ReactNode) => (
     <Link
       to={path}
-      onClick={() => setOpen(false)}
       style={{
-        fontSize: '0.82rem',
-        fontWeight: 600,
-        letterSpacing: '0.02em',
-        color: active(path) ? 'var(--text-primary)' : 'var(--text-secondary)',
+        fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+        fontSize: '0.78rem',
+        fontWeight: active(path) ? 700 : 500,
+        color: active(path) ? 'var(--primary)' : 'var(--text-secondary)',
         textDecoration: 'none',
-        padding: '5px 0',
+        padding: '6px 14px',
+        borderRadius: 999,
         position: 'relative',
-        transition: 'color 0.18s',
+        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 6,
+        background: active(path) ? 'var(--primary-soft)' : 'transparent',
+        border: active(path) ? '1px dashed var(--primary)' : '1px dashed transparent',
       }}
-      onMouseEnter={e => !active(path) && ((e.target as HTMLElement).style.color = 'var(--text-primary)')}
-      onMouseLeave={e => !active(path) && ((e.target as HTMLElement).style.color = 'var(--text-secondary)')}
+      onMouseEnter={e => {
+        if (!active(path)) {
+          (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)';
+          (e.currentTarget as HTMLElement).style.border = '1px dashed var(--border)';
+        }
+      }}
+      onMouseLeave={e => {
+        if (!active(path)) {
+          (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)';
+          (e.currentTarget as HTMLElement).style.border = '1px dashed transparent';
+        }
+      }}
     >
-      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-        {icon}
-        {label}
+      {icon && <span style={{ color: active(path) ? 'var(--primary)' : 'var(--muted-ink)' }}>{icon}</span>}
+      <span>
+        <span style={{ opacity: 0.5 }}>~/</span>
+        {label.toLowerCase().replace(/\s+/g, '_')}
       </span>
-      {active(path) && (
-        <span
-          style={{
-            position: 'absolute',
-            bottom: -1,
-            left: 0,
-            right: 0,
-            height: 2,
-            background: 'var(--acid)',
-            borderRadius: 2,
-          }}
-        />
-      )}
     </Link>
   );
 
   return (
     <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
-      <nav
-        className="nav-blur"
-        style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 50,
-          borderBottom: '1px solid var(--border)',
-        }}
-      >
-        <div
+      {/* Masks text scrolling into the transparent gap above the floating dock */}
+      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, height: 20, background: 'var(--paper)', zIndex: 49 }} />
+
+      <div style={{ position: 'sticky', top: 16, zIndex: 50, padding: isMobileNav ? '0 14px' : '0 24px', marginBottom: 24 }}>
+        <nav
+          className="nav-blur"
           style={{
             maxWidth: is3xl ? 1600 : 1200,
             margin: '0 auto',
-            padding: isMobileNav ? '0 14px' : '0 24px',
-            height: navHeight,
+            height: navHeight + 8,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
+            padding: '0 20px',
+            background: mode === 'dark' ? 'rgba(18, 18, 18, 0.6)' : 'rgba(255, 255, 255, 0.75)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1.25px dashed var(--border)',
+            borderRadius: 999,
+            boxShadow: mode === 'dark' ? '0 8px 32px rgba(0,0,0,0.3)' : '0 8px 32px rgba(0,0,0,0.06)',
+            transition: 'all 0.3s ease',
+          }}
+          onMouseEnter={e => {
+            (e.currentTarget as HTMLElement).style.borderColor = 'var(--primary)';
+            (e.currentTarget as HTMLElement).style.boxShadow = `0 0 20px ${mode === 'dark' ? 'rgba(45, 106, 79, 0.4)' : 'rgba(45, 106, 79, 0.15)'}`;
+          }}
+          onMouseLeave={e => {
+            (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)';
+            (e.currentTarget as HTMLElement).style.boxShadow = mode === 'dark' ? '0 8px 32px rgba(0,0,0,0.3)' : '0 8px 32px rgba(0,0,0,0.06)';
           }}
         >
           <Link
@@ -112,33 +120,46 @@ export default function Layout() {
           >
             <div
               style={{
-                width: 30,
-                height: 30,
-                borderRadius: 8,
-                background: 'var(--acid-dim)',
-                border: '1px solid var(--acid-mid)',
+                width: 32,
+                height: 32,
+                borderRadius: '50%',
+                background: 'var(--primary-soft)',
+                border: '1.5px solid var(--primary)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                boxShadow: '0 0 10px var(--primary-soft)',
               }}
             >
-              <Zap size={14} color="var(--acid)" />
+              <Zap size={15} color="var(--primary)" fill="var(--primary)" />
             </div>
             <span
               style={{
-                fontFamily: "'Playfair Display',serif",
+                fontFamily: "ui-monospace, SFMono-Regular, Consolas, monospace",
                 fontSize: '1.1rem',
-                fontWeight: 700,
+                fontWeight: 800,
                 color: 'var(--text-primary)',
-                letterSpacing: '-0.02em',
+                letterSpacing: '-0.04em',
               }}
             >
+              <span style={{ color: 'var(--primary)' }}>&lt;</span>
               {BRAND_SPLIT.first}
-              <span style={{ color: 'var(--acid)' }}>{BRAND_SPLIT.accent}</span>
+              <span style={{ color: 'var(--primary)' }}>{BRAND_SPLIT.accent}</span>
+              <span style={{ color: 'var(--primary)' }}>/&gt;</span>
             </span>
           </Link>
 
-          <div className="hidden md:flex nav-links" style={{ alignItems: 'center', gap: is3xl ? 32 : 28 }}>
+          <div
+            className="nav-links"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: is3xl ? 12 : 8,
+              overflowX: 'auto',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none'
+            }}
+          >
             {navLink('/directory', COPY.nav.companies)}
             {navLink('/jobs', COPY.nav.browseJobs)}
             {navLink('/progress', COPY.nav.myProgress, <BarChart3 size={14} />)}
@@ -321,86 +342,11 @@ export default function Layout() {
                 )}
               </div>
             )}
-
-            <button
-              className="md:hidden nav-hamburger"
-              onClick={() => setOpen(!open)}
-              style={{
-                background: 'none',
-                border: '1px solid var(--border)',
-                borderRadius: 7,
-                padding: 6,
-                cursor: 'pointer',
-                color: 'var(--text-primary)',
-                display: 'flex',
-                alignItems: 'center',
-              }}
-            >
-              {open ? <X size={17} /> : <Menu size={17} />}
-            </button>
           </div>
-        </div>
-      </nav>
+        </nav>
+      </div>
 
-      {open && isMobileNav && (
-        <>
-          <div
-            onClick={() => setOpen(false)}
-            style={{
-              position: 'fixed',
-              inset: 0,
-              background: 'rgba(0,0,0,0.42)',
-              zIndex: 80,
-            }}
-          />
-          <div
-            ref={drawerRef}
-            onTouchStart={e => {
-              (e.currentTarget as HTMLDivElement).dataset.touchX = String(e.touches[0].clientX);
-            }}
-            onTouchEnd={e => {
-              const startX = Number((e.currentTarget as HTMLDivElement).dataset.touchX || '0');
-              const endX = e.changedTouches[0]?.clientX ?? startX;
-              if (startX - endX > 55) setOpen(false);
-            }}
-            style={{
-              position: 'fixed',
-              right: 0,
-              top: 0,
-              bottom: 0,
-              width: 280,
-              background: 'var(--surface-solid)',
-              borderLeft: '1px solid var(--border)',
-              zIndex: 81,
-              display: 'flex',
-              flexDirection: 'column',
-              paddingTop: 18,
-              animation: 'drawerIn 0.22s ease',
-            }}
-          >
-            <style>{`@keyframes drawerIn { from { transform: translateX(100%); } to { transform: translateX(0); } }`}</style>
-            <button
-              onClick={() => setOpen(false)}
-              style={{
-                alignSelf: 'flex-end',
-                marginRight: 12,
-                marginBottom: 8,
-                border: 'none',
-                background: 'none',
-                color: 'var(--muted-ink)',
-                cursor: 'pointer',
-              }}
-            >
-              <X size={20} />
-            </button>
-            <Link to="/directory" onClick={() => setOpen(false)} style={{ textDecoration: 'none', color: 'var(--ink)', padding: '16px 24px', fontSize: 18, borderTop: '1px solid var(--border)' }}>{COPY.nav.companies}</Link>
-            <Link to="/jobs" onClick={() => setOpen(false)} style={{ textDecoration: 'none', color: 'var(--ink)', padding: '16px 24px', fontSize: 18, borderTop: '1px solid var(--border)' }}>{COPY.nav.browseJobs}</Link>
-            <Link to="/progress" onClick={() => setOpen(false)} style={{ textDecoration: 'none', color: 'var(--ink)', padding: '16px 24px', fontSize: 18, borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>{COPY.nav.myProgress}</Link>
-          </div>
-        </>
-      )}
-
-      <main style={{ flex: 1 }}>
+      <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         <Outlet />
       </main>
       <Footer />

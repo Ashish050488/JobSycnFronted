@@ -21,7 +21,7 @@ function AppRoutes() {
         <Route index element={<Home />} />
         <Route path="legal" element={<Legal />} />
         <Route path="directory" element={currentUser ? <CompanyDirectory /> : <LoginScreen />} />
-        <Route path="jobs" element={currentUser ? <Dashboard /> : <LoginScreen />} />
+        <Route path="jobs" element={<Dashboard />} />
         <Route path="progress" element={currentUser ? <Progress /> : <LoginScreen />} />
       </Route>
       <Route path="login" element={<LoginScreen />} />

@@ -770,3 +770,194 @@ body::before {
     transition: none;
   }
 }
+
+/* ═══════════════════════════════════════════════════
+   BUTTON PRESS — subtle click feedback on every button
+   Gives tactile "pressed" feeling without JS.
+   Uses :active so it fires on keyboard too.
+   ═══════════════════════════════════════════════════ */
+button:active,
+a[role="button"]:active,
+.btn:active {
+  transform: scale(0.965) translateY(1px);
+  transition: transform 0.06s ease, box-shadow 0.06s ease !important;
+  box-shadow: 0 0 0 0 transparent !important;
+}
+
+/* Restore smoothly after release */
+button,
+a[role="button"],
+.btn {
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), color 0.16s, background 0.16s, border-color 0.16s, box-shadow 0.18s, opacity 0.18s;
+}
+
+/* Link-style nav items (not full buttons) — lighter press */
+a:active:not(.btn):not([role="button"]) {
+  opacity: 0.75;
+  transition: opacity 0.06s ease !important;
+}
+
+/* ═══════════════════════════════════════════════════
+   RIPPLE — optional CSS-only ink ripple on .btn-ripple
+   ═══════════════════════════════════════════════════ */
+.btn-ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-ripple::after {
+  content: '';
+  position: absolute;
+  inset: 50%;
+  background: currentColor;
+  border-radius: 50%;
+  opacity: 0;
+  transform: scale(0);
+  transition: none;
+}
+
+.btn-ripple:active::after {
+  inset: -50%;
+  opacity: 0.08;
+  transform: scale(1);
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s;
+}
+
+/* ═══════════════════════════════════════════════════
+   DARK MODE — fix surfaces that look wrong with gray
+   in dark mode (they should use the dark-aware vars)
+   ═══════════════════════════════════════════════════ */
+
+/* When dark: many gray badge-style elements look washed out */
+[data-theme="dark"] .badge-gray,
+[data-theme="dark"] [style*="background: #f3f4f6"],
+[data-theme="dark"] [style*="background:#f3f4f6"],
+[data-theme="dark"] [style*="background: #f9fafb"],
+[data-theme="dark"] [style*="background:#f9fafb"],
+[data-theme="dark"] [style*="background: rgb(243, 244, 246)"] {
+  /* Remap to dark-aware surface var */
+  background: var(--paper2) !important;
+  color: var(--muted-ink) !important;
+}
+
+/* Filter pills in dark mode — stop using white/light grays */
+[data-theme="dark"] .filter-pill-active {
+  background: var(--primary) !important;
+  color: #fff !important;
+}
+
+[data-theme="dark"] .filter-pill {
+  background: var(--paper2) !important;
+  color: var(--muted-ink) !important;
+  border-color: var(--border) !important;
+}
+
+/* Nav hamburger in dark mode */
+[data-theme="dark"] .nav-hamburger {
+  background: var(--paper2) !important;
+  border-color: var(--border) !important;
+}
+
+/* Skeleton in dark mode - slightly lighter so it's visible */
+[data-theme="dark"] .skeleton {
+  background: linear-gradient(90deg, var(--paper2) 25%, var(--surface-solid) 50%, var(--paper2) 75%);
+  background-size: 300% 100%;
+}
+
+/* ═══════════════════════════════════════════════════
+   RESPONSIVENESS — viewport safe-area support
+   ═══════════════════════════════════════════════════ */
+
+/* Full device-viewport height (accounts for mobile browser chrome) */
+body {
+  min-height: 100dvh;
+}
+
+/* Safe-area padding for notched/punch-hole devices */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.safe-x {
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
+}
+
+/* Fluid containers — clamp(min, preferred, max) */
+.fluid-container {
+  width: min(100% - 32px, 1200px);
+  margin-inline: auto;
+}
+
+/* Touch targets — at least 44×44dp on touch */
+@media (pointer: coarse) {
+  button,
+  a,
+  [role="button"],
+  select,
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Exception: icon-only compact buttons inside cards */
+  .compact-action {
+    min-height: 32px;
+    min-width: 32px;
+  }
+}
+
+/* Landscape phone — reduce section padding */
+@media (max-height: 500px) and (orientation: landscape) {
+  section {
+    padding-top: 32px !important;
+    padding-bottom: 32px !important;
+  }
+
+  .hero-section {
+    min-height: auto !important;
+    padding: 32px 16px !important;
+  }
+}
+
+/* Very small screens (320px Galaxy Fold etc) */
+@media (max-width: 359px) {
+  html {
+    font-size: 13px;
+  }
+
+  .hide-fold {
+    display: none !important;
+  }
+}
+
+/* Wide screens — don't stretch content too far */
+@media (min-width: 1800px) {
+  .content-cap {
+    max-width: 1400px;
+    margin-inline: auto;
+  }
+}
+
+/* ── Page transition fade — applied by router outlet ── */
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.page-enter {
+  animation: pageFadeIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── Focus-visible ring update — more visible in dark mode ── */
+[data-theme="dark"] :focus-visible {
+  box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--primary);
+}

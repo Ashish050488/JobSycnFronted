@@ -72,7 +72,7 @@ export default function CompanyDirectory() {
   return (
     <div style={{ background: 'var(--paper)', minHeight: '100vh' }}>
       {/* ── Header ─────────────────────────────────────── */}
-      <div style={{ background: 'var(--surface-solid)', borderBottom: '1.25px solid var(--border)', padding: '48px 0 40px' }}>
+      <div style={{ background: 'var(--surface-solid)', borderBottom: '1.25px solid var(--border)', padding: '14px 0 10px' }}>
         <Container size="md" style={{ textAlign: 'center' }}>
           <PageHeader label={COPY.directory.pageLabel} title={<>{COPY.directory.pageTitle1}<br /><span style={{ color: 'var(--primary)' }}>{COPY.directory.pageTitle2}</span></>} subtitle={COPY.directory.subtitle} />
         </Container>

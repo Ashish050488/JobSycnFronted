@@ -1,37 +1,75 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { Link, Navigate } from 'react-router-dom';
-import { ArrowLeft, BriefcaseBusiness, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Pencil, Check, X } from 'lucide-react';
 
-import ProgressRing from '../components/ProgressRing';
-import ActivityChart from '../components/ActivityChart';
-import { Badge, Button, Container, EmptyState, PageHeader } from '../components/ui';
+import { Button, Container, PageHeader } from '../components/ui';
 import { useUser } from '../context/UserContext';
 import { COPY } from '../theme/brand';
 import type { AppliedJobDetail } from '../types';
-import { formatAppliedRelativeTime, getGoalMetDays, getThisWeekApplied } from '../utils/progress';
+
+import HeatmapCalendar from '../components/HeatmapCalendar';
+import FunnelChart from '../components/FunnelChart';
+import PipelineView from '../components/PipelineView';
+import type { PipelineJob } from '../components/PipelineView';
 
 function useIsMobile(breakpoint = 768) {
   const [mobile, setMobile] = useState(typeof window !== 'undefined' ? window.innerWidth < breakpoint : false);
-
   useEffect(() => {
     const handler = () => setMobile(window.innerWidth < breakpoint);
     window.addEventListener('resize', handler);
     return () => window.removeEventListener('resize', handler);
   }, [breakpoint]);
-
   return mobile;
 }
 
+/* ─── SVG Progress Ring ──────────────────────────────────── */
+function ProgressRing({ size, progress, color }: { size: number; progress: number; color: string }) {
+  const stroke = 5;
+  const radius = (size - stroke) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - Math.min(progress, 1) * circumference;
+
+  return (
+    <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+      <circle
+        cx={size / 2} cy={size / 2} r={radius}
+        fill="none" stroke="var(--border)" strokeWidth={stroke}
+      />
+      <circle
+        cx={size / 2} cy={size / 2} r={radius}
+        fill="none" stroke={color} strokeWidth={stroke}
+        strokeDasharray={circumference}
+        strokeDashoffset={offset}
+        strokeLinecap="round"
+        style={{ transition: 'stroke-dashoffset 0.8s cubic-bezier(0.16, 1, 0.3, 1)' }}
+      />
+    </svg>
+  );
+}
+
+/* ─── Page ───────────────────────────────────────────────── */
 export default function Progress() {
   const isMobile = useIsMobile();
-  const { currentUser, appliedJobs, appliedCount, todayCount, streak, dailyGoal, saveDailyGoal } = useUser();
+  const { currentUser, appliedJobs, todayCount, streak, dailyGoal, saveDailyGoal, updateStage } = useUser();
   const [recentApplied, setRecentApplied] = useState<AppliedJobDetail[]>([]);
   const [loadingRecent, setLoadingRecent] = useState(true);
+
+  // Goal editor
+  const [goalEditorOpen, setGoalEditorOpen] = useState(false);
+  const [goalDraft, setGoalDraft] = useState(dailyGoal);
 
   useEffect(() => {
     document.title = COPY.site.documentTitleProgress;
   }, []);
 
+  useEffect(() => { setGoalDraft(dailyGoal); }, [dailyGoal]);
+
+  const handleSaveGoal = useCallback(async () => {
+    await saveDailyGoal(goalDraft);
+    setGoalEditorOpen(false);
+  }, [goalDraft, saveDailyGoal]);
+
+  // Fetch enriched applied job details
   useEffect(() => {
     if (!currentUser) {
       setRecentApplied([]);
@@ -42,12 +80,10 @@ export default function Progress() {
     let cancelled = false;
     setLoadingRecent(true);
 
-    fetch(`/api/users/${encodeURIComponent(currentUser.slug)}/applied/details`)
+    fetch('/api/me/applied/details', { credentials: 'include' })
       .then(response => response.ok ? response.json() : [])
       .then((data: AppliedJobDetail[]) => {
-        if (!cancelled) {
-          setRecentApplied(Array.isArray(data) ? data.slice(0, 20) : []);
-        }
+        if (!cancelled) setRecentApplied(Array.isArray(data) ? data : []);
       })
       .catch(() => {
         if (!cancelled) setRecentApplied([]);
@@ -56,22 +92,58 @@ export default function Progress() {
         if (!cancelled) setLoadingRecent(false);
       });
 
-    return () => {
-      cancelled = true;
-    };
-  }, [currentUser?.slug, appliedJobs]);
+    return () => { cancelled = true; };
+  }, [currentUser?.email, appliedJobs]);
 
-  const goalMetDays = useMemo(() => getGoalMetDays(appliedJobs, dailyGoal, 7), [appliedJobs, dailyGoal]);
-  const thisWeekApplied = useMemo(() => getThisWeekApplied(appliedJobs), [appliedJobs]);
-  const totalApplied = appliedCount ?? appliedJobs.length;
+  const stageCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const job of recentApplied) {
+      const s = job.stage || 'applied';
+      counts[s] = (counts[s] || 0) + 1;
+    }
+    return counts;
+  }, [recentApplied]);
+
+  const pipelineJobs: PipelineJob[] = useMemo(() => {
+    return recentApplied.map(job => ({
+      jobId: job.jobId,
+      jobTitle: job.jobTitle,
+      company: job.company,
+      applicationURL: job.applicationURL,
+      appliedAt: job.appliedAt,
+      location: job.location ?? null,
+      department: job.department ?? null,
+      stage: job.stage || 'applied',
+      stageUpdatedAt: job.stageUpdatedAt || job.appliedAt,
+      isListingActive: job.isListingActive ?? true,
+    }));
+  }, [recentApplied]);
+
+  const handleStageChange = async (jobId: string, newStage: string) => {
+    await updateStage(jobId, newStage);
+  };
 
   if (!currentUser) {
     return <Navigate to="/jobs" replace />;
   }
 
+  const goalProgress = dailyGoal > 0 ? todayCount / dailyGoal : 0;
+  const ringColor = todayCount > 0 ? (goalProgress >= 1 ? 'var(--success)' : 'var(--primary)') : 'var(--border)';
+  const goalPct = dailyGoal > 0 ? Math.min(Math.round(goalProgress * 100), 100) : 0;
+
+  /* card style shared across sections */
+  const sectionCard = (extra?: React.CSSProperties): React.CSSProperties => ({
+    background: 'var(--surface-solid)',
+    border: '1.25px solid var(--border)',
+    borderRadius: 18,
+    padding: isMobile ? '18px 14px' : '22px 24px',
+    ...extra,
+  });
+
   return (
     <div style={{ background: 'var(--paper)', minHeight: '100vh' }}>
       <Container style={{ padding: isMobile ? '24px 24px 40px' : '32px 24px 48px' }}>
+
         <PageHeader
           label={COPY.progress.pageLabel}
           title={COPY.progress.pageTitle}
@@ -84,76 +156,162 @@ export default function Progress() {
         />
 
         <div style={{ display: 'grid', gap: 20 }}>
-          <section style={{ background: 'linear-gradient(180deg, rgba(45,106,79,0.08), transparent 70%), var(--surface-solid)', border: '1.25px solid var(--border)', borderRadius: 18, padding: isMobile ? '22px 18px' : '26px 28px' }}>
-            <div style={{ display: 'flex', gap: isMobile ? 18 : 24, alignItems: 'center', flexDirection: isMobile ? 'column' : 'row' }}>
-              <ProgressRing todayCount={todayCount} dailyGoal={dailyGoal} onGoalChange={saveDailyGoal} size={80} />
-              <div style={{ flex: 1, minWidth: 0, textAlign: isMobile ? 'center' : 'left' }}>
-                <div className="font-sketch" style={{ fontSize: '1.05rem', color: 'var(--primary)', marginBottom: 4 }}>{COPY.progress.todayLabel}</div>
-                <div style={{ fontSize: isMobile ? '1.7rem' : '2rem', fontWeight: 700, color: 'var(--ink)', lineHeight: 1.1 }}>{todayCount} applied today</div>
-                <div style={{ fontSize: '0.92rem', color: 'var(--muted-ink)', marginTop: 6 }}>Goal: {dailyGoal}/day</div>
+
+          {/* ── Section 0: Today's Snapshot ──────────── */}
+          <section style={{
+            background: 'linear-gradient(135deg, var(--primary-soft), transparent 60%), var(--surface-solid)',
+            border: '1.25px solid var(--border)',
+            borderRadius: 18,
+            padding: isMobile ? '20px 16px' : '24px',
+            display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
+            alignItems: 'center',
+            gap: isMobile ? 16 : 24,
+            textAlign: isMobile ? 'center' : 'left',
+          }}>
+            {/* Progress ring */}
+            <div style={{ position: 'relative', width: 72, height: 72, flexShrink: 0 }}>
+              <ProgressRing size={72} progress={goalProgress} color={ringColor} />
+              <div style={{
+                position: 'absolute', inset: 0,
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <span style={{ fontSize: '1.35rem', fontWeight: 700, color: 'var(--ink)', lineHeight: 1 }}>
+                  {todayCount}
+                </span>
+                <span style={{ fontSize: '0.62rem', color: 'var(--muted-ink)', marginTop: 1 }}>
+                  {goalPct}%
+                </span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Badge variant={streak > 0 ? 'yellow' : 'neutral'} style={{ fontSize: '0.92rem', padding: '8px 14px', borderRadius: 999 }}>
-                  {streak > 0 ? `🔥 ${streak}-day streak` : COPY.progress.noStreak}
-                </Badge>
+            </div>
+
+            {/* Today's stats text */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{
+                fontSize: isMobile ? '1.2rem' : '1.5rem', fontWeight: 700,
+                color: 'var(--ink)', lineHeight: 1.2,
+              }}>
+                {todayCount} applied today
               </div>
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 8, marginTop: 6,
+                justifyContent: isMobile ? 'center' : 'flex-start',
+                flexWrap: 'wrap',
+              }}>
+                {goalEditorOpen ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <input
+                      type="number"
+                      min={1} max={50}
+                      value={goalDraft}
+                      onChange={e => setGoalDraft(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))}
+                      style={{
+                        width: 52, height: 28, borderRadius: 8,
+                        border: '1.25px solid var(--primary)', background: 'var(--surface-solid)',
+                        color: 'var(--ink)', textAlign: 'center', fontSize: '0.85rem',
+                        fontFamily: 'inherit', outline: 'none',
+                      }}
+                      autoFocus
+                      onKeyDown={e => { if (e.key === 'Enter') handleSaveGoal(); if (e.key === 'Escape') setGoalEditorOpen(false); }}
+                    />
+                    <span style={{ fontSize: '0.82rem', color: 'var(--muted-ink)' }}>/day</span>
+                    <button onClick={handleSaveGoal} style={{
+                      background: 'var(--primary)', color: '#fff', border: 'none',
+                      borderRadius: 6, width: 24, height: 24, cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      <Check size={13} />
+                    </button>
+                    <button onClick={() => { setGoalEditorOpen(false); setGoalDraft(dailyGoal); }} style={{
+                      background: 'var(--paper2)', color: 'var(--muted-ink)', border: 'none',
+                      borderRadius: 6, width: 24, height: 24, cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      <X size={13} />
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <span style={{ fontSize: '0.88rem', color: 'var(--muted-ink)' }}>
+                      Goal: {dailyGoal}/day
+                    </span>
+                    <button
+                      onClick={() => setGoalEditorOpen(true)}
+                      style={{
+                        background: 'none', border: 'none', cursor: 'pointer',
+                        color: 'var(--primary)', fontSize: '0.78rem', fontFamily: 'inherit',
+                        textDecoration: 'underline', display: 'flex', alignItems: 'center', gap: 3,
+                        padding: 0,
+                      }}
+                    >
+                      <Pencil size={11} /> Edit
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Streak badge */}
+            <div style={{ flexShrink: 0 }}>
+              {streak > 0 ? (
+                <span style={{
+                  background: 'var(--warning-soft)', color: 'var(--warning)',
+                  borderRadius: 999, padding: '8px 16px', fontSize: '0.88rem', fontWeight: 600,
+                  whiteSpace: 'nowrap',
+                }}>
+                  🔥 {streak}-day streak
+                </span>
+              ) : (
+                <span style={{
+                  background: 'var(--paper2)', color: 'var(--muted-ink)',
+                  borderRadius: 999, padding: '8px 16px', fontSize: '0.88rem', fontWeight: 600,
+                  whiteSpace: 'nowrap',
+                }}>
+                  {COPY.progress.noStreak}
+                </span>
+              )}
             </div>
           </section>
 
-          <section>
-            <ActivityChart appliedJobs={appliedJobs} dailyGoal={dailyGoal} isMobile={isMobile} barMaxHeight={120} />
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px 18px', marginTop: 12, padding: '0 4px', fontSize: '0.86rem', color: 'var(--muted-ink)' }}>
-              <span>Total applied: {totalApplied}</span>
-              <span>⭐ Hit goal {goalMetDays} of last 7 days</span>
-              <span>Applied to {thisWeekApplied} jobs this week</span>
-            </div>
+          {/* ── Section 1: Heatmap Calendar ──────────── */}
+          <section style={sectionCard()}>
+            <HeatmapCalendar appliedJobs={appliedJobs} dailyGoal={dailyGoal} />
           </section>
 
-          <section style={{ background: 'var(--surface-solid)', border: '1.25px solid var(--border)', borderRadius: 18, overflow: 'hidden' }}>
-            <div style={{ padding: '18px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-              <div>
-                <div className="font-sketch" style={{ fontSize: '1rem', color: 'var(--primary)', marginBottom: 4 }}>{COPY.progress.historyLabel}</div>
-                <div style={{ fontSize: '0.85rem', color: 'var(--muted-ink)' }}>{COPY.progress.historySubtitle}</div>
-              </div>
+          {/* ── Section 2: Funnel Chart ──────────────── */}
+          <section style={sectionCard()}>
+            <div className="font-sketch" style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--primary)', marginBottom: 4 }}>
+              Pipeline overview
             </div>
-
+            <div style={{ fontSize: '0.82rem', color: 'var(--muted-ink)', marginBottom: 18 }}>
+              How your applications are progressing through stages
+            </div>
             {loadingRecent ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: 20 }}>
-                {[1, 2, 3, 4].map(index => <div key={index} className="skeleton" style={{ height: 56, borderRadius: 12 }} />)}
-              </div>
-            ) : recentApplied.length === 0 ? (
-              <div style={{ padding: 20 }}>
-                <EmptyState icon={<BriefcaseBusiness size={34} />} title={COPY.progress.emptyTitle} body={COPY.progress.emptyBody} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {[1, 2, 3].map(i => <div key={i} className="skeleton" style={{ height: 36, borderRadius: 8 }} />)}
               </div>
             ) : (
-              <div>
-                {recentApplied.map(entry => {
-                  const row = (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, padding: '14px 20px', borderTop: '1px solid var(--border)', color: 'inherit', alignItems: 'center', flexWrap: 'wrap' }}>
-                      <div style={{ minWidth: 0, flex: 1 }}>
-                        <div style={{ fontSize: '0.92rem', fontWeight: 600, color: 'var(--ink)', lineHeight: 1.3 }}>{entry.jobTitle}</div>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--muted-ink)', marginTop: 4 }}>{entry.company}</div>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--muted-ink)', fontSize: '0.8rem', flexShrink: 0 }}>
-                        <span>{formatAppliedRelativeTime(entry.appliedAt)}</span>
-                        {entry.applicationURL && <ExternalLink size={13} />}
-                      </div>
-                    </div>
-                  );
-
-                  if (!entry.applicationURL && entry.jobTitle === 'Job no longer available') {
-                    return <div key={`${entry.jobId}-${entry.appliedAt}`}>{row}</div>;
-                  }
-
-                  return (
-                    <Link key={`${entry.jobId}-${entry.appliedAt}`} to={`/jobs?selectedJob=${encodeURIComponent(entry.jobId)}`} style={{ display: 'block', textDecoration: 'none' }}>
-                      {row}
-                    </Link>
-                  );
-                })}
-              </div>
+              <FunnelChart stageCounts={stageCounts} totalApplied={recentApplied.length} />
             )}
           </section>
+
+          {/* ── Section 3: Pipeline View ─────────────── */}
+          <section style={sectionCard()}>
+            <div className="font-sketch" style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--primary)', marginBottom: 4 }}>
+              My applications
+            </div>
+            <div style={{ fontSize: '0.82rem', color: 'var(--muted-ink)', marginBottom: 18 }}>
+              Track and update your application stages
+            </div>
+            {loadingRecent ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {[1, 2, 3, 4].map(i => <div key={i} className="skeleton" style={{ height: 80, borderRadius: 14 }} />)}
+              </div>
+            ) : (
+              <PipelineView jobs={pipelineJobs} onStageChange={handleStageChange} />
+            )}
+          </section>
+
         </div>
       </Container>
     </div>

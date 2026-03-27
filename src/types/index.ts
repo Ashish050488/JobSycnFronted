@@ -66,12 +66,19 @@ export interface IJob {
 export interface AppliedJobEntry {
   jobId: string;
   appliedAt: string;
+  stage?: string;
+  stageUpdatedAt?: string;
 }
 
 export interface AppliedJobDetail extends AppliedJobEntry {
   jobTitle: string;
   company: string;
   applicationURL: string | null;
+  location: string | null;
+  department: string | null;
+  stage: string;
+  stageUpdatedAt: string;
+  isListingActive: boolean;
 }
 
 export interface ICompany {

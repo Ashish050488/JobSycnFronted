@@ -1,6 +1,6 @@
 // FILE: src/components/JobListItem.tsx
 import { useState, memo } from 'react';
-import { Clock, CheckCircle2 } from 'lucide-react';
+import { Clock, CheckCircle2, X } from 'lucide-react';
 import { Badge } from './ui';
 import type { IJob } from '../types';
 
@@ -20,6 +20,7 @@ export interface JobListItemProps {
   skillMatchBg: string;
   skillMatchColor: string;
   onSelect: (job: IJob) => void;
+  onDismiss?: (jobId: string) => void;
 }
 
 function logoDomainFromUrl(url: string) {
@@ -44,8 +45,10 @@ const JobListItem = memo(function JobListItem({
   skillMatchBg,
   skillMatchColor,
   onSelect,
+  onDismiss,
 }: JobListItemProps) {
   const [logoError, setLogoError] = useState(false);
+  const [hovered, setHovered] = useState(false);
 
   return (
     <div
@@ -59,14 +62,38 @@ const JobListItem = memo(function JobListItem({
         borderLeft: isSelected ? '3px solid var(--primary)' : '3px solid transparent',
         transition: 'all 0.18s',
         opacity: isApplied ? 0.55 : 1,
+        position: 'relative',
       }}
       onMouseEnter={e => {
+        setHovered(true);
         if (!isSelected) (e.currentTarget as HTMLDivElement).style.background = 'var(--paper2)';
       }}
       onMouseLeave={e => {
+        setHovered(false);
         if (!isSelected) (e.currentTarget as HTMLDivElement).style.background = 'transparent';
       }}
     >
+      {/* Dismiss button — visible on hover (desktop) or always on mobile */}
+      {onDismiss && (
+        <button
+          onClick={e => { e.stopPropagation(); onDismiss(job._id); }}
+          title="Not interested"
+          style={{
+            position: 'absolute', top: 10, right: 10,
+            background: hovered ? 'var(--paper2)' : 'transparent',
+            border: hovered ? '1px solid var(--border)' : 'none',
+            borderRadius: 6, padding: '2px 6px',
+            display: 'flex', alignItems: 'center', gap: 3,
+            cursor: 'pointer', color: 'var(--subtle-ink)',
+            fontSize: '0.68rem', fontFamily: 'inherit',
+            opacity: hovered ? 1 : 0,
+            transition: 'opacity 0.18s, background 0.18s',
+            zIndex: 1,
+          }}
+        >
+          <X size={10} /> Not interested
+        </button>
+      )}
       <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
         <div style={{
           width: 36, height: 36, flexShrink: 0,

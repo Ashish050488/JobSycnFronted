@@ -63,6 +63,15 @@ export const lightVars: Record<string, string> = {
   '--marker-color': 'rgba(45,106,79,0.10)',
   '--marker-blend': 'multiply',
   '--marker-opacity': '0.55',
+
+  // Alias vars used in Layout + components
+  '--text-primary': '#141414',
+  '--text-secondary': '#525252',
+  '--border-mid': 'rgba(20,20,20,0.20)',
+  // Acid accent (highlight color for active states)
+  '--acid': '#2D6A4F',
+  '--acid-dim': 'rgba(45,106,79,0.10)',
+  '--acid-mid': 'rgba(45,106,79,0.40)',
 };
 
 export const darkVars: Record<string, string> = {
@@ -118,4 +127,13 @@ export const darkVars: Record<string, string> = {
   '--marker-color': 'rgba(116,198,157,0.12)',
   '--marker-blend': 'soft-light',
   '--marker-opacity': '0.50',
+
+  // Alias vars used in Layout + components
+  '--text-primary': '#F5F5F5',
+  '--text-secondary': '#BDBDBD',
+  '--border-mid': 'rgba(245,245,245,0.18)',
+  // Acid accent — bright mint in dark mode
+  '--acid': '#74C69D',
+  '--acid-dim': 'rgba(116,198,157,0.12)',
+  '--acid-mid': 'rgba(116,198,157,0.40)',
 };

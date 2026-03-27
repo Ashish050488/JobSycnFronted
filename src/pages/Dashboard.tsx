@@ -115,7 +115,35 @@ export default function Dashboard() {
   // Viewport and user context
   const { isXsSm, isMd, isLg, is3xl, isShortLandscape, useSplitView } = useViewportInfo();
   const useBottomSheet = !useSplitView;
-  const { currentUser, userSkills, appliedJobIds, previousVisitAt, toggleApplied } = useUser();
+  const { currentUser, userSkills, appliedJobIds, dismissedJobIds, previousVisitAt, toggleApplied, toggleDismissed } = useUser();
+
+  // Dismiss with 5-second undo window
+  interface PendingDismiss { jobId: string; timer: ReturnType<typeof setTimeout> }
+  const [pendingDismiss, setPendingDismiss] = useState<PendingDismiss | null>(null);
+
+  const handleDismiss = useCallback((jobId: string) => {
+    if (!currentUser) return;
+    // Clear any existing pending dismiss without firing the API (user dismissed another job)
+    if (pendingDismiss) {
+      clearTimeout(pendingDismiss.timer);
+      toggleDismissed(pendingDismiss.jobId); // fire the previous one immediately
+    }
+    // Optimistic: add to dismissed set immediately for instant UI removal
+    toggleDismissed(jobId);
+    // Schedule real API call with 5-second undo window
+    const timer = setTimeout(() => {
+      setPendingDismiss(null);
+      // API already fired via toggleDismissed above (optimistic)
+    }, 5000);
+    setPendingDismiss({ jobId, timer });
+  }, [currentUser, pendingDismiss, toggleDismissed]);
+
+  const handleUndoDismiss = useCallback(() => {
+    if (!pendingDismiss) return;
+    clearTimeout(pendingDismiss.timer);
+    toggleDismissed(pendingDismiss.jobId); // calls DELETE — undoes the dismiss
+    setPendingDismiss(null);
+  }, [pendingDismiss, toggleDismissed]);
 
   // ComeBack logic
   const [comeBackMap, setComeBackMap] = useState<Map<string, { note: string; addedAt: string }>>(new Map());
@@ -127,7 +155,7 @@ export default function Dashboard() {
       .then((entries: { jobId: string; note: string; addedAt: string }[]) => {
         if (!cancelled) setComeBackMap(new Map(entries.map(e => [e.jobId, { note: e.note, addedAt: e.addedAt }])));
       })
-      .catch(() => {});
+      .catch(() => { });
     return () => { cancelled = true; };
   }, [currentUser?.slug]);
 
@@ -141,7 +169,7 @@ export default function Dashboard() {
     }).then(r => r.ok ? r.json() : null)
       .then((entries: { jobId: string; note: string; addedAt: string }[] | null) => {
         if (entries) setComeBackMap(new Map(entries.map(e => [e.jobId, { note: e.note, addedAt: e.addedAt }])));
-      }).catch(() => {});
+      }).catch(() => { });
   }, [currentUser]);
 
   const removeComeBack = useCallback((jobId: string) => {
@@ -153,14 +181,15 @@ export default function Dashboard() {
       .then(r => r.ok ? r.json() : null)
       .then((entries: { jobId: string; note: string; addedAt: string }[] | null) => {
         if (entries) setComeBackMap(new Map(entries.map(e => [e.jobId, { note: e.note, addedAt: e.addedAt }])));
-      }).catch(() => {});
+      }).catch(() => { });
   }, [currentUser]);
 
   const handleToggleApplied = useCallback(async (jobId: string) => {
+    if (!currentUser) return;
     const wasApplied = appliedJobIds.has(jobId);
     await toggleApplied(jobId);
     if (!wasApplied && comeBackMap.has(jobId)) removeComeBack(jobId);
-  }, [appliedJobIds, toggleApplied, comeBackMap, removeComeBack]);
+  }, [currentUser, appliedJobIds, toggleApplied, comeBackMap, removeComeBack]);
 
   const handleSelectJob = useCallback((job: IJob) => {
     if (listRef.current) savedListScrollTopRef.current = listRef.current.scrollTop;
@@ -168,6 +197,24 @@ export default function Dashboard() {
     setSelectedJob(job);
     if (useBottomSheet) setMobileSheetOpen(true);
   }, [setSp, useBottomSheet]);
+
+  const handleSelectJobById = useCallback(async (id: string) => {
+    const found = jobs.find(j => j._id === id);
+    if (found) {
+      handleSelectJob(found);
+    } else {
+      try {
+        const res = await fetch(`/api/jobs/${id}`);
+        if (res.ok) {
+          const jobData = await res.json();
+          setJobs(prev => [jobData, ...prev]);
+          handleSelectJob(jobData);
+        }
+      } catch (err) {
+        console.error("Failed to fetch clicked job", err);
+      }
+    }
+  }, [jobs, handleSelectJob]);
 
   useEffect(() => {
     if (mobileSheetOpen) { document.body.style.overflow = 'hidden'; }
@@ -187,6 +234,8 @@ export default function Dashboard() {
     remote: workplaceFilter === 'remote',
     platform: platformFilter,
     company: sel,
+    date: dateFilter,
+    search: searchQuery,
   };
 
   const fetchJobs = useCallback(async (pageNum: number, append: boolean, filters?: typeof serverFilters) => {
@@ -201,6 +250,9 @@ export default function Dashboard() {
       if (f.entryLevel || f.experienceBand === 'Fresher (0-1y)') params.set('entryLevel', 'true');
       if (f.remote) params.set('remote', 'true');
       if (f.platform) params.set('platform', f.platform);
+      // Server-side date + search
+      if (f.date) params.set('date', f.date);
+      if (f.search && f.search.trim().length >= 2) params.set('search', f.search.trim());
       const jr = await fetch(`/api/jobs?${params}`);
       const jd = await jr.json() as { jobs?: IJob[]; totalJobs?: number; totalPages?: number; currentPage?: number };
       const newJobs = jd.jobs ?? [];
@@ -210,11 +262,11 @@ export default function Dashboard() {
       setJobs(prev => append ? [...prev, ...newJobs] : newJobs);
     } catch (e) { console.error(e); }
     finally { if (append) setIsLoadingMore(false); else setLoading(false); }
-  }, [sel, roleCategoryFilter, experienceBandFilter, entryLevelFilter, workplaceFilter, platformFilter]);
+  }, [sel, roleCategoryFilter, experienceBandFilter, workplaceFilter, platformFilter, dateFilter, searchQuery]);
 
   useEffect(() => {
     fetchJobs(1, false);
-  }, [sel, roleCategoryFilter, experienceBandFilter, entryLevelFilter, workplaceFilter, platformFilter]);
+  }, [sel, roleCategoryFilter, experienceBandFilter, entryLevelFilter, workplaceFilter, platformFilter, dateFilter, searchQuery]);
   // --- Load More logic ---
   const hasMore = currentPage < totalPages;
 
@@ -229,7 +281,7 @@ export default function Dashboard() {
     fetch('/api/jobs/directory')
       .then(r => r.ok ? r.json() : [])
       .then((data: any[]) => { if (!cancelled) setCos(Array.isArray(data) ? data : []); })
-      .catch(() => {});
+      .catch(() => { });
     return () => { cancelled = true; };
   }, []);
 
@@ -265,7 +317,8 @@ export default function Dashboard() {
         if (!hay.includes(q)) return false;
       }
       if (hideApplied && appliedJobIds.has(job._id)) return false;
-      if (showComeBackOnly && !comeBackMap.has(job._id)) return false;
+      if (dismissedJobIds.has(job._id)) return false;
+      if (currentUser && showComeBackOnly && !comeBackMap.has(job._id)) return false;
       if (showNewOnly) {
         if (!previousVisitAt) return false;
         const prev = new Date(previousVisitAt).getTime();
@@ -287,7 +340,7 @@ export default function Dashboard() {
       }, 0);
       return scoreB - scoreA;
     });
-  }, [jobs, workplaceFilter, dateFilter, searchQuery, hideApplied, showComeBackOnly, showNewOnly, previousVisitAt, appliedJobIds, comeBackMap, sortBy, userSkills]);
+  }, [jobs, workplaceFilter, dateFilter, searchQuery, hideApplied, showComeBackOnly, showNewOnly, previousVisitAt, appliedJobIds, dismissedJobIds, comeBackMap, sortBy, userSkills]);
 
   useEffect(() => {
     visibleJobsRef.current = visibleJobs;
@@ -343,7 +396,31 @@ export default function Dashboard() {
   // Initial load selection only once
   useEffect(() => {
     if (initializedSelectionRef.current) return;
-    if (selectedJobParam || useBottomSheet) return;
+    if (useBottomSheet) return;
+
+    if (selectedJobParam) {
+      initializedSelectionRef.current = true;
+      const found = visibleJobsRef.current.find(j => j._id === selectedJobParam);
+      if (found) {
+        setSelectedJob(found);
+      } else {
+        fetch(`/api/jobs/${selectedJobParam}`)
+          .then(r => r.ok ? r.json() : null)
+          .then((job: IJob | null) => {
+            if (job) {
+              setJobs(prev => [job, ...prev]);
+              setSelectedJob(job);
+            } else if (visibleJobsRef.current.length > 0) {
+              setSelectedJob(visibleJobsRef.current[0]);
+            }
+          })
+          .catch(() => {
+            if (visibleJobsRef.current.length > 0) setSelectedJob(visibleJobsRef.current[0]);
+          });
+      }
+      return;
+    }
+
     if (loading) return;
     if (visibleJobs.length === 0) {
       setSelectedJob(null);
@@ -447,290 +524,337 @@ export default function Dashboard() {
         @keyframes sheetSlideDown { from { transform: translateY(0) } to { transform: translateY(100%) } }
         .job-description-html h2,
         .job-description-html h3 { margin-top: 20px; font-weight: 600; }
+        @keyframes toastIn { from { transform: translateY(80px); opacity: 0 } to { transform: translateY(0); opacity: 1 } }
       `}</style>
-      <div style={{ background: 'var(--surface-solid)', borderBottom: '1.25px solid var(--border)', padding: '16px 0' }}>
+      {/* ── Dismiss undo toast ──────── */}
+      {pendingDismiss && (
+        <div style={{
+          position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
+          background: 'var(--ink)', color: 'var(--paper)',
+          borderRadius: 12, padding: '12px 18px',
+          display: 'flex', alignItems: 'center', gap: 14,
+          boxShadow: '0 4px 24px rgba(0,0,0,0.25)',
+          zIndex: 9999, fontSize: '0.88rem', fontWeight: 500,
+          animation: 'toastIn 0.25s ease',
+          whiteSpace: 'nowrap',
+        }}>
+          <span>Job hidden.</span>
+          <button
+            onClick={handleUndoDismiss}
+            style={{
+              background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)',
+              borderRadius: 8, color: 'inherit', fontFamily: 'inherit',
+              fontSize: '0.82rem', fontWeight: 700, padding: '4px 12px',
+              cursor: 'pointer',
+            }}
+          >
+            Undo
+          </button>
+        </div>
+      )}
+      <div style={{ background: 'var(--surface-solid)', borderBottom: '1.25px solid var(--border)', padding: '10px 0' }}>
         <Container style={is3xl ? { maxWidth: 1600 } : undefined}>
-          <PageHeader label={COPY.jobs.pageLabel} title={sel || COPY.jobs.pageTitle}
-            subtitle={`${visibleJobs.length} shown · ${totalJobs} total roles available`}
-            actions={sel ? <button onClick={clearAllFilters} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 6, border: '1.25px solid var(--border)', background: 'var(--paper2)', color: 'var(--muted-ink)', cursor: 'pointer', fontSize: '0.8rem', fontFamily: 'inherit' }}>{sel}<X size={11} /></button> : undefined} />
+          {!currentUser && (
+            <div style={{
+              marginBottom: 12, padding: '10px 14px', borderRadius: 10,
+              background: 'var(--primary-soft)', border: '1px solid var(--primary)',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8
+            }}>
+              <span style={{ fontSize: '0.85rem', color: 'var(--ink)' }}>
+                <strong style={{ color: 'var(--primary)' }}>Browsing as guest</strong> — sign in to track applications, filter by skills, hide applied jobs & more
+              </span>
+              <a href="/login" style={{
+                padding: '6px 14px', borderRadius: 8, background: 'var(--primary)',
+                color: '#fff', textDecoration: 'none', fontSize: '0.8rem', fontWeight: 600
+              }}>Sign In</a>
+            </div>
+          )}
+          <PageHeader
+            label={COPY.jobs.pageLabel}
+            title={sel || COPY.jobs.pageTitle}
+            subtitle={currentUser ? `${visibleJobs.length} shown · ${totalJobs} total roles available` : undefined}
+            actions={sel && currentUser ? <button onClick={clearAllFilters} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 6, border: '1.25px solid var(--border)', background: 'var(--paper2)', color: 'var(--muted-ink)', cursor: 'pointer', fontSize: '0.8rem', fontFamily: 'inherit' }}>{sel}<X size={11} /></button> : undefined}
+          />
         </Container>
       </div>
       <Container style={{ padding: isXsSm ? '20px 16px' : '28px 24px', maxWidth: is3xl ? 1600 : undefined }}>
         <div style={{ minWidth: 0 }}>
-            {/* Search bar + filter button */}
-            <div style={{ display: 'flex', gap: 8, marginBottom: 14, alignItems: 'center' }}>
-              <div style={{ position: 'relative', flex: 1 }}>
-                <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--muted-ink)', pointerEvents: 'none' }} />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  placeholder="Search by title, company, location, or tech stack..."
-                  style={{
-                    width: '100%', height: 48, padding: '10px 36px 10px 38px', borderRadius: 12,
-                    border: '1.25px solid var(--border)', background: 'var(--surface-solid)',
-                    color: 'var(--ink)', fontSize: isXsSm ? 16 : '0.92rem', fontFamily: 'inherit',
-                    outline: 'none', transition: 'border-color 0.18s',
-                    boxSizing: 'border-box',
-                  }}
-                  onFocus={e => { (e.target as HTMLInputElement).style.borderColor = 'var(--primary)'; }}
-                  onBlur={e => { (e.target as HTMLInputElement).style.borderColor = 'var(--border)'; }}
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery('')}
-                    style={{
-                      position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
-                      background: 'none', border: 'none', cursor: 'pointer',
-                      color: 'var(--muted-ink)', display: 'flex', alignItems: 'center', padding: 2,
-                    }}
-                  >
-                    <X size={15} />
-                  </button>
-                )}
-              </div>
-            </div>
-            {/* Sort by skills row — only when user has skills */}
-            {userSkills.length > 0 && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-                <span style={{ fontSize: '0.75rem', color: 'var(--muted-ink)' }}>Sort by:</span>
+          {/* Search bar + filter button */}
+          <div style={{ display: 'flex', gap: 8, marginBottom: 14, alignItems: 'center' }}>
+            <div style={{ position: 'relative', flex: 1 }}>
+              <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--muted-ink)', pointerEvents: 'none' }} />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Search by title, company, location, or tech stack..."
+                style={{
+                  width: '100%', height: 48, padding: '10px 36px 10px 38px', borderRadius: 12,
+                  border: '1.25px solid var(--border)', background: 'var(--surface-solid)',
+                  color: 'var(--ink)', fontSize: isXsSm ? 16 : '0.92rem', fontFamily: 'inherit',
+                  outline: 'none', transition: 'border-color 0.18s',
+                  boxSizing: 'border-box',
+                }}
+                onFocus={e => { (e.target as HTMLInputElement).style.borderColor = 'var(--primary)'; }}
+                onBlur={e => { (e.target as HTMLInputElement).style.borderColor = 'var(--border)'; }}
+              />
+              {searchQuery && (
                 <button
-                  onClick={() => setSortBy(v => v === 'match' ? 'default' : 'match')}
+                  onClick={() => setSearchQuery('')}
                   style={{
-                    padding: '3px 10px', borderRadius: 999, fontSize: '0.75rem', fontFamily: 'inherit',
-                    border: sortBy === 'match' ? '1.5px solid var(--primary)' : '1.25px solid var(--border)',
-                    background: sortBy === 'match' ? 'var(--primary)' : 'transparent',
-                    color: sortBy === 'match' ? '#fff' : 'var(--muted-ink)',
-                    cursor: 'pointer', fontWeight: sortBy === 'match' ? 600 : 400, transition: 'all 0.18s',
+                    position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    color: 'var(--muted-ink)', display: 'flex', alignItems: 'center', padding: 2,
                   }}
                 >
-                  ✶ Best match
-                </button>
-                {sortBy === 'match' && (
-                  <button
-                    onClick={() => setSortBy('default')}
-                    style={{ padding: '3px 10px', borderRadius: 999, fontSize: '0.75rem', fontFamily: 'inherit', border: '1.25px solid var(--border)', background: 'transparent', color: 'var(--muted-ink)', cursor: 'pointer', transition: 'all 0.18s' }}
-                  >
-                    Default
-                  </button>
-                )}
-              </div>
-            )}
-            {/* Horizontal filter bar */}
-            <div style={{
-              display: 'flex',
-              gap: 10,
-              padding: '12px 0 14px',
-              marginBottom: 12,
-              borderBottom: '1px solid var(--border)',
-              overflowX: isXsSm ? 'auto' : 'visible',
-              flexWrap: isXsSm ? 'nowrap' : 'wrap',
-              WebkitOverflowScrolling: 'touch',
-              maxHeight: isMd ? 88 : undefined,
-              overflowY: isMd ? 'hidden' : undefined,
-            }}>
-              <select
-                value={roleCategoryFilter ?? ''}
-                onChange={e => setRoleCategoryFilter(e.target.value || null)}
-                style={{ padding: '8px 12px', borderRadius: 999, border: '1.25px solid var(--border)', background: roleCategoryFilter ? 'var(--primary-soft)' : 'var(--surface-solid)', color: roleCategoryFilter ? 'var(--primary)' : 'var(--muted-ink)', fontFamily: 'inherit', fontSize: '0.82rem' }}
-              >
-                <option value="">Role: All</option>
-                {ROLE_FILTER_OPTIONS.filter(o => o.value).map(opt => (
-                  <option key={opt.label} value={opt.value!}>{opt.label}</option>
-                ))}
-              </select>
-              <select
-                value={experienceBandFilter ?? ''}
-                onChange={e => setExperienceBandFilter(e.target.value || null)}
-                style={{ padding: '8px 12px', borderRadius: 999, border: '1.25px solid var(--border)', background: experienceBandFilter ? 'var(--primary-soft)' : 'var(--surface-solid)', color: experienceBandFilter ? 'var(--primary)' : 'var(--muted-ink)', fontFamily: 'inherit', fontSize: '0.82rem' }}
-              >
-                <option value="">Exp: All</option>
-                {EXPERIENCE_FILTER_OPTIONS.filter(o => o.value).map(opt => (
-                  <option key={opt.label} value={opt.value!}>{opt.label}</option>
-                ))}
-              </select>
-              <select value={workplaceFilter ?? ''} onChange={e => setWorkplaceFilter(e.target.value || null)} style={{ padding: '8px 12px', borderRadius: 999, border: '1.25px solid var(--border)', background: workplaceFilter ? 'var(--primary-soft)' : 'var(--surface-solid)', color: workplaceFilter ? 'var(--primary)' : 'var(--muted-ink)', fontFamily: 'inherit', fontSize: '0.82rem' }}>
-                <option value="">Workplace: All</option>
-                <option value="remote">Remote</option>
-                <option value="hybrid">Hybrid</option>
-                <option value="on-site">On-site</option>
-              </select>
-              <select value={dateFilter ?? ''} onChange={e => setDateFilter(e.target.value || null)} style={{ padding: '8px 12px', borderRadius: 999, border: '1.25px solid var(--border)', background: dateFilter ? 'var(--primary-soft)' : 'var(--surface-solid)', color: dateFilter ? 'var(--primary)' : 'var(--muted-ink)', fontFamily: 'inherit', fontSize: '0.82rem' }}>
-                <option value="">Date: All</option>
-                <option value="1d">Past 24h</option>
-                <option value="3d">Past 3d</option>
-                <option value="7d">Past 7d</option>
-              </select>
-              <select value={platformFilter ?? ''} onChange={e => setPlatformFilter(e.target.value || null)} style={{ padding: '8px 12px', borderRadius: 999, border: '1.25px solid var(--border)', background: platformFilter ? 'var(--primary-soft)' : 'var(--surface-solid)', color: platformFilter ? 'var(--primary)' : 'var(--muted-ink)', fontFamily: 'inherit', fontSize: '0.82rem' }}>
-                <option value="">Board: All</option>
-                <option value="lever">Lever</option>
-                <option value="greenhouse">Greenhouse</option>
-                <option value="ashby">Ashby</option>
-                <option value="workable">Workable</option>
-                <option value="recruitee">Recruitee</option>
-                <option value="workday">Workday</option>
-              </select>
-              <select value={sel} onChange={e => { const company = e.target.value; if (!company) { setSp({}); } else { setSp({ company }); } }} style={{ padding: '8px 12px', borderRadius: 999, border: '1.25px solid var(--border)', background: sel ? 'var(--primary-soft)' : 'var(--surface-solid)', color: sel ? 'var(--primary)' : 'var(--muted-ink)', fontFamily: 'inherit', fontSize: '0.82rem' }}>
-                <option value="">Companies: All</option>
-                {cos.map(c => <option key={c.companyName} value={c.companyName}>{c.companyName}</option>)}
-              </select>
-              {isMd && (
-                <button
-                  onClick={() => setFilterModalOpen(true)}
-                  style={{
-                    minHeight: 36,
-                    padding: '8px 14px',
-                    borderRadius: 999,
-                    border: '1.25px solid var(--border)',
-                    background: 'var(--surface-solid)',
-                    color: 'var(--muted-ink)',
-                    whiteSpace: 'nowrap',
-                    cursor: 'pointer',
-                    fontSize: '0.82rem',
-                    fontFamily: 'inherit',
-                  }}
-                >
-                  Filters
+                  <X size={15} />
                 </button>
               )}
             </div>
-            {/* Quick-access filter chips (mobile only) */}
-            {(isXsSm || isMd) && (
-              <div style={{ display: 'flex', gap: 8, marginBottom: 12, overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                {currentUser && (
-                  <button
-                    onClick={() => setHideApplied(h => !h)}
-                    style={{
-                      flexShrink: 0, padding: '6px 14px', borderRadius: 20,
-                      border: '1.25px solid var(--border)', cursor: 'pointer',
-                      fontSize: '0.8rem', fontFamily: 'inherit', whiteSpace: 'nowrap',
-                      background: hideApplied ? 'var(--primary)' : 'var(--surface-solid)',
-                      color: hideApplied ? '#fff' : 'var(--muted-ink)',
-                      fontWeight: hideApplied ? 600 : 400,
-                      transition: 'all 0.18s',
-                    }}
-                  >
-                    {hideApplied ? <><EyeOff size={12} style={{ verticalAlign: -2, marginRight: 4 }} />Applied Hidden</> : <><Eye size={12} style={{ verticalAlign: -2, marginRight: 4 }} />Hide Applied</>}
-                  </button>
-                )}
-                {currentUser && newJobsCount > 0 && (
-                  <button
-                    onClick={() => setShowNewOnly(n => !n)}
-                    style={{
-                      flexShrink: 0, padding: '6px 14px', borderRadius: 20,
-                      border: '1.25px solid var(--border)', cursor: 'pointer',
-                      fontSize: '0.8rem', fontFamily: 'inherit', whiteSpace: 'nowrap',
-                      background: showNewOnly ? 'var(--primary)' : 'var(--surface-solid)',
-                      color: showNewOnly ? '#fff' : 'var(--muted-ink)',
-                      fontWeight: showNewOnly ? 600 : 400,
-                      transition: 'all 0.18s',
-                    }}
-                  >
-                    <Sparkles size={12} style={{ verticalAlign: -2, marginRight: 4 }} />New Only
-                  </button>
-                )}
+          </div>
+          {/* Sort by skills row — only when user has skills and is logged in */}
+          {currentUser && userSkills.length > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--muted-ink)' }}>Sort by:</span>
+              <button
+                onClick={() => setSortBy(v => v === 'match' ? 'default' : 'match')}
+                style={{
+                  padding: '3px 10px', borderRadius: 999, fontSize: '0.75rem', fontFamily: 'inherit',
+                  border: sortBy === 'match' ? '1.5px solid var(--primary)' : '1.25px solid var(--border)',
+                  background: sortBy === 'match' ? 'var(--primary)' : 'transparent',
+                  color: sortBy === 'match' ? '#fff' : 'var(--muted-ink)',
+                  cursor: 'pointer', fontWeight: sortBy === 'match' ? 600 : 400, transition: 'all 0.18s',
+                }}
+              >
+                ✶ Best match
+              </button>
+              {sortBy === 'match' && (
                 <button
-                  onClick={() => setEntryLevelFilter(f => !f)}
+                  onClick={() => setSortBy('default')}
+                  style={{ padding: '3px 10px', borderRadius: 999, fontSize: '0.75rem', fontFamily: 'inherit', border: '1.25px solid var(--border)', background: 'transparent', color: 'var(--muted-ink)', cursor: 'pointer', transition: 'all 0.18s' }}
+                >
+                  Default
+                </button>
+              )}
+            </div>
+          )}
+          {/* Horizontal filter bar */}
+          <div style={{
+            display: 'flex',
+            gap: 10,
+            padding: '12px 0 14px',
+            marginBottom: 12,
+            borderBottom: '1px solid var(--border)',
+            overflowX: isXsSm ? 'auto' : 'visible',
+            flexWrap: isXsSm ? 'nowrap' : 'wrap',
+            WebkitOverflowScrolling: 'touch',
+            maxHeight: isMd ? 88 : undefined,
+            overflowY: isMd ? 'hidden' : undefined,
+          }}>
+            <select
+              value={roleCategoryFilter ?? ''}
+              onChange={e => setRoleCategoryFilter(e.target.value || null)}
+              style={{ padding: '8px 12px', borderRadius: 999, border: '1.25px solid var(--border)', background: roleCategoryFilter ? 'var(--primary-soft)' : 'var(--surface-solid)', color: roleCategoryFilter ? 'var(--primary)' : 'var(--muted-ink)', fontFamily: 'inherit', fontSize: '0.82rem' }}
+            >
+              <option value="">Role: All</option>
+              {ROLE_FILTER_OPTIONS.filter(o => o.value).map(opt => (
+                <option key={opt.label} value={opt.value!}>{opt.label}</option>
+              ))}
+            </select>
+            <select
+              value={experienceBandFilter ?? ''}
+              onChange={e => setExperienceBandFilter(e.target.value || null)}
+              style={{ padding: '8px 12px', borderRadius: 999, border: '1.25px solid var(--border)', background: experienceBandFilter ? 'var(--primary-soft)' : 'var(--surface-solid)', color: experienceBandFilter ? 'var(--primary)' : 'var(--muted-ink)', fontFamily: 'inherit', fontSize: '0.82rem' }}
+            >
+              <option value="">Exp: All</option>
+              {EXPERIENCE_FILTER_OPTIONS.filter(o => o.value).map(opt => (
+                <option key={opt.label} value={opt.value!}>{opt.label}</option>
+              ))}
+            </select>
+            <select value={workplaceFilter ?? ''} onChange={e => setWorkplaceFilter(e.target.value || null)} style={{ padding: '8px 12px', borderRadius: 999, border: '1.25px solid var(--border)', background: workplaceFilter ? 'var(--primary-soft)' : 'var(--surface-solid)', color: workplaceFilter ? 'var(--primary)' : 'var(--muted-ink)', fontFamily: 'inherit', fontSize: '0.82rem' }}>
+              <option value="">Workplace: All</option>
+              <option value="remote">Remote</option>
+              <option value="hybrid">Hybrid</option>
+              <option value="on-site">On-site</option>
+            </select>
+            <select value={dateFilter ?? ''} onChange={e => setDateFilter(e.target.value || null)} style={{ padding: '8px 12px', borderRadius: 999, border: '1.25px solid var(--border)', background: dateFilter ? 'var(--primary-soft)' : 'var(--surface-solid)', color: dateFilter ? 'var(--primary)' : 'var(--muted-ink)', fontFamily: 'inherit', fontSize: '0.82rem' }}>
+              <option value="">Date: All</option>
+              <option value="1d">Past 24h</option>
+              <option value="3d">Past 3d</option>
+              <option value="7d">Past 7d</option>
+            </select>
+            <select value={platformFilter ?? ''} onChange={e => setPlatformFilter(e.target.value || null)} style={{ padding: '8px 12px', borderRadius: 999, border: '1.25px solid var(--border)', background: platformFilter ? 'var(--primary-soft)' : 'var(--surface-solid)', color: platformFilter ? 'var(--primary)' : 'var(--muted-ink)', fontFamily: 'inherit', fontSize: '0.82rem' }}>
+              <option value="">Board: All</option>
+              <option value="lever">Lever</option>
+              <option value="greenhouse">Greenhouse</option>
+              <option value="ashby">Ashby</option>
+              <option value="workable">Workable</option>
+              <option value="recruitee">Recruitee</option>
+              <option value="workday">Workday</option>
+            </select>
+            <select value={sel} onChange={e => { const company = e.target.value; if (!company) { setSp({}); } else { setSp({ company }); } }} style={{ padding: '8px 12px', borderRadius: 999, border: '1.25px solid var(--border)', background: sel ? 'var(--primary-soft)' : 'var(--surface-solid)', color: sel ? 'var(--primary)' : 'var(--muted-ink)', fontFamily: 'inherit', fontSize: '0.82rem' }}>
+              <option value="">Companies: All</option>
+              {cos.map(c => <option key={c.companyName} value={c.companyName}>{c.companyName}</option>)}
+            </select>
+            {isMd && (
+              <button
+                onClick={() => setFilterModalOpen(true)}
+                style={{
+                  minHeight: 36,
+                  padding: '8px 14px',
+                  borderRadius: 999,
+                  border: '1.25px solid var(--border)',
+                  background: 'var(--surface-solid)',
+                  color: 'var(--muted-ink)',
+                  whiteSpace: 'nowrap',
+                  cursor: 'pointer',
+                  fontSize: '0.82rem',
+                  fontFamily: 'inherit',
+                }}
+              >
+                Filters
+              </button>
+            )}
+          </div>
+          {/* Quick-access filter chips (mobile only) */}
+          {(isXsSm || isMd) && currentUser && (
+            <div style={{ display: 'flex', gap: 8, marginBottom: 12, overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              {currentUser && (
+                <button
+                  onClick={() => setHideApplied(h => !h)}
                   style={{
                     flexShrink: 0, padding: '6px 14px', borderRadius: 20,
                     border: '1.25px solid var(--border)', cursor: 'pointer',
                     fontSize: '0.8rem', fontFamily: 'inherit', whiteSpace: 'nowrap',
-                    background: entryLevelFilter ? 'var(--primary)' : 'var(--surface-solid)',
-                    color: entryLevelFilter ? '#fff' : 'var(--muted-ink)',
-                    fontWeight: entryLevelFilter ? 600 : 400,
+                    background: hideApplied ? 'var(--primary)' : 'var(--surface-solid)',
+                    color: hideApplied ? '#fff' : 'var(--muted-ink)',
+                    fontWeight: hideApplied ? 600 : 400,
                     transition: 'all 0.18s',
                   }}
                 >
-                  <GraduationCap size={12} style={{ verticalAlign: -2, marginRight: 4 }} />Fresher
+                  {hideApplied ? <><EyeOff size={12} style={{ verticalAlign: -2, marginRight: 4 }} />Applied Hidden</> : <><Eye size={12} style={{ verticalAlign: -2, marginRight: 4 }} />Hide Applied</>}
                 </button>
-              </div>
-            )}
-            {loading ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>{[1, 2, 3, 4].map(i => <div key={i} className="skeleton" style={{ height: 148 }} />)}</div>
-            ) : visibleJobs.length === 0 ? (
-              <EmptyState icon={<Briefcase size={36} />} title={searchQuery ? 'No jobs match your filters' : COPY.jobs.noJobsTitle} body={searchQuery ? 'No jobs match your filters. Try adjusting or clearing them.' : COPY.jobs.noJobsBody} action={<Button variant="ghost" onClick={clearAllFilters}>{COPY.jobs.clearFilters}</Button>} />
-            ) : (
-              <div style={{ display: 'flex', gap: 0, height: 'calc(100dvh - 220px)', minHeight: 420, overflow: 'hidden', border: '1.25px solid var(--border)', borderRadius: 14, background: 'var(--surface-solid)' }}>
-                {/* Left Panel: Job List */}
-                <div ref={listRef} className="thin-scroll" style={{
-                  width: useBottomSheet ? '100%' : (is3xl ? 320 : isLg ? '40%' : '30%'),
-                  minWidth: useBottomSheet ? undefined : (is3xl ? 320 : 280),
-                  flexShrink: 0,
-                  overflowY: 'auto',
-                  borderRight: useBottomSheet ? 'none' : '1.25px solid var(--border)',
-                  WebkitOverflowScrolling: 'touch',
-                }}>
-                  {listRenderMeta.map(meta => {
-                    const j = meta.job;
-                    return (
-                      <JobListItem
-                        key={j._id}
-                        job={j}
-                        isSelected={selectedJob?._id === j._id}
-                        isApplied={meta.isApplied}
-                        isComeBack={meta.isComeBack}
-                        comeBackNote={meta.comeBackNote}
-                        isNew={meta.isNew}
-                        relativeTime={meta.relativeTime}
-                        visibleBadges={meta.visibleBadges}
-                        showSkillMatch={meta.showSkillMatch}
-                        skillMatchText={meta.skillMatchText}
-                        skillMatchBg={meta.skillMatchBg}
-                        skillMatchColor={meta.skillMatchColor}
-                        onSelect={handleSelectJob}
-                      />
-                    );
-                  })}
-                  {visibleJobs.length > 0 && (
-                    <div style={{ textAlign: 'center', padding: '12px 0', fontSize: '0.75rem', color: 'var(--muted-ink)' }}>Showing {visibleJobs.length} jobs</div>
-                  )}
-                  {hasMore && (
-                    <div style={{ display: 'flex', justifyContent: 'center', margin: '18px 0 12px 0' }}>
-                      <button
-                        onClick={handleLoadMore}
-                        disabled={isLoadingMore}
-                        style={{
-                          background: 'transparent',
-                          border: '1.25px solid var(--border)',
-                          borderRadius: 10,
-                          color: 'var(--muted-ink)',
-                          padding: '8px 22px',
-                          fontSize: 15,
-                          cursor: isLoadingMore ? 'not-allowed' : 'pointer',
-                          marginTop: 8,
-                          minWidth: 180,
-                          transition: 'background 0.2s',
-                          opacity: isLoadingMore ? 0.7 : 1,
-                        }}
-                      >
-                        {isLoadingMore ? 'Loading...' : `Load more jobs (${Math.max(totalJobs - jobs.length, 0)} remaining)`}
-                      </button>
-                    </div>
-                  )}
-                </div>
-                {/* Right Panel: Detail */}
-                {!useBottomSheet && (
-                  <div ref={detailPanelRef} className="thin-scroll" style={{ width: isLg ? '60%' : '70%', flex: isLg ? '1 1 60%' : '1 1 70%', overflowY: 'auto', padding: is3xl ? '28px 36px' : '24px 32px', WebkitOverflowScrolling: 'touch' }}>
-                    {selectedJob ? (
-                      <JobDetailPanel
-                        job={selectedJob}
-                        is3xl={is3xl}
-                        appliedJobIds={appliedJobIds}
-                        comeBackMap={comeBackMap}
-                        onToggleApplied={handleToggleApplied}
-                        onToggleComeBack={toggleComeBack}
-                        onRemoveComeBack={removeComeBack}
-                      />
-                    ) : (
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                        <EmptyState icon={<Briefcase size={36} />} title="Select a job" body="Click a job on the left to view details." />
-                      </div>
-                    )}
+              )}
+              {currentUser && newJobsCount > 0 && (
+                <button
+                  onClick={() => setShowNewOnly(n => !n)}
+                  style={{
+                    flexShrink: 0, padding: '6px 14px', borderRadius: 20,
+                    border: '1.25px solid var(--border)', cursor: 'pointer',
+                    fontSize: '0.8rem', fontFamily: 'inherit', whiteSpace: 'nowrap',
+                    background: showNewOnly ? 'var(--primary)' : 'var(--surface-solid)',
+                    color: showNewOnly ? '#fff' : 'var(--muted-ink)',
+                    fontWeight: showNewOnly ? 600 : 400,
+                    transition: 'all 0.18s',
+                  }}
+                >
+                  <Sparkles size={12} style={{ verticalAlign: -2, marginRight: 4 }} />New Only
+                </button>
+              )}
+              <button
+                onClick={() => setEntryLevelFilter(f => !f)}
+                style={{
+                  flexShrink: 0, padding: '6px 14px', borderRadius: 20,
+                  border: '1.25px solid var(--border)', cursor: 'pointer',
+                  fontSize: '0.8rem', fontFamily: 'inherit', whiteSpace: 'nowrap',
+                  background: entryLevelFilter ? 'var(--primary)' : 'var(--surface-solid)',
+                  color: entryLevelFilter ? '#fff' : 'var(--muted-ink)',
+                  fontWeight: entryLevelFilter ? 600 : 400,
+                  transition: 'all 0.18s',
+                }}
+              >
+                <GraduationCap size={12} style={{ verticalAlign: -2, marginRight: 4 }} />Fresher
+              </button>
+            </div>
+          )}
+          {loading ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>{[1, 2, 3, 4].map(i => <div key={i} className="skeleton" style={{ height: 148 }} />)}</div>
+          ) : visibleJobs.length === 0 ? (
+            <EmptyState icon={<Briefcase size={36} />} title={searchQuery ? 'No jobs match your filters' : COPY.jobs.noJobsTitle} body={searchQuery ? 'No jobs match your filters. Try adjusting or clearing them.' : COPY.jobs.noJobsBody} action={<Button variant="ghost" onClick={clearAllFilters}>{COPY.jobs.clearFilters}</Button>} />
+          ) : (
+            <div style={{ display: 'flex', gap: 0, height: 'calc(100dvh - 220px)', minHeight: 420, overflow: 'hidden', border: '1.25px solid var(--border)', borderRadius: 14, background: 'var(--surface-solid)' }}>
+              {/* Left Panel: Job List */}
+              <div ref={listRef} className="thin-scroll" style={{
+                width: useBottomSheet ? '100%' : (is3xl ? 320 : isLg ? '40%' : '30%'),
+                minWidth: useBottomSheet ? undefined : (is3xl ? 320 : 280),
+                flexShrink: 0,
+                overflowY: 'auto',
+                borderRight: useBottomSheet ? 'none' : '1.25px solid var(--border)',
+                WebkitOverflowScrolling: 'touch',
+              }}>
+                {listRenderMeta.map(meta => {
+                  const j = meta.job;
+                  return (
+                    <JobListItem
+                      key={j._id}
+                      job={j}
+                      isSelected={selectedJob?._id === j._id}
+                      isApplied={meta.isApplied}
+                      isComeBack={meta.isComeBack}
+                      comeBackNote={meta.comeBackNote}
+                      isNew={meta.isNew}
+                      relativeTime={meta.relativeTime}
+                      visibleBadges={meta.visibleBadges}
+                      showSkillMatch={meta.showSkillMatch}
+                      skillMatchText={meta.skillMatchText}
+                      skillMatchBg={meta.skillMatchBg}
+                      skillMatchColor={meta.skillMatchColor}
+                      onSelect={handleSelectJob}
+                      onDismiss={currentUser ? handleDismiss : undefined}
+                    />
+                  );
+                })}
+                {visibleJobs.length > 0 && (
+                  <div style={{ textAlign: 'center', padding: '12px 0', fontSize: '0.75rem', color: 'var(--muted-ink)' }}>Showing {visibleJobs.length} jobs</div>
+                )}
+                {hasMore && (
+                  <div style={{ display: 'flex', justifyContent: 'center', margin: '18px 0 12px 0' }}>
+                    <button
+                      onClick={handleLoadMore}
+                      disabled={isLoadingMore}
+                      style={{
+                        background: 'transparent',
+                        border: '1.25px solid var(--border)',
+                        borderRadius: 10,
+                        color: 'var(--muted-ink)',
+                        padding: '8px 22px',
+                        fontSize: 15,
+                        cursor: isLoadingMore ? 'not-allowed' : 'pointer',
+                        marginTop: 8,
+                        minWidth: 180,
+                        transition: 'background 0.2s',
+                        opacity: isLoadingMore ? 0.7 : 1,
+                      }}
+                    >
+                      {isLoadingMore ? 'Loading...' : `Load more jobs (${Math.max(totalJobs - jobs.length, 0)} remaining)`}
+                    </button>
                   </div>
                 )}
               </div>
-            )}
-          </div>
+              {/* Right Panel: Detail */}
+              {!useBottomSheet && (
+                <div ref={detailPanelRef} className="thin-scroll" style={{ width: isLg ? '60%' : '70%', flex: isLg ? '1 1 60%' : '1 1 70%', overflowY: 'auto', padding: is3xl ? '28px 36px' : '24px 32px', WebkitOverflowScrolling: 'touch' }}>
+                  {selectedJob ? (
+                    <JobDetailPanel
+                      job={selectedJob}
+                      is3xl={is3xl}
+                      appliedJobIds={appliedJobIds}
+                      comeBackMap={comeBackMap}
+                      onToggleApplied={handleToggleApplied}
+                      onToggleComeBack={toggleComeBack}
+                      onRemoveComeBack={removeComeBack}
+                      onSelectJob={handleSelectJobById}
+                    />
+                  ) : (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                      <EmptyState icon={<Briefcase size={36} />} title="Select a job" body="Click a job on the left to view details." />
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </Container>
 
       {/* Mobile/tablet bottom sheet */}
@@ -804,6 +928,7 @@ export default function Dashboard() {
                 onToggleApplied={handleToggleApplied}
                 onToggleComeBack={toggleComeBack}
                 onRemoveComeBack={removeComeBack}
+                onSelectJob={handleSelectJobById}
               />
             </div>
             <SheetActions job={selectedJob} />

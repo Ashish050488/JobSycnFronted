@@ -5,6 +5,8 @@ import { useUser } from '../context/UserContext';
 import { Badge, Button } from './ui';
 import { COPY } from '../theme/brand';
 import type { IJob, IJobAutoTags } from '../types';
+import CompanyIntel from './CompanyIntel';
+import SimilarJobs from './SimilarJobs';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -49,15 +51,15 @@ export function getAutoTags(job: IJob): IJobAutoTags {
 
 export function roleBadgeStyle(roleCategory: string | null) {
   switch (roleCategory) {
-    case 'Frontend':   return { bg: '#dbeafe', color: '#1e40af' };
-    case 'Backend':    return { bg: '#ede9fe', color: '#5b21b6' };
+    case 'Frontend': return { bg: '#dbeafe', color: '#1e40af' };
+    case 'Backend': return { bg: '#ede9fe', color: '#5b21b6' };
     case 'Full Stack': return { bg: '#e0e7ff', color: '#3730a3' };
     case 'DevOps/SRE': return { bg: '#ffedd5', color: '#9a3412' };
-    case 'Data':       return { bg: '#ccfbf1', color: '#115e59' };
-    case 'ML/AI':      return { bg: '#fce7f3', color: '#9d174d' };
-    case 'QA':         return { bg: '#f3f4f6', color: '#374151' };
-    case 'Mobile':     return { bg: '#dcfce7', color: '#166534' };
-    default:           return { bg: 'var(--paper2)', color: 'var(--muted-ink)' };
+    case 'Data': return { bg: '#ccfbf1', color: '#115e59' };
+    case 'ML/AI': return { bg: '#fce7f3', color: '#9d174d' };
+    case 'QA': return { bg: '#f3f4f6', color: '#374151' };
+    case 'Mobile': return { bg: '#dcfce7', color: '#166534' };
+    default: return { bg: 'var(--paper2)', color: 'var(--muted-ink)' };
   }
 }
 
@@ -98,8 +100,8 @@ function salaryDisplay(job: IJob): string | null {
         : `${(n / 1000).toFixed(0)}K`;
     const curr =
       job.SalaryCurrency === 'INR' ? 'Rs ' :
-      job.SalaryCurrency === 'USD' ? '$' :
-      (job.SalaryCurrency ? job.SalaryCurrency + ' ' : '');
+        job.SalaryCurrency === 'USD' ? '$' :
+          (job.SalaryCurrency ? job.SalaryCurrency + ' ' : '');
     return `${curr}${fmt(job.SalaryMin)} - ${curr}${fmt(job.SalaryMax)}`;
   }
   return null;
@@ -149,6 +151,7 @@ export interface JobDetailPanelProps {
   onToggleApplied: (jobId: string) => Promise<void>;
   onToggleComeBack: (jobId: string, note: string) => void;
   onRemoveComeBack: (jobId: string) => void;
+  onSelectJob?: (jobId: string) => void;
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
@@ -162,6 +165,7 @@ export default function JobDetailPanel({
   onToggleApplied,
   onToggleComeBack,
   onRemoveComeBack,
+  onSelectJob,
 }: JobDetailPanelProps) {
   const descRef = useRef<HTMLDivElement>(null);
   const { userSkills: skills, currentUser } = useUser();
@@ -183,9 +187,9 @@ export default function JobDetailPanel({
 
   const colorInfo = matchResult ? (
     matchResult.matched.length === 0 ? { color: 'var(--muted-ink)', label: '' } :
-    matchResult.matched.length <= 2 ? { color: '#92400e', label: '' } :
-    matchResult.matched.length <= 4 ? { color: '#166534', label: '' } :
-    { color: '#14532d', label: 'Strong match' }
+      matchResult.matched.length <= 2 ? { color: '#92400e', label: '' } :
+        matchResult.matched.length <= 4 ? { color: '#166534', label: '' } :
+          { color: '#14532d', label: 'Strong match' }
   ) : null;
 
   // Hide boilerplate sections and add toggle button
@@ -215,10 +219,10 @@ export default function JobDetailPanel({
     };
   }, [job._id, job.DescriptionCleaned, job.Description]);
 
-  // Skill highlighting
+  // Skill highlighting — logged-in only
   useEffect(() => {
     const container = descRef.current;
-    if (!container || !skills.length) return;
+    if (!container || !skills.length || !currentUser) return;
     container.querySelectorAll('mark.skill-match').forEach(mark => {
       const parent = mark.parentNode;
       if (parent) parent.replaceChild(document.createTextNode(mark.textContent || ''), mark);
@@ -308,86 +312,141 @@ export default function JobDetailPanel({
         {job.Team && job.Team !== job.Department && <Badge variant="neutral">Team {job.Team}</Badge>}
       </div>
 
-      {/* Job details box */}
-      <div style={{ marginTop: 14, padding: '14px 16px', borderRadius: 14, background: 'var(--paper2)', border: '1px solid var(--border)' }}>
-        <div className="font-sketch" style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 12 }}>Job Details</div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-            <span style={{ fontSize: '0.8rem', color: 'var(--muted-ink)', minWidth: 86 }}>Role</span>
-            <span style={{ fontSize: '0.72rem', padding: '2px 10px', borderRadius: 999, background: roleTone.bg, color: roleTone.color, fontWeight: 600 }}>{autoTags.roleCategory || 'Other'}</span>
-          </div>
-          {autoTags.experienceBand && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-              <span style={{ fontSize: '0.8rem', color: 'var(--muted-ink)', minWidth: 86 }}>Experience</span>
-              <span style={{ fontSize: '0.72rem', padding: '2px 10px', borderRadius: 999, background: 'var(--surface-solid)', color: 'var(--ink)', fontWeight: 600 }}>{autoTags.experienceBand}</span>
-            </div>
-          )}
-          {autoTags.domain.length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-              <span style={{ fontSize: '0.8rem', color: 'var(--muted-ink)', minWidth: 86 }}>Domain</span>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {autoTags.domain.map(domain => (
-                  <span key={domain} style={{ fontSize: '0.72rem', padding: '2px 10px', borderRadius: 999, background: 'var(--surface-solid)', color: 'var(--ink)', fontWeight: 600 }}>{domain}</span>
-                ))}
-              </div>
-            </div>
-          )}
-          {autoTags.education && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-              <span style={{ fontSize: '0.8rem', color: 'var(--muted-ink)', minWidth: 86 }}>Education</span>
-              <span style={{ fontSize: '0.72rem', padding: '2px 10px', borderRadius: 999, background: 'var(--surface-solid)', color: 'var(--ink)', fontWeight: 600 }}>{autoTags.education}</span>
-            </div>
-          )}
-          {autoTags.urgency && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-              <span style={{ fontSize: '0.8rem', color: 'var(--muted-ink)', minWidth: 86 }}>Urgency</span>
-              <span style={{ fontSize: '0.72rem', padding: '2px 10px', borderRadius: 999, background: '#fee2e2', color: '#b91c1c', fontWeight: 700 }}>{autoTags.urgency}</span>
-            </div>
-          )}
-          {autoTags.techStack.length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'flex-start' }}>
-              <span style={{ fontSize: '0.8rem', color: 'var(--muted-ink)', minWidth: 86, paddingTop: 4 }}>Tech Stack</span>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, flex: 1 }}>
-                {autoTags.techStack.map(tech => (
-                  <span key={tech} style={{ fontSize: '0.72rem', padding: '2px 10px', borderRadius: 999, background: 'var(--surface-solid)', color: 'var(--subtle-ink)', fontWeight: 600 }}>{tech}</span>
-                ))}
-              </div>
-            </div>
-          )}
+      {/* Company Intel (Features 1 & 4) — logged-in only */}
+      {currentUser && job.Company && (
+        <CompanyIntel
+          companyName={job.Company}
+          rolePostedDate={job.PostedDate || job.scrapedAt || null}
+        />
+      )}
+      {!currentUser && job.Company && (
+        <div style={{
+          marginTop: 14, padding: '14px 16px', borderRadius: 12,
+          border: '1.5px dashed var(--border)',
+          background: 'var(--paper2)',
+          textAlign: 'center',
+        }}>
+          <span style={{ fontSize: '0.82rem', color: 'var(--muted-ink)' }}>
+            Sign in to see <strong style={{ color: 'var(--primary)' }}>Company Radar</strong> — hiring activity, posting frequency & freshness
+          </span>
         </div>
+      )}
+
+      {/* ── Job Details ─ compact chip strip ───────────────────────────────── */}
+      <div style={{
+        marginTop: 12,
+        padding: '10px 12px',
+        borderRadius: 10,
+        background: 'var(--paper2)',
+        border: '1px solid var(--border)',
+        position: 'relative',
+        overflow: 'hidden',
+      }}>
+        {/* Accent line */}
+        <div style={{
+          position: 'absolute', left: 0, top: 0, bottom: 0, width: 3,
+          background: 'linear-gradient(to bottom, var(--primary) 30%, transparent)',
+          borderRadius: '10px 0 0 10px',
+        }} />
+
+        {/* Header + all detail chips in one flowing row */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '5px 8px', paddingLeft: 6 }}>
+          {/* Section label */}
+          <span className="font-sketch" style={{
+            fontSize: '0.68rem', fontWeight: 700, color: 'var(--primary)',
+            textTransform: 'uppercase', letterSpacing: '0.06em', marginRight: 4,
+          }}>Job Details</span>
+
+          {/* Role category */}
+          <span style={{
+            fontSize: '0.72rem', padding: '2px 9px', borderRadius: 999,
+            background: roleTone.bg, color: roleTone.color, fontWeight: 700,
+          }}>{autoTags.roleCategory || 'Other'}</span>
+
+          {/* Experience band */}
+          {autoTags.experienceBand && (
+            <span style={{
+              fontSize: '0.72rem', padding: '2px 9px', borderRadius: 999,
+              background: 'var(--surface-solid)', color: 'var(--ink)',
+              border: '1px solid var(--border)', fontWeight: 600,
+            }}>{autoTags.experienceBand}</span>
+          )}
+
+          {/* Domain chips */}
+          {autoTags.domain.map(d => (
+            <span key={d} style={{
+              fontSize: '0.72rem', padding: '2px 9px', borderRadius: 999,
+              background: 'var(--surface-solid)', color: 'var(--muted-ink)',
+              border: '1px solid var(--border)', fontWeight: 600,
+            }}>{d}</span>
+          ))}
+
+          {/* Education */}
+          {autoTags.education && (
+            <span style={{
+              fontSize: '0.72rem', padding: '2px 9px', borderRadius: 999,
+              background: 'var(--surface-solid)', color: 'var(--muted-ink)',
+              border: '1px solid var(--border)', fontWeight: 600,
+            }}>{autoTags.education}</span>
+          )}
+
+          {/* Urgency */}
+          {autoTags.urgency && (
+            <span style={{
+              fontSize: '0.72rem', padding: '2px 9px', borderRadius: 999,
+              background: '#fee2e2', color: '#b91c1c', fontWeight: 700,
+            }}>🔥 {autoTags.urgency}</span>
+          )}
+
+          {/* Tech stack */}
+          {autoTags.techStack.map(tech => (
+            <span key={tech} style={{
+              fontSize: '0.72rem', padding: '2px 9px', borderRadius: 999,
+              background: 'var(--paper)', color: 'var(--subtle-ink)',
+              border: '1px solid var(--border)', fontWeight: 600,
+              fontFamily: 'ui-monospace, monospace',
+            }}>{tech}</span>
+          ))}
+
+          {/* ATS Tags fallback */}
+          {!autoTags.techStack.length && Array.isArray(job.Tags) && job.Tags.map(tag => (
+            <span key={tag} style={{
+              fontSize: '0.72rem', padding: '2px 9px', borderRadius: 999,
+              background: 'var(--paper)', color: 'var(--subtle-ink)',
+              border: '1px solid var(--border)', fontWeight: 600,
+            }}>{tag}</span>
+          ))}
+
+          {/* Divider */}
+          <div style={{ width: 1, height: 16, background: 'var(--border)', flexShrink: 0, alignSelf: 'center', margin: '0 2px' }} />
+
+          {/* Timestamps inline */}
+          <span style={{ fontSize: '0.7rem', color: 'var(--subtle-ink)', whiteSpace: 'nowrap' }}>
+            <Clock size={10} style={{ verticalAlign: -1, marginRight: 3 }} />
+            {effectiveDate
+              ? new Date(effectiveDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+              : '—'}
+          </span>
+        </div>
+
+        {/* Fresher badge — subtle row beneath */}
         {autoTags.isEntryLevel && (
-          <div style={{ marginTop: 12, padding: '10px 12px', borderRadius: 12, background: '#dcfce7', color: '#166534', fontSize: '0.84rem', fontWeight: 600 }}>
-            Fresher Friendly: This role appears suitable for freshers and entry-level candidates.
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 5,
+            marginTop: 7, marginLeft: 6,
+            padding: '3px 10px', borderRadius: 999,
+            background: '#dcfce7', color: '#166534',
+            fontSize: '0.72rem', fontWeight: 700,
+          }}>✓ Fresher Friendly</div>
+        )}
+
+        {/* AllLocations */}
+        {Array.isArray(job.AllLocations) && job.AllLocations.length > 1 && (
+          <div style={{ fontSize: '0.7rem', color: 'var(--subtle-ink)', marginTop: 5, marginLeft: 6 }}>
+            Also: {job.AllLocations.join(' · ')}
           </div>
         )}
       </div>
-
-      {/* AllLocations */}
-      {Array.isArray(job.AllLocations) && job.AllLocations.length > 1 && (
-        <div style={{ fontSize: 12, color: 'var(--muted-ink)', marginTop: 8 }}>
-          Also: {job.AllLocations.join(' | ')}
-        </div>
-      )}
-
-      {/* Timestamps */}
-      <div style={{ display: 'flex', gap: 16, marginTop: 12, fontSize: '0.78rem', color: 'var(--muted-ink)' }}>
-        <span>
-          <Clock size={12} style={{ verticalAlign: -2, marginRight: 4 }} />
-          {effectiveDate
-            ? `${COPY.jobs.postedPrefix} ${new Date(effectiveDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
-            : COPY.jobs.postedNA}
-        </span>
-        {job.scrapedAt && <span>Scraped: {relTime(job.scrapedAt) ?? 'N/A'}</span>}
-      </div>
-
-      {/* ATS Tags fallback */}
-      {!autoTags.techStack.length && Array.isArray(job.Tags) && job.Tags.length > 0 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
-          {job.Tags.map(tag => (
-            <span key={tag} style={{ background: 'var(--paper2)', borderRadius: 999, padding: '2px 10px', fontSize: 12, color: 'var(--muted-ink)' }}>{tag}</span>
-          ))}
-        </div>
-      )}
 
       {/* Apply buttons (desktop only) */}
       {!mobileMode && (
@@ -412,6 +471,20 @@ export default function JobDetailPanel({
               {applied ? 'Applied' : 'Mark Applied'}
             </button>
           )}
+        </div>
+      )}
+
+      {/* Sign-in prompt for non-logged users */}
+      {!currentUser && !mobileMode && (
+        <div style={{
+          marginTop: 14, padding: '14px 16px', borderRadius: 12,
+          border: '1.5px dashed var(--border)',
+          background: 'var(--paper2)',
+          textAlign: 'center',
+        }}>
+          <span style={{ fontSize: '0.82rem', color: 'var(--muted-ink)' }}>
+            <a href="/login" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'none' }}>Sign in</a> to track applications, set reminders, match skills & more
+          </span>
         </div>
       )}
 
@@ -490,8 +563,8 @@ export default function JobDetailPanel({
 
       <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '20px 0' }} />
 
-      {/* Skills match */}
-      {matchResult && colorInfo && (
+      {/* Skills match — logged-in only */}
+      {currentUser && matchResult && colorInfo && (
         <div style={{ marginBottom: 14, padding: '10px 14px', borderRadius: 10, border: '1px solid var(--border)', background: 'var(--paper2)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: matchResult.matched.length + matchResult.unmatched.length > 0 ? 8 : 0 }}>
             <span style={{ fontSize: '0.8rem', fontWeight: 600, color: colorInfo.color }}>
@@ -544,6 +617,14 @@ export default function JobDetailPanel({
           <div className="job-description-html" style={{ fontSize: '0.875rem', lineHeight: 1.7, color: 'var(--muted-ink)' }} dangerouslySetInnerHTML={{ __html: job.AdditionalInfo }} />
         </div>
       )}
+
+      {/* Similar Jobs (Feature 2) */}
+      <SimilarJobs
+        jobId={job._id}
+        company={job.Company}
+        userSkills={skills}
+        onSelectJob={onSelectJob}
+      />
     </div>
   );
 }

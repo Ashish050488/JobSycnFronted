@@ -4,11 +4,14 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Briefcase, ChevronLeft, ChevronRight } from 'lucide-react';
 import JobCard from '../components/JobCard';
 import CompanyCard from '../components/DirectoryCard';
+import MarketPulse from '../components/MarketPulse';
 import type { IJob, ICompany } from '../types';
 import { Button, Badge, Container } from '../components/ui';
 import { BRAND, COPY } from '../theme/brand';
+import { useUser } from '../context/UserContext';
 
 export default function Home() {
+  const { currentUser } = useUser();
   const [jobs, setJobs] = useState<IJob[]>([]);
   const [companies, setCompanies] = useState<ICompany[]>([]);
   const [loading, setLoading] = useState(true);
@@ -95,6 +98,25 @@ export default function Home() {
           </div>
         </Container>
       </section>
+
+      {/* ── MARKET PULSE ─────────────────────────────── */}
+      {currentUser && <MarketPulse />}
+      {!currentUser && (
+        <section style={{ padding: '80px 0', background: 'var(--paper)', borderTop: '1.25px solid var(--border)' }}>
+          <Container>
+            <div style={{ textAlign: 'center', maxWidth: 500, margin: '0 auto' }}>
+              <p className="font-sketch" style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--primary)', marginBottom: 12 }}>Market Insights</p>
+              <h2 style={{ fontSize: 'clamp(1.5rem,3vw,2.2rem)', fontWeight: 700, color: 'var(--ink)', marginBottom: 16 }}>
+                Track Hiring Trends
+              </h2>
+              <p style={{ fontSize: '0.95rem', color: 'var(--muted-ink)', marginBottom: 24 }}>
+                Sign in to access real-time market pulse data — see which roles are hot, trending skills, and salary insights.
+              </p>
+              <Link to="/login"><Button size="lg">Sign In to View Market Insights</Button></Link>
+            </div>
+          </Container>
+        </section>
+      )}
 
       {/* ── LATEST JOBS ──────────────────────────────── */}
       <section style={{ padding: '80px 0', background: 'var(--paper)', borderTop: '1.25px solid var(--border)' }}>

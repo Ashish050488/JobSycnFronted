@@ -1,7 +1,8 @@
 import { useUser } from '../context/UserContext';
 import { GoogleLogin } from '@react-oauth/google';
 import { useState, useEffect, useRef } from 'react';
-import { Zap } from 'lucide-react';
+import { Zap, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { BRAND } from '../theme/brand';
 
 /* ── Falling tech keywords (matrix rain) ───────────────────────── */
@@ -331,6 +332,37 @@ export default function LoginScreen() {
               pointerEvents: 'none', borderRadius: 22,
             }} />
 
+            {/* ── Close Button ─────────────────────────────── */}
+            <Link to="/" style={{
+              position: 'absolute',
+              top: 16,
+              right: 16,
+              width: 32,
+              height: 32,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: '50%',
+              background: 'var(--paper2)',
+              border: '1px solid var(--border)',
+              color: 'var(--muted-ink)',
+              textDecoration: 'none',
+              transition: 'all 0.2s',
+              zIndex: 10,
+            }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLElement).style.borderColor = 'var(--primary)';
+                (e.currentTarget as HTMLElement).style.color = 'var(--primary)';
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)';
+                (e.currentTarget as HTMLElement).style.color = 'var(--muted-ink)';
+              }}
+              title="Return to Home"
+            >
+              <X size={18} />
+            </Link>
+
             {/* ── Logo ─────────────────────────────────────── */}
             <div style={{
               display: 'inline-flex', alignItems: 'center', gap: 12,
@@ -400,6 +432,31 @@ export default function LoginScreen() {
             }}>
               Apply smarter. Track everything. Land the job.
             </p>
+
+            {/* ── Sign Up Benefits ─────────────────────────────── */}
+            <div style={{
+              marginBottom: 24, padding: '14px 18px', borderRadius: 12,
+              background: 'var(--paper2)', border: '1px solid var(--border)',
+              textAlign: 'left', animation: 'ls-fadeUp 0.6s ease 0.38s both',
+            }}>
+              <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--primary)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                ✦ What you get with a free account
+              </div>
+              <div style={{ display: 'grid', gap: 8 }}>
+                {[
+                  'Track & manage all your applications in one place',
+                  'See which jobs match your skills',
+                  'Get daily streak reminders so you never miss an opportunity',
+                  'Bookmark jobs to come back later',
+                  'Never lose track of where you applied',
+                ].map((benefit, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: '0.78rem', color: 'var(--muted-ink)' }}>
+                    <span style={{ color: 'var(--primary)', fontSize: '0.7rem', marginTop: 1 }}>✓</span>
+                    {benefit}
+                  </div>
+                ))}
+              </div>
+            </div>
 
             {/* ── Google button ─────────────────────────────── */}
             <div style={{

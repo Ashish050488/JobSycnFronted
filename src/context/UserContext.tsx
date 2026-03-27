@@ -20,6 +20,7 @@ interface UserCtx {
   appliedJobs: AppliedJobEntry[];
   appliedCount: number;
   appliedJobIds: Set<string>;
+  dismissedJobIds: Set<string>;
   previousVisitAt: string | null;
   todayCount: number;
   streak: number;
@@ -30,8 +31,10 @@ interface UserCtx {
   saveSkills: (skills: string[]) => Promise<void>;
   saveDailyGoal: (goal: number) => Promise<void>;
   toggleApplied: (jobId: string) => Promise<void>;
+  toggleDismissed: (jobId: string) => Promise<void>;
   logout: () => void;
   login: (credential: string) => Promise<void>;
+  updateStage: (jobId: string, stage: string) => Promise<void>;
 }
 
 /* ─── context ───────────────────────────────────────────────────── */
@@ -43,18 +46,21 @@ const Ctx = createContext<UserCtx>({
   appliedJobs: [],
   appliedCount: 0,
   appliedJobIds: new Set(),
+  dismissedJobIds: new Set(),
   previousVisitAt: null,
   todayCount: 0,
   streak: 0,
   dailyGoal: 5,
   skillsEditorOpen: false,
-  openSkillsEditor: () => {},
-  closeSkillsEditor: () => {},
-  saveSkills: async () => {},
-  saveDailyGoal: async () => {},
-  toggleApplied: async () => {},
-  logout: () => {},
-  login: async () => {},
+  openSkillsEditor: () => { },
+  closeSkillsEditor: () => { },
+  saveSkills: async () => { },
+  saveDailyGoal: async () => { },
+  toggleApplied: async () => { },
+  toggleDismissed: async () => { },
+  updateStage: async () => { },
+  logout: () => { },
+  login: async () => { },
 });
 
 export function UserProvider({ children }: { children: ReactNode }) {
@@ -66,6 +72,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [appliedCount, setAppliedCount] = useState(0);
   const [previousVisitAt, setPreviousVisitAt] = useState<string | null>(null);
   const [dailyGoal, setDailyGoal] = useState(5);
+  const [dismissedJobIds, setDismissedJobIds] = useState<Set<string>>(new Set());
   const [skillsEditorOpen, setSkillsEditorOpen] = useState(false);
 
   // On mount — check session via /api/auth/me
@@ -90,6 +97,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       setAppliedCount(0);
       setPreviousVisitAt(null);
       setDailyGoal(5);
+      setDismissedJobIds(new Set());
       setIsUserDataLoading(false);
       return;
     }
@@ -105,10 +113,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
       fetch('/api/me/applied', { credentials: 'include' }).then(r => r.ok ? r.json() : []),
       fetch('/api/me/visit', { method: 'PATCH', credentials: 'include' }).then(r => r.ok ? r.json() : null),
     ])
-      .then(([userData, appliedData, visitData]: [{ skills?: string[]; dailyGoal?: number; appliedCount?: number } | null, AppliedJobEntry[], { previousVisitAt: string | null } | null]) => {
+      .then(([userData, appliedData, visitData]: [{ skills?: string[]; dailyGoal?: number; appliedCount?: number; dismissedJobIds?: string[] } | null, AppliedJobEntry[], { previousVisitAt: string | null } | null]) => {
         if (cancelled) return;
         setUserSkills(Array.isArray(userData?.skills) ? userData.skills : []);
         setDailyGoal(userData?.dailyGoal ?? 5);
+        if (Array.isArray(userData?.dismissedJobIds)) {
+          setDismissedJobIds(new Set(userData.dismissedJobIds as string[]));
+        }
         const nextAppliedJobs = Array.isArray(appliedData) ? appliedData : [];
         setAppliedJobs(nextAppliedJobs);
         setAppliedCount(userData?.appliedCount ?? nextAppliedJobs.length);
@@ -151,6 +162,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     setAppliedCount(0);
     setPreviousVisitAt(null);
     setDailyGoal(5);
+    setDismissedJobIds(new Set());
   }, []);
 
   const openSkillsEditor = useCallback(() => setSkillsEditorOpen(true), []);
@@ -192,6 +204,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   const toggleApplied = useCallback(async (jobId: string) => {
     if (!currentUser) return;
+
     const encodedJobId = encodeURIComponent(jobId);
     const exists = appliedJobIds.has(jobId);
     const existingEntry = appliedJobs.find(entry => entry.jobId === jobId) ?? null;
@@ -212,8 +225,65 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   }, [currentUser, appliedJobIds, appliedJobs]);
 
+  // Update job stage
+  const updateStage = useCallback(async (jobId: string, stage: string) => {
+    if (!currentUser) return;
+    const encodedJobId = encodeURIComponent(jobId);
+
+    // Optimistic update
+    setAppliedJobs(prev => prev.map(entry =>
+      entry.jobId === jobId
+        ? { ...entry, stage, stageUpdatedAt: new Date().toISOString() }
+        : entry
+    ));
+
+    try {
+      const response = await fetch(`/api/me/applied/${encodedJobId}/stage`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ stage }),
+      });
+      if (!response.ok) throw new Error('Failed to update stage');
+      const data = await response.json();
+      setAppliedJobs(Array.isArray(data) ? data : []);
+    } catch {
+      // Revert optimistic update by re-fetching
+      try {
+        const r = await fetch('/api/me/applied', { credentials: 'include' });
+        if (r.ok) {
+          const data = await r.json();
+          setAppliedJobs(Array.isArray(data) ? data : []);
+        }
+      } catch { /* silent */ }
+    }
+  }, [currentUser]);
+
+  // Toggle dismissed (optimistic — no rollback, action is idempotent)
+  const toggleDismissed = useCallback(async (jobId: string) => {
+    if (!currentUser) return;
+    const encodedId = encodeURIComponent(jobId);
+    const isDismissed = dismissedJobIds.has(jobId);
+    // Optimistic update
+    setDismissedJobIds(prev => {
+      const next = new Set(prev);
+      if (isDismissed) next.delete(jobId); else next.add(jobId);
+      return next;
+    });
+    try {
+      const r = await fetch(`/api/me/dismissed/${encodedId}`, {
+        method: isDismissed ? 'DELETE' : 'POST',
+        credentials: 'include',
+      });
+      if (r.ok) {
+        const ids = await r.json() as string[];
+        setDismissedJobIds(new Set(ids));
+      }
+    } catch { /* leave optimistic value */ }
+  }, [currentUser, dismissedJobIds]);
+
   return (
-    <Ctx.Provider value={{ currentUser, isLoading, isUserDataLoading, userSkills, appliedJobs, appliedCount, appliedJobIds, previousVisitAt, todayCount, streak, dailyGoal, skillsEditorOpen, openSkillsEditor, closeSkillsEditor, saveSkills, saveDailyGoal, toggleApplied, logout, login }}>
+    <Ctx.Provider value={{ currentUser, isLoading, isUserDataLoading, userSkills, appliedJobs, appliedCount, appliedJobIds, dismissedJobIds, previousVisitAt, todayCount, streak, dailyGoal, skillsEditorOpen, openSkillsEditor, closeSkillsEditor, saveSkills, saveDailyGoal, toggleApplied, toggleDismissed, updateStage, logout, login }}>
       {children}
     </Ctx.Provider>
   );
