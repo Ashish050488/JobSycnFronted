@@ -30,7 +30,6 @@ function useViewportInfo() {
   return { isXsSm, isMd, isLg, is3xl, isShortLandscape, useSplitView };
 }
 
-interface CS { companyName: string; openRoles: number; }
 
 function compactJobBadges(job: IJob): CompactBadge[] {
   const autoTags = getAutoTags(job);
