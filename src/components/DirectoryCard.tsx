@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { MapPin, ArrowUpRight } from 'lucide-react';
 import { Badge } from './ui';
 import type { ICompany } from '../types';
+import CompanyLogo from './CompanyLogo';
 
 interface Props {
   company: ICompany;
@@ -10,10 +11,7 @@ interface Props {
 }
 
 export default function CompanyCard({ company, adminActions }: Props) {
-  const [imgErr, setImgErr] = useState(false);
   const [hov, setHov] = useState(false);
-
-  const host = (d: string) => { const s = (d || '').trim(); try { return new URL(/^https?:\/\//i.test(s) ? s : `https://${s}`).hostname; } catch { return s.replace(/^https?:\/\//i, '').split('/')[0]; } };
   const visit = () => {
     if (adminActions) return; // Don't open link in admin mode
     let u = (company.domain || '').trim(); if (!/^https?:\/\//i.test(u)) u = `https://${u}`; window.open(u, '_blank');
@@ -60,11 +58,7 @@ export default function CompanyCard({ company, adminActions }: Props) {
           borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
           overflow: 'hidden', padding: 6, flexShrink: 0,
         }}>
-          {!imgErr
-            ? <img src={`https://logo.clearbit.com/${host(company.domain)}?size=128`} alt={company.companyName}
-              style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', filter: hov ? 'none' : 'grayscale(40%) brightness(0.9)', opacity: hov ? 1 : 0.75, transition: 'all 0.3s' }}
-              onError={() => setImgErr(true)} />
-            : <span className="font-sketch" style={{ fontSize: '1.3rem', color: 'var(--primary)', fontWeight: 700 }}>{company.companyName.charAt(0)}</span>}
+          <CompanyLogo name={company.companyName} url={company.domain} size={44} borderRadius={10} />
         </div>
         <div style={{ minWidth: 0, flex: 1 }}>
           <h3 style={{ fontWeight: 700, color: 'var(--ink)', fontSize: '1rem', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

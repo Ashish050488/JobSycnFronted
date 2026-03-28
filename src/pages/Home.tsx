@@ -50,13 +50,13 @@ export default function Home() {
             {COPY.home.heroSubtitle}
           </p>
           <div className="anim-up" style={{ animationDelay: '0.2s', display: 'flex', justifyContent: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <Link to="/jobs"><Button size="lg">{COPY.home.heroCTA} <ArrowRight size={15} /></Button></Link>
-            <Link to="/directory"><Button variant="ghost" size="lg">{COPY.home.heroSecondaryCTA}</Button></Link>
+            <div className="w-full sm:w-auto"><Link to="/jobs" className="block w-full"><Button size="lg" className="w-full">{COPY.home.heroCTA} <ArrowRight size={15} /></Button></Link></div>
+            <div className="w-full sm:w-auto"><Link to="/directory" className="block w-full"><Button variant="ghost" size="lg" className="w-full">{COPY.home.heroSecondaryCTA}</Button></Link></div>
           </div>
-          <div className="anim-up" style={{ animationDelay: '0.28s', display: 'flex', justifyContent: 'center', gap: 48, marginTop: 60, flexWrap: 'wrap', paddingTop: 40, borderTop: '1.25px solid var(--border)' }}>
+          <div className="anim-up" style={{ animationDelay: '0.28s', display: 'flex', justifyContent: 'center', gap: 'clamp(24px, 8vw, 48px)', marginTop: 'clamp(30px, 8vw, 60px)', flexWrap: 'wrap', paddingTop: 'clamp(20px, 6vw, 40px)', borderTop: '1.25px solid var(--border)' }}>
             {[[COPY.home.stat1Value, COPY.home.stat1Label], [COPY.home.stat2Value, COPY.home.stat2Label]].map(([v, l]) => (
-              <div key={l} style={{ textAlign: 'center' }}>
-                <div className="font-sketch" style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--primary)' }}>{v}</div>
+              <div key={l} style={{ textAlign: 'center', minWidth: 120 }}>
+                <div className="font-sketch" style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', fontWeight: 700, color: 'var(--primary)' }}>{v}</div>
                 <div style={{ fontSize: '0.78rem', letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--subtle-ink)', marginTop: 4 }}>{l}</div>
               </div>
             ))}

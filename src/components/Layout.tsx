@@ -1,7 +1,7 @@
 // FILE: src/components/Layout.tsx
 import { useState, useRef, useEffect, type ReactNode } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { Sun, Moon, Zap, LogOut, BookOpen, BarChart3 } from 'lucide-react';
+import { Sun, Moon, Zap, LogOut, BookOpen, BarChart3, Menu, X } from 'lucide-react';
 import { useTheme } from '../theme/ThemeProvider';
 import { BRAND_SPLIT, COPY } from '../theme/brand';
 import { useUser } from '../context/UserContext';
@@ -13,6 +13,7 @@ export default function Layout() {
   const { mode, toggle } = useTheme();
   const { currentUser, logout, skillsEditorOpen, openSkillsEditor, closeSkillsEditor, todayCount, streak } = useUser();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const [viewport, setViewport] = useState(() => ({
     width: typeof window !== 'undefined' ? window.innerWidth : 1280,
@@ -149,21 +150,23 @@ export default function Layout() {
             </span>
           </Link>
 
-          <div
-            className="nav-links"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: is3xl ? 12 : 8,
-              overflowX: 'auto',
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none'
-            }}
-          >
-            {navLink('/directory', COPY.nav.companies)}
-            {navLink('/jobs', COPY.nav.browseJobs)}
-            {navLink('/progress', COPY.nav.myProgress, <BarChart3 size={14} />)}
-          </div>
+          {!isMobileNav && (
+            <div
+              className="nav-links"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: is3xl ? 12 : 8,
+                overflowX: 'auto',
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none'
+              }}
+            >
+              {navLink('/directory', COPY.nav.companies)}
+              {navLink('/jobs', COPY.nav.browseJobs)}
+              {navLink('/progress', COPY.nav.myProgress, <BarChart3 size={14} />)}
+            </div>
+          )}
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             {currentUser && (
@@ -342,8 +345,34 @@ export default function Layout() {
                 )}
               </div>
             )}
+            {isMobileNav && (
+              <button
+                onClick={() => setMobileMenuOpen(v => !v)}
+                style={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: 8,
+                  border: '1px solid var(--border-mid)',
+                  background: 'transparent',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--text-secondary)',
+                }}
+              >
+                {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+              </button>
+            )}
           </div>
         </nav>
+        {mobileMenuOpen && isMobileNav && (
+          <div style={{ marginTop: 8, background: 'var(--surface-solid)', borderRadius: 12, border: '1px solid var(--border)', padding: 12, display: 'flex', flexDirection: 'column', gap: 8, boxShadow: 'var(--shadow-md)' }}>
+            {navLink('/directory', COPY.nav.companies)}
+            {navLink('/jobs', COPY.nav.browseJobs)}
+            {navLink('/progress', COPY.nav.myProgress, <BarChart3 size={14} />)}
+          </div>
+        )}
       </div>
 
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>

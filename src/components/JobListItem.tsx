@@ -3,11 +3,13 @@ import { useState, memo } from 'react';
 import { Clock, CheckCircle2, X } from 'lucide-react';
 import { Badge } from './ui';
 import type { IJob } from '../types';
+import CompanyLogo from './CompanyLogo';
 
 export type CompactBadge = { key: string; label: string; bg: string; color: string };
 
 export interface JobListItemProps {
   job: IJob;
+  domain?: string;
   isSelected: boolean;
   isApplied: boolean;
   isComeBack: boolean;
@@ -23,16 +25,11 @@ export interface JobListItemProps {
   onDismiss?: (jobId: string) => void;
 }
 
-function logoDomainFromUrl(url: string) {
-  try {
-    return new URL(url).hostname.replace('www.', '');
-  } catch {
-    return 'example.com';
-  }
-}
+ 
 
 const JobListItem = memo(function JobListItem({
   job,
+  domain,
   isSelected,
   isApplied,
   isComeBack,
@@ -47,7 +44,6 @@ const JobListItem = memo(function JobListItem({
   onSelect,
   onDismiss,
 }: JobListItemProps) {
-  const [logoError, setLogoError] = useState(false);
   const [hovered, setHovered] = useState(false);
 
   return (
@@ -101,22 +97,7 @@ const JobListItem = memo(function JobListItem({
           borderRadius: 999, display: 'flex', alignItems: 'center',
           justifyContent: 'center', overflow: 'hidden', padding: 4,
         }}>
-          {logoError ? (
-            <span style={{
-              fontFamily: "'Playfair Display',serif", fontSize: '1rem',
-              color: 'var(--primary)', fontWeight: 700, display: 'flex',
-              alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%',
-            }}>
-              {(job.Company || '?').charAt(0)}
-            </span>
-          ) : (
-            <img
-              src={`https://logo.clearbit.com/${logoDomainFromUrl(job.ApplicationURL)}`}
-              alt={job.Company}
-              style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-              onError={() => setLogoError(true)}
-            />
-          )}
+          <CompanyLogo name={job.Company} url={job.ApplicationURL} domain={domain} size={36} borderRadius={999} />
         </div>
 
         <div style={{ minWidth: 0, flex: 1 }}>

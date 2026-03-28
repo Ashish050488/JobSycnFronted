@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import PipelineCard, { STAGES, STAGE_ORDER } from './PipelineCard';
 import type { StageName } from './PipelineCard';
 import { Button } from './ui';
+import CompanyLogo from './CompanyLogo';
 
 export interface PipelineJob {
   jobId: string;
@@ -34,11 +35,7 @@ interface CompanyGroup {
 
 /* ─── helpers ──────────────────────────────────────────────── */
 
-function logoDomain(url: string | null): string {
-  if (!url) return 'example.com';
-  try { return new URL(url).hostname.replace('www.', ''); }
-  catch { return 'example.com'; }
-}
+
 
 const STAGE_PRIORITY: Record<string, number> = {
   screening: 0, interview: 1, offer: 2, applied: 3,
@@ -112,7 +109,6 @@ export default function PipelineView({ jobs, onStageChange }: PipelineViewProps)
   const [searchFocused, setSearchFocused] = useState(false);
   const [stageFilter, setStageFilter] = useState<string | null>(null);
   const [expandedCompanies, setExpandedCompanies] = useState<Set<string>>(new Set());
-  const [logoErrors, setLogoErrors] = useState<Set<string>>(new Set());
 
   const stageCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -147,9 +143,7 @@ export default function PipelineView({ jobs, onStageChange }: PipelineViewProps)
     });
   };
 
-  const handleLogoError = (company: string) => {
-    setLogoErrors(prev => new Set(prev).add(company.toLowerCase()));
-  };
+ 
 
   // Empty state
   if (jobs.length === 0) {
@@ -290,7 +284,6 @@ export default function PipelineView({ jobs, onStageChange }: PipelineViewProps)
           const key = group.company.toLowerCase();
           const isExpanded = expandedCompanies.has(key);
           const firstUrl = group.jobs[0]?.applicationURL ?? null;
-          const logoFailed = logoErrors.has(key);
           const accentColor = getGroupAccentColor(group);
 
           return (
@@ -323,18 +316,7 @@ export default function PipelineView({ jobs, onStageChange }: PipelineViewProps)
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   overflow: 'hidden',
                 }}>
-                  {logoFailed ? (
-                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--primary)' }}>
-                      {group.company.charAt(0).toUpperCase()}
-                    </span>
-                  ) : (
-                    <img
-                      src={`https://logo.clearbit.com/${logoDomain(firstUrl)}`}
-                      alt=""
-                      style={{ width: 22, height: 22, objectFit: 'contain' }}
-                      onError={() => handleLogoError(group.company)}
-                    />
-                  )}
+                  <CompanyLogo name={group.company} url={firstUrl} size={32} borderRadius={'50%'} />
                 </div>
 
                 {/* Company name */}

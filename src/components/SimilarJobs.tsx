@@ -1,5 +1,6 @@
 // FILE: src/components/SimilarJobs.tsx
 import { useState, useEffect } from 'react';
+import CompanyLogo from './CompanyLogo';
 import { useNavigate } from 'react-router-dom';
 import { buildSkillsRegex } from './JobDetailPanel';
 
@@ -24,11 +25,6 @@ interface SimilarJobsProps {
 // Module-level cache keyed by jobId
 const cache = new Map<string, SimilarJob[]>();
 
-function logoFromUrl(url: string) {
-    try { return new URL(url).hostname.replace('www.', ''); }
-    catch { return 'example.com'; }
-}
-
 function matchScore(job: SimilarJob, skills: string[]): number {
     if (!skills.length) return 0;
     const techStack = job.autoTags?.techStack?.join(' ') ?? '';
@@ -48,7 +44,6 @@ function matchBadgeStyle(pct: number) {
 }
 
 function MiniCard({ job, skills, onSelectJob }: { job: SimilarJob; skills: string[]; onSelectJob?: (id: string) => void }) {
-    const [logoErr, setLogoErr] = useState(false);
     const [hovered, setHovered] = useState(false);
     const navigate = useNavigate();
     const pct = matchScore(job, skills);
@@ -80,21 +75,7 @@ function MiniCard({ job, skills, onSelectJob }: { job: SimilarJob; skills: strin
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 overflow: 'hidden', padding: 3,
             }}>
-                {logoErr ? (
-                    <span style={{
-                        fontFamily: "'Playfair Display',serif", fontSize: '0.9rem',
-                        color: 'var(--primary)', fontWeight: 700,
-                    }}>
-                        {(job.Company || '?').charAt(0)}
-                    </span>
-                ) : (
-                    <img
-                        src={`https://logo.clearbit.com/${logoFromUrl(job.ApplicationURL)}`}
-                        alt={job.Company}
-                        style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-                        onError={() => setLogoErr(true)}
-                    />
-                )}
+                <CompanyLogo name={job.Company} url={job.ApplicationURL} size={32} borderRadius={8} />
             </div>
 
             {/* Text */}

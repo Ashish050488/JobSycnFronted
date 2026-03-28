@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Briefcase, X, ExternalLink, ArrowLeft, Search, CheckCircle2, Eye, EyeOff, Sparkles, GraduationCap } from 'lucide-react';
 import { useUser } from '../context/UserContext';
@@ -6,6 +6,7 @@ import type { IJob } from '../types';
 import { Container, PageHeader, Button, EmptyState } from '../components/ui';
 import { COPY } from '../theme/brand';
 import JobListItem from '../components/JobListItem';
+import type { ICompany } from '../types';
 import type { CompactBadge } from '../components/JobListItem';
 import JobDetailPanel, { inferWorkplace, stripHtmlText, buildSkillsRegex, relTime, getAutoTags, roleBadgeStyle } from '../components/JobDetailPanel';
 // Viewport info hook
@@ -99,7 +100,7 @@ export default function Dashboard() {
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [selectedJob, setSelectedJob] = useState<IJob | null>(null);
-  const [cos, setCos] = useState<CS[]>([]);
+  const [cos, setCos] = useState<ICompany[]>([]);
 
   // UI
   const [mobileSheetOpen, setMobileSheetOpen] = useState<boolean>(false);
@@ -284,6 +285,15 @@ export default function Dashboard() {
       .catch(() => { });
     return () => { cancelled = true; };
   }, []);
+
+  // Build a companyName -> domain map
+  const companyDomainMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const c of cos) {
+      if (c.companyName && c.domain) map.set(c.companyName.trim().toLowerCase(), c.domain);
+    }
+    return map;
+  }, [cos]);
 
   const newJobsCount = useMemo(() => {
     if (!currentUser || !previousVisitAt) return 0;
@@ -481,7 +491,7 @@ export default function Dashboard() {
       <div style={{
         position: 'sticky',
         bottom: 0,
-        padding: '12px 16px calc(12px + env(safe-area-inset-bottom))',
+        padding: '8px 16px calc(8px + env(safe-area-inset-bottom))',
         borderTop: '1px solid var(--border)',
         background: 'var(--surface-solid)',
         display: 'flex',
@@ -784,10 +794,13 @@ export default function Dashboard() {
               }}>
                 {listRenderMeta.map(meta => {
                   const j = meta.job;
+                  // Look up domain from map
+                  const domain = companyDomainMap.get(j.Company?.trim().toLowerCase() || '');
                   return (
                     <JobListItem
                       key={j._id}
                       job={j}
+                      domain={domain}
                       isSelected={selectedJob?._id === j._id}
                       isApplied={meta.isApplied}
                       isComeBack={meta.isComeBack}
@@ -837,6 +850,7 @@ export default function Dashboard() {
                   {selectedJob ? (
                     <JobDetailPanel
                       job={selectedJob}
+                      domain={companyDomainMap.get(selectedJob.Company?.trim().toLowerCase() || '')}
                       is3xl={is3xl}
                       appliedJobIds={appliedJobIds}
                       comeBackMap={comeBackMap}
@@ -893,7 +907,7 @@ export default function Dashboard() {
           >
             {/* Sticky header */}
             <div style={{
-              padding: '12px 16px',
+              padding: '8px 16px',
               borderBottom: '1px solid var(--border)',
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               flexShrink: 0,

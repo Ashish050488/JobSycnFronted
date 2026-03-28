@@ -302,3 +302,5 @@ export function StatCard({ icon, value, label, accent }: { icon: ReactNode; valu
     </Card>
   );
 }
+
+export * from './LogoImg';

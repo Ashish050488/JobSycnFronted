@@ -1,16 +1,17 @@
 // FILE: src/components/JobCard.tsx
-import { useState } from 'react';
 import { MapPin, Building2, ExternalLink, Clock } from 'lucide-react';
 import type { IJob } from '../types';
+import CompanyLogo from './CompanyLogo';
 import { Badge, Button } from './ui';
 import { COPY } from '../theme/brand';
 
+
 interface Props {
   job: IJob;
+  domain?: string;
 }
 
-export default function JobCard({ job }: Props) {
-  const [imgErr, setImgErr] = useState(false);
+export default function JobCard({ job, domain }: Props) {
 
   const relTime = (d: string | null) => {
     if (!d) return null;
@@ -42,13 +43,6 @@ export default function JobCard({ job }: Props) {
     return null;
   };
 
-  const domain = (url: string) => {
-    try {
-      return new URL(url).hostname.replace('www.', '');
-    } catch {
-      return 'google.com';
-    }
-  };
 
   const effectiveDate = job.PostedDate || job.scrapedAt || null;
   const rt = relTime(effectiveDate);
@@ -88,25 +82,7 @@ export default function JobCard({ job }: Props) {
               padding: 6,
             }}
           >
-            {!imgErr ? (
-              <img
-                src={`https://logo.clearbit.com/${domain(job.ApplicationURL)}`}
-                alt={job.Company}
-                style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-                onError={() => setImgErr(true)}
-              />
-            ) : (
-              <span
-                style={{
-                  fontFamily: "'Playfair Display',serif",
-                  fontSize: '1.2rem',
-                  color: 'var(--acid)',
-                  fontWeight: 700,
-                }}
-              >
-                {job.Company.charAt(0)}
-              </span>
-            )}
+            <CompanyLogo name={job.Company} url={job.ApplicationURL} domain={domain} size={44} borderRadius={10} />
           </div>
 
           <div style={{ flex: 1, minWidth: 0 }}>

@@ -3,6 +3,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { MapPin, Building2, Clock, ExternalLink, CheckCircle2 } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { Badge, Button } from './ui';
+import CompanyLogo from './CompanyLogo';
 import { COPY } from '../theme/brand';
 import type { IJob, IJobAutoTags } from '../types';
 import CompanyIntel from './CompanyIntel';
@@ -113,37 +114,13 @@ const platformLabel: Record<string, string> = {
   ashby: 'Ashby',
 };
 
-// ─── LogoImg ─────────────────────────────────────────────────────────────────
-
-function logoDomainFromUrl(url: string) {
-  try { return new URL(url).hostname.replace('www.', ''); }
-  catch { return 'example.com'; }
-}
-
-function LogoImg({ job, size }: { job: IJob; size: number }) {
-  const [err, setErr] = useState(false);
-  return err ? (
-    <span style={{
-      fontFamily: "'Playfair Display',serif", fontSize: size * 0.55,
-      color: 'var(--primary)', fontWeight: 700, display: 'flex',
-      alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%',
-    }}>
-      {job.Company.charAt(0)}
-    </span>
-  ) : (
-    <img
-      src={`https://logo.clearbit.com/${logoDomainFromUrl(job.ApplicationURL)}`}
-      alt={job.Company}
-      style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-      onError={() => setErr(true)}
-    />
-  );
-}
+// CompanyLogo component (uses domain + Clearbit + fallback) is used below
 
 // ─── Props ───────────────────────────────────────────────────────────────────
 
 export interface JobDetailPanelProps {
   job: IJob;
+  domain?: string;
   mobileMode?: boolean;
   is3xl: boolean;
   appliedJobIds: Set<string>;
@@ -158,6 +135,7 @@ export interface JobDetailPanelProps {
 
 export default function JobDetailPanel({
   job,
+  domain,
   mobileMode = false,
   is3xl,
   appliedJobIds,
@@ -267,7 +245,7 @@ export default function JobDetailPanel({
           border: '1px solid var(--border)', borderRadius: 10, display: 'flex',
           alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: 6,
         }}>
-          <LogoImg job={job} size={48} />
+              <CompanyLogo name={job.Company} url={job.ApplicationURL} domain={domain} size={48} borderRadius={12} />
         </div>
         <div style={{ minWidth: 0, flex: 1 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>

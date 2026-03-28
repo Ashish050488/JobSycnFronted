@@ -2,7 +2,7 @@ import { useUser } from '../context/UserContext';
 import { GoogleLogin } from '@react-oauth/google';
 import { useState, useEffect, useRef } from 'react';
 import { Zap, X } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { BRAND } from '../theme/brand';
 
 /* ── Falling tech keywords (matrix rain) ───────────────────────── */
@@ -122,6 +122,7 @@ function TypingRoles() {
 /* ══════════════════════════════════════════════════════════════════ */
 export default function LoginScreen() {
   const { login } = useUser();
+  const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 50, y: 50 });
@@ -477,7 +478,12 @@ export default function LoginScreen() {
                   <GoogleLogin
                     onSuccess={async cr => {
                       if (cr.credential) {
-                        try { setLoading(true); setError(null); await login(cr.credential); }
+                        try { 
+                          setLoading(true); 
+                          setError(null); 
+                          await login(cr.credential); 
+                          navigate('/');
+                        }
                         catch { setError('Sign-in failed. Please try again.'); }
                         finally { setLoading(false); }
                       } else { setError('Sign-in failed. Please try again.'); }

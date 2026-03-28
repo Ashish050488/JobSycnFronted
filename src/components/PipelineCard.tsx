@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ExternalLink, MapPin, Building2 } from 'lucide-react';
+import CompanyLogo from './CompanyLogo';
 
 // Stage configuration — labels and colors
 const STAGES = {
@@ -32,12 +33,6 @@ interface PipelineCardProps {
   onStageChange: (jobId: string, newStage: string) => void;
 }
 
-function logoDomain(url: string | null): string {
-  if (!url) return 'example.com';
-  try { return new URL(url).hostname.replace('www.', ''); }
-  catch { return 'example.com'; }
-}
-
 function relativeTime(dateStr: string): string {
   const d = new Date(dateStr);
   if (isNaN(d.getTime())) return '';
@@ -55,7 +50,6 @@ export default function PipelineCard({
   jobId, jobTitle, company, location, department,
   applicationURL, stage, stageUpdatedAt, appliedAt, isListingActive, onStageChange,
 }: PipelineCardProps) {
-  const [logoError, setLogoError] = useState(false);
   const [hovered, setHovered] = useState(false);
   const stageKey = (STAGES[stage as StageName] ? stage : 'applied') as StageName;
   const stageConfig = STAGES[stageKey];
@@ -92,18 +86,7 @@ export default function PipelineCard({
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           overflow: 'hidden', padding: 4,
         }}>
-          {logoError ? (
-            <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--primary)' }}>
-              {company.charAt(0)}
-            </span>
-          ) : (
-            <img
-              src={`https://logo.clearbit.com/${logoDomain(applicationURL)}`}
-              alt={company}
-              style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-              onError={() => setLogoError(true)}
-            />
-          )}
+          <CompanyLogo name={company} url={applicationURL} size={40} borderRadius={10} />
         </div>
 
         {/* Job info */}
