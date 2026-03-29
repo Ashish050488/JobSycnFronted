@@ -80,7 +80,7 @@ function FreshnessChip({ daysAgo }: { daysAgo: number }) {
 
 // Mini 7-bar posting frequency chart (Mon–Sun)
 function PostingBars({ distribution, busiestDays }: { distribution: number[]; busiestDays: string[] }) {
-    const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+
     const max = Math.max(...distribution, 1);
     const todayIdx = new Date().getDay();
     const todayBarIdx = todayIdx === 0 ? 6 : todayIdx - 1;
@@ -224,7 +224,7 @@ export default function CompanyIntel({ companyName, rolePostedDate }: CompanyInt
 
                 {loading ? (
                     <div style={{ padding: 16, display: 'flex', gap: 8 }}>
-                        {[60, 80, 70].map((w, i) => (
+                        {[60, 80, 70].map((_w, i) => (
                             <div key={i} className="skeleton" style={{ height: 40, borderRadius: 8, flex: 1 }} />
                         ))}
                     </div>
