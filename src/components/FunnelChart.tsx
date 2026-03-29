@@ -23,6 +23,14 @@ function getMaxCount(stageCounts: Record<string, number>): number {
 
 export default function FunnelChart({ stageCounts, totalApplied }: FunnelChartProps) {
   const [visible, setVisible] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 480 : false);
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 480);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
   useEffect(() => {
     const timer = setTimeout(() => setVisible(true), 100);
     return () => clearTimeout(timer);
@@ -50,7 +58,7 @@ export default function FunnelChart({ stageCounts, totalApplied }: FunnelChartPr
       <div key={stage} style={{ display: 'flex', alignItems: 'center', marginBottom: 6 }}>
         {/* Label */}
         <div style={{
-          width: 90, textAlign: 'right', fontSize: '0.82rem',
+          width: isMobile ? 60 : 90, textAlign: 'right', fontSize: isMobile ? '0.75rem' : '0.82rem',
           color: isEmpty ? 'var(--subtle-ink)' : 'var(--muted-ink)',
           marginRight: 12, opacity: isEmpty ? 0.6 : 1,
         }}>
@@ -196,7 +204,7 @@ export default function FunnelChart({ stageCounts, totalApplied }: FunnelChartPr
       <div style={{ borderTop: '1px solid var(--border)', paddingTop: 18 }}>
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+          gridTemplateColumns: isMobile ? 'repeat(2, minmax(0, 1fr))' : 'repeat(4, minmax(0, 1fr))',
           gap: 12,
         }}>
           {stats.map((stat, i) => (

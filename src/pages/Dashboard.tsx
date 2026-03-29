@@ -117,6 +117,37 @@ export default function Dashboard() {
   const useBottomSheet = !useSplitView;
   const { currentUser, userSkills, appliedJobIds, dismissedJobIds, previousVisitAt, toggleApplied, toggleDismissed } = useUser();
 
+  // Active filter count for mobile badge
+  const activeFilterCount = [roleCategoryFilter, experienceBandFilter, workplaceFilter, dateFilter, platformFilter, sel].filter(Boolean).length;
+
+  // Style helpers
+  const activeChipStyle: React.CSSProperties = {
+    display: 'inline-flex', alignItems: 'center', gap: 2,
+    padding: '5px 12px', borderRadius: 999,
+    background: 'var(--primary-soft)', border: '1.25px solid var(--primary)',
+    color: 'var(--primary)', fontSize: '0.78rem', fontWeight: 600,
+    cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
+    transition: 'all 0.15s', flexShrink: 0,
+  };
+  const desktopSelectStyle = (active: boolean): React.CSSProperties => ({
+    padding: '8px 12px', borderRadius: 999,
+    border: '1.25px solid var(--border)',
+    background: active ? 'var(--primary-soft)' : 'var(--surface-solid)',
+    color: active ? 'var(--primary)' : 'var(--muted-ink)',
+    fontFamily: 'inherit', fontSize: '0.82rem',
+  });
+  const pillStyle = (active: boolean): React.CSSProperties => ({
+    padding: '8px 16px', borderRadius: 999,
+    border: active ? '1.5px solid var(--primary)' : '1.25px solid var(--border)',
+    background: active ? 'var(--primary)' : 'var(--surface-solid)',
+    color: active ? '#fff' : 'var(--ink)',
+    cursor: 'pointer', fontSize: '0.84rem', fontFamily: 'inherit',
+    fontWeight: active ? 600 : 400, transition: 'all 0.15s',
+    whiteSpace: 'nowrap', flexShrink: 0,
+  });
+
+
+
   // Dismiss with 5-second undo window
   interface PendingDismiss { jobId: string; timer: ReturnType<typeof setTimeout> }
   const [pendingDismiss, setPendingDismiss] = useState<PendingDismiss | null>(null);
@@ -647,133 +678,77 @@ export default function Dashboard() {
               )}
             </div>
           )}
-          {/* Horizontal filter bar */}
-          <div style={{
-            display: 'flex',
-            gap: 10,
-            padding: '12px 0 14px',
-            marginBottom: 12,
-            borderBottom: '1px solid var(--border)',
-            overflowX: isXsSm ? 'auto' : 'visible',
-            flexWrap: isXsSm ? 'nowrap' : 'wrap',
-            WebkitOverflowScrolling: 'touch',
-            maxHeight: isMd ? 88 : undefined,
-            overflowY: isMd ? 'hidden' : undefined,
-          }}>
-            <select
-              value={roleCategoryFilter ?? ''}
-              onChange={e => setRoleCategoryFilter(e.target.value || null)}
-              style={{ padding: '8px 12px', borderRadius: 999, border: '1.25px solid var(--border)', background: roleCategoryFilter ? 'var(--primary-soft)' : 'var(--surface-solid)', color: roleCategoryFilter ? 'var(--primary)' : 'var(--muted-ink)', fontFamily: 'inherit', fontSize: '0.82rem' }}
-            >
-              <option value="">Role: All</option>
-              {ROLE_FILTER_OPTIONS.filter(o => o.value).map(opt => (
-                <option key={opt.label} value={opt.value!}>{opt.label}</option>
-              ))}
-            </select>
-            <select
-              value={experienceBandFilter ?? ''}
-              onChange={e => setExperienceBandFilter(e.target.value || null)}
-              style={{ padding: '8px 12px', borderRadius: 999, border: '1.25px solid var(--border)', background: experienceBandFilter ? 'var(--primary-soft)' : 'var(--surface-solid)', color: experienceBandFilter ? 'var(--primary)' : 'var(--muted-ink)', fontFamily: 'inherit', fontSize: '0.82rem' }}
-            >
-              <option value="">Exp: All</option>
-              {EXPERIENCE_FILTER_OPTIONS.filter(o => o.value).map(opt => (
-                <option key={opt.label} value={opt.value!}>{opt.label}</option>
-              ))}
-            </select>
-            <select value={workplaceFilter ?? ''} onChange={e => setWorkplaceFilter(e.target.value || null)} style={{ padding: '8px 12px', borderRadius: 999, border: '1.25px solid var(--border)', background: workplaceFilter ? 'var(--primary-soft)' : 'var(--surface-solid)', color: workplaceFilter ? 'var(--primary)' : 'var(--muted-ink)', fontFamily: 'inherit', fontSize: '0.82rem' }}>
-              <option value="">Workplace: All</option>
-              <option value="remote">Remote</option>
-              <option value="hybrid">Hybrid</option>
-              <option value="on-site">On-site</option>
-            </select>
-            <select value={dateFilter ?? ''} onChange={e => setDateFilter(e.target.value || null)} style={{ padding: '8px 12px', borderRadius: 999, border: '1.25px solid var(--border)', background: dateFilter ? 'var(--primary-soft)' : 'var(--surface-solid)', color: dateFilter ? 'var(--primary)' : 'var(--muted-ink)', fontFamily: 'inherit', fontSize: '0.82rem' }}>
-              <option value="">Date: All</option>
-              <option value="1d">Past 24h</option>
-              <option value="3d">Past 3d</option>
-              <option value="7d">Past 7d</option>
-            </select>
-            <select value={platformFilter ?? ''} onChange={e => setPlatformFilter(e.target.value || null)} style={{ padding: '8px 12px', borderRadius: 999, border: '1.25px solid var(--border)', background: platformFilter ? 'var(--primary-soft)' : 'var(--surface-solid)', color: platformFilter ? 'var(--primary)' : 'var(--muted-ink)', fontFamily: 'inherit', fontSize: '0.82rem' }}>
-              <option value="">Board: All</option>
-              <option value="lever">Lever</option>
-              <option value="greenhouse">Greenhouse</option>
-              <option value="ashby">Ashby</option>
-              <option value="workable">Workable</option>
-              <option value="recruitee">Recruitee</option>
-              <option value="workday">Workday</option>
-            </select>
-            <select value={sel} onChange={e => { const company = e.target.value; if (!company) { setSp({}); } else { setSp({ company }); } }} style={{ padding: '8px 12px', borderRadius: 999, border: '1.25px solid var(--border)', background: sel ? 'var(--primary-soft)' : 'var(--surface-solid)', color: sel ? 'var(--primary)' : 'var(--muted-ink)', fontFamily: 'inherit', fontSize: '0.82rem' }}>
-              <option value="">Companies: All</option>
-              {cos.map(c => <option key={c.companyName} value={c.companyName}>{c.companyName}</option>)}
-            </select>
-            {isMd && (
-              <button
-                onClick={() => setFilterModalOpen(true)}
-                style={{
-                  minHeight: 36,
-                  padding: '8px 14px',
-                  borderRadius: 999,
-                  border: '1.25px solid var(--border)',
-                  background: 'var(--surface-solid)',
-                  color: 'var(--muted-ink)',
-                  whiteSpace: 'nowrap',
-                  cursor: 'pointer',
-                  fontSize: '0.82rem',
-                  fontFamily: 'inherit',
-                }}
-              >
-                Filters
-              </button>
-            )}
-          </div>
-          {/* Quick-access filter chips (mobile only) */}
-          {(isXsSm || isMd) && currentUser && (
-            <div style={{ display: 'flex', gap: 8, marginBottom: 12, overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-              {currentUser && (
+          {/* ══ FILTER AREA ══ */}
+          {useBottomSheet ? (
+            /* ── Mobile/Tablet: Compact filter button + active chips ── */
+            <div style={{ padding: '10px 0 12px', marginBottom: 8 }}>
+              <div className="filter-scroll-strip" style={{ marginBottom: activeFilterCount > 0 ? 10 : 0 }}>
                 <button
-                  onClick={() => setHideApplied(h => !h)}
+                  onClick={() => setFilterModalOpen(true)}
                   style={{
-                    flexShrink: 0, padding: '6px 14px', borderRadius: 20,
-                    border: '1.25px solid var(--border)', cursor: 'pointer',
-                    fontSize: '0.8rem', fontFamily: 'inherit', whiteSpace: 'nowrap',
-                    background: hideApplied ? 'var(--primary)' : 'var(--surface-solid)',
-                    color: hideApplied ? '#fff' : 'var(--muted-ink)',
-                    fontWeight: hideApplied ? 600 : 400,
-                    transition: 'all 0.18s',
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    padding: '9px 16px', borderRadius: 12,
+                    border: activeFilterCount > 0 ? '1.5px solid var(--primary)' : '1.25px solid var(--border)',
+                    background: activeFilterCount > 0 ? 'var(--primary-soft)' : 'var(--surface-solid)',
+                    color: activeFilterCount > 0 ? 'var(--primary)' : 'var(--muted-ink)',
+                    cursor: 'pointer', fontSize: '0.84rem', fontFamily: 'inherit',
+                    fontWeight: activeFilterCount > 0 ? 600 : 500,
+                    transition: 'all 0.18s', flexShrink: 0,
                   }}
                 >
-                  {hideApplied ? <><EyeOff size={12} style={{ verticalAlign: -2, marginRight: 4 }} />Applied Hidden</> : <><Eye size={12} style={{ verticalAlign: -2, marginRight: 4 }} />Hide Applied</>}
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                  Filters
+                  {activeFilterCount > 0 && (
+                    <span style={{
+                      width: 20, height: 20, borderRadius: '50%',
+                      background: 'var(--primary)', color: '#fff',
+                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '0.7rem', fontWeight: 700, marginLeft: 2,
+                    }}>
+                      {activeFilterCount}
+                    </span>
+                  )}
                 </button>
-              )}
-              {currentUser && newJobsCount > 0 && (
-                <button
-                  onClick={() => setShowNewOnly(n => !n)}
-                  style={{
-                    flexShrink: 0, padding: '6px 14px', borderRadius: 20,
-                    border: '1.25px solid var(--border)', cursor: 'pointer',
-                    fontSize: '0.8rem', fontFamily: 'inherit', whiteSpace: 'nowrap',
-                    background: showNewOnly ? 'var(--primary)' : 'var(--surface-solid)',
-                    color: showNewOnly ? '#fff' : 'var(--muted-ink)',
-                    fontWeight: showNewOnly ? 600 : 400,
-                    transition: 'all 0.18s',
-                  }}
-                >
-                  <Sparkles size={12} style={{ verticalAlign: -2, marginRight: 4 }} />New Only
+                {currentUser && (
+                  <button onClick={() => setHideApplied(h => !h)} style={{
+                    ...pillStyle(hideApplied), padding: '8px 14px', borderRadius: 12,
+                  }}>
+                    {hideApplied ? <><EyeOff size={12} style={{ verticalAlign: -2, marginRight: 4 }} />Hidden</> : <><Eye size={12} style={{ verticalAlign: -2, marginRight: 4 }} />Applied</>}
+                  </button>
+                )}
+                <button onClick={() => setEntryLevelFilter(f => !f)} style={{
+                  ...pillStyle(entryLevelFilter), padding: '8px 14px', borderRadius: 12,
+                }}>
+                  <GraduationCap size={12} style={{ verticalAlign: -2, marginRight: 4 }} />Fresher
                 </button>
+                {currentUser && newJobsCount > 0 && (
+                  <button onClick={() => setShowNewOnly(n => !n)} style={{
+                    ...pillStyle(showNewOnly), padding: '8px 14px', borderRadius: 12,
+                  }}>
+                    <Sparkles size={12} style={{ verticalAlign: -2, marginRight: 4 }} />New
+                  </button>
+                )}
+              </div>
+              {activeFilterCount > 0 && (
+                <div className="filter-scroll-strip">
+                  {roleCategoryFilter && <button onClick={() => setRoleCategoryFilter(null)} style={activeChipStyle}>{roleCategoryFilter} <X size={11} style={{ marginLeft: 4 }} /></button>}
+                  {experienceBandFilter && <button onClick={() => setExperienceBandFilter(null)} style={activeChipStyle}>{experienceBandFilter} <X size={11} style={{ marginLeft: 4 }} /></button>}
+                  {workplaceFilter && <button onClick={() => setWorkplaceFilter(null)} style={activeChipStyle}>{workplaceFilter} <X size={11} style={{ marginLeft: 4 }} /></button>}
+                  {dateFilter && <button onClick={() => setDateFilter(null)} style={activeChipStyle}>{dateFilter === '1d' ? '24h' : dateFilter === '3d' ? '3 days' : '7 days'} <X size={11} style={{ marginLeft: 4 }} /></button>}
+                  {platformFilter && <button onClick={() => setPlatformFilter(null)} style={activeChipStyle}>{platformFilter} <X size={11} style={{ marginLeft: 4 }} /></button>}
+                  {sel && <button onClick={() => setSp({})} style={activeChipStyle}>{sel} <X size={11} style={{ marginLeft: 4 }} /></button>}
+                  <button onClick={clearAllFilters} style={{ ...activeChipStyle, background: 'transparent', border: '1px dashed var(--border)', color: 'var(--muted-ink)' }}>Clear all</button>
+                </div>
               )}
-              <button
-                onClick={() => setEntryLevelFilter(f => !f)}
-                style={{
-                  flexShrink: 0, padding: '6px 14px', borderRadius: 20,
-                  border: '1.25px solid var(--border)', cursor: 'pointer',
-                  fontSize: '0.8rem', fontFamily: 'inherit', whiteSpace: 'nowrap',
-                  background: entryLevelFilter ? 'var(--primary)' : 'var(--surface-solid)',
-                  color: entryLevelFilter ? '#fff' : 'var(--muted-ink)',
-                  fontWeight: entryLevelFilter ? 600 : 400,
-                  transition: 'all 0.18s',
-                }}
-              >
-                <GraduationCap size={12} style={{ verticalAlign: -2, marginRight: 4 }} />Fresher
-              </button>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', gap: 10, padding: '12px 0 14px', marginBottom: 12, borderBottom: '1px solid var(--border)', flexWrap: 'wrap' }}>
+              <select value={roleCategoryFilter ?? ''} onChange={e => setRoleCategoryFilter(e.target.value || null)} style={desktopSelectStyle(!!roleCategoryFilter)}><option value="">Role: All</option>{ROLE_FILTER_OPTIONS.filter(o => o.value).map(opt => <option key={opt.label} value={opt.value!}>{opt.label}</option>)}</select>
+              <select value={experienceBandFilter ?? ''} onChange={e => setExperienceBandFilter(e.target.value || null)} style={desktopSelectStyle(!!experienceBandFilter)}><option value="">Exp: All</option>{EXPERIENCE_FILTER_OPTIONS.filter(o => o.value).map(opt => <option key={opt.label} value={opt.value!}>{opt.label}</option>)}</select>
+              <select value={workplaceFilter ?? ''} onChange={e => setWorkplaceFilter(e.target.value || null)} style={desktopSelectStyle(!!workplaceFilter)}><option value="">Workplace: All</option><option value="remote">Remote</option><option value="hybrid">Hybrid</option><option value="on-site">On-site</option></select>
+              <select value={dateFilter ?? ''} onChange={e => setDateFilter(e.target.value || null)} style={desktopSelectStyle(!!dateFilter)}><option value="">Date: All</option><option value="1d">Past 24h</option><option value="3d">Past 3d</option><option value="7d">Past 7d</option></select>
+              <select value={platformFilter ?? ''} onChange={e => setPlatformFilter(e.target.value || null)} style={desktopSelectStyle(!!platformFilter)}><option value="">Board: All</option><option value="lever">Lever</option><option value="greenhouse">Greenhouse</option><option value="ashby">Ashby</option><option value="workable">Workable</option><option value="recruitee">Recruitee</option><option value="workday">Workday</option></select>
+              <select value={sel} onChange={e => { const company = e.target.value; if (!company) { setSp({}); } else { setSp({ company }); } }} style={desktopSelectStyle(!!sel)}><option value="">Companies: All</option>{cos.map(c => <option key={c.companyName} value={c.companyName}>{c.companyName}</option>)}</select>
             </div>
           )}
           {loading ? (
@@ -891,12 +866,12 @@ export default function Dashboard() {
             onTouchEnd={e => {
               const startY = Number((e.currentTarget as HTMLDivElement).dataset.touchStartY || '0');
               const endY = e.changedTouches[0]?.clientY ?? startY;
-              if (endY - startY > 70) closeMobileSheet();
+              if (endY - startY > 50) closeMobileSheet();
             }}
             style={{
               position: 'fixed',
               left: 0, right: 0, bottom: 0,
-              height: isShortLandscape ? '90dvh' : (isMd ? '75dvh' : '85dvh'),
+              height: isShortLandscape ? '90dvh' : (isXsSm ? '92dvh' : '80dvh'),
               zIndex: 201,
               background: 'var(--surface-solid)',
               borderRadius: '20px 20px 0 0',
@@ -931,7 +906,7 @@ export default function Dashboard() {
               <div style={{ width: 60 }} />{/* spacer for centering */}
             </div>
             {/* Scrollable content */}
-            <div className="thin-scroll" style={{ flex: 1, overflowY: 'auto', padding: '20px 18px 16px', WebkitOverflowScrolling: 'touch' }}>
+            <div className="thin-scroll" style={{ flex: 1, overflowY: 'auto', padding: isXsSm ? '16px 14px 12px' : '20px 18px 16px', WebkitOverflowScrolling: 'touch' }}>
               <JobDetailPanel
                 job={selectedJob}
                 mobileMode
@@ -949,47 +924,99 @@ export default function Dashboard() {
         </>
       )}
 
-      {isMd && filterModalOpen && (
+      {/* ── Mobile Filter Bottom Sheet ── */}
+      {useBottomSheet && filterModalOpen && (
         <>
-          <div onClick={() => setFilterModalOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.42)', zIndex: 220 }} />
-          <div className="thin-scroll" style={{ position: 'fixed', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: 'min(92vw, 620px)', maxHeight: '78dvh', overflowY: 'auto', borderRadius: 16, border: '1.25px solid var(--border)', background: 'var(--surface-solid)', padding: 16, zIndex: 221 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-              <span style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--ink)' }}>Filters</span>
-              <button onClick={() => setFilterModalOpen(false)} style={{ border: 'none', background: 'none', color: 'var(--muted-ink)', cursor: 'pointer' }}><X size={16} /></button>
+          <div onClick={() => setFilterModalOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 220, animation: 'sheetFadeIn 0.2s ease' }} />
+          <div
+            className="thin-scroll"
+            style={{
+              position: 'fixed', left: 0, right: 0, bottom: 0,
+              maxHeight: '85dvh', overflowY: 'auto',
+              borderRadius: '20px 20px 0 0',
+              border: '1.25px solid var(--border)', borderBottom: 'none',
+              background: 'var(--surface-solid)',
+              padding: '0 0 max(16px, env(safe-area-inset-bottom))',
+              zIndex: 221,
+              animation: 'sheetSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1)',
+            }}
+          >
+            {/* Handle + header */}
+            <div style={{ position: 'sticky', top: 0, background: 'var(--surface-solid)', zIndex: 2, padding: '10px 20px 12px', borderBottom: '1px solid var(--border)' }}>
+              <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--border-strong)', margin: '0 auto 12px' }} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--ink)' }}>Filters</span>
+                <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                  {activeFilterCount > 0 && <button onClick={clearAllFilters} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600, fontFamily: 'inherit' }}>Clear all</button>}
+                  <button onClick={() => setFilterModalOpen(false)} style={{ width: 36, height: 36, borderRadius: '50%', border: '1px solid var(--border)', background: 'var(--paper2)', color: 'var(--muted-ink)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={16} /></button>
+                </div>
+              </div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              <select
-                value={roleCategoryFilter ?? ''}
-                onChange={e => setRoleCategoryFilter(e.target.value || null)}
-                style={{ padding: '10px 12px', borderRadius: 12, border: '1.25px solid var(--border)', background: 'var(--surface-solid)', color: 'var(--muted-ink)', fontFamily: 'inherit', fontSize: '0.86rem' }}
+
+            {/* Filter sections */}
+            <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+              {/* Role Category */}
+              <div>
+                <p style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--muted-ink)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Role</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  <button onClick={() => setRoleCategoryFilter(null)} style={pillStyle(!roleCategoryFilter)}>All</button>
+                  {ROLE_FILTER_OPTIONS.filter(o => o.value).map(opt => (
+                    <button key={opt.label} onClick={() => setRoleCategoryFilter(roleCategoryFilter === opt.value ? null : (opt.value ?? null))} style={pillStyle(roleCategoryFilter === opt.value)}>{opt.label}</button>
+                  ))}
+                </div>
+              </div>
+              {/* Experience */}
+              <div>
+                <p style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--muted-ink)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Experience</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  <button onClick={() => setExperienceBandFilter(null)} style={pillStyle(!experienceBandFilter)}>All</button>
+                  {EXPERIENCE_FILTER_OPTIONS.filter(o => o.value).map(opt => (
+                    <button key={opt.label} onClick={() => setExperienceBandFilter(experienceBandFilter === opt.value ? null : (opt.value ?? null))} style={pillStyle(experienceBandFilter === opt.value)}>{opt.label}</button>
+                  ))}
+                </div>
+              </div>
+              {/* Workplace */}
+              <div>
+                <p style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--muted-ink)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Workplace</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {[{ l: 'All', v: null }, { l: 'Remote', v: 'remote' }, { l: 'Hybrid', v: 'hybrid' }, { l: 'On-site', v: 'on-site' }].map(o => (
+                    <button key={o.l} onClick={() => setWorkplaceFilter(workplaceFilter === o.v ? null : o.v)} style={pillStyle(workplaceFilter === o.v)}>{o.l}</button>
+                  ))}
+                </div>
+              </div>
+              {/* Date */}
+              <div>
+                <p style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--muted-ink)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Posted</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {[{ l: 'Any time', v: null }, { l: 'Past 24h', v: '1d' }, { l: 'Past 3 days', v: '3d' }, { l: 'Past week', v: '7d' }].map(o => (
+                    <button key={o.l} onClick={() => setDateFilter(dateFilter === o.v ? null : o.v)} style={pillStyle(dateFilter === o.v)}>{o.l}</button>
+                  ))}
+                </div>
+              </div>
+              {/* Platform */}
+              <div>
+                <p style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--muted-ink)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Job Board</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {[{ l: 'All', v: null }, { l: 'Lever', v: 'lever' }, { l: 'Greenhouse', v: 'greenhouse' }, { l: 'Ashby', v: 'ashby' }, { l: 'Workable', v: 'workable' }, { l: 'Workday', v: 'workday' }].map(o => (
+                    <button key={o.l} onClick={() => setPlatformFilter(platformFilter === o.v ? null : o.v)} style={pillStyle(platformFilter === o.v)}>{o.l}</button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Sticky apply button */}
+            <div style={{ position: 'sticky', bottom: 0, padding: '12px 20px', paddingBottom: 'max(12px, env(safe-area-inset-bottom))', background: 'var(--surface-solid)', borderTop: '1px solid var(--border)' }}>
+              <button
+                onClick={() => setFilterModalOpen(false)}
+                style={{
+                  width: '100%', padding: '14px 0', borderRadius: 12,
+                  background: 'var(--primary)', color: '#fff', border: 'none',
+                  fontSize: '0.92rem', fontWeight: 700, cursor: 'pointer',
+                  fontFamily: 'inherit', transition: 'opacity 0.15s',
+                }}
               >
-                <option value="">Role: All</option>
-                {ROLE_FILTER_OPTIONS.filter(o => o.value).map(opt => (
-                  <option key={opt.label} value={opt.value!}>{opt.label}</option>
-                ))}
-              </select>
-              <select
-                value={experienceBandFilter ?? ''}
-                onChange={e => setExperienceBandFilter(e.target.value || null)}
-                style={{ padding: '10px 12px', borderRadius: 12, border: '1.25px solid var(--border)', background: 'var(--surface-solid)', color: 'var(--muted-ink)', fontFamily: 'inherit', fontSize: '0.86rem' }}
-              >
-                <option value="">Exp: All</option>
-                {EXPERIENCE_FILTER_OPTIONS.filter(o => o.value).map(opt => (
-                  <option key={opt.label} value={opt.value!}>{opt.label}</option>
-                ))}
-              </select>
-              <select value={workplaceFilter ?? ''} onChange={e => setWorkplaceFilter(e.target.value || null)} style={{ padding: '10px 12px', borderRadius: 12, border: '1.25px solid var(--border)', background: 'var(--surface-solid)', color: 'var(--muted-ink)', fontFamily: 'inherit', fontSize: '0.86rem' }}>
-                <option value="">Workplace: All</option>
-                <option value="remote">Remote</option>
-                <option value="hybrid">Hybrid</option>
-                <option value="on-site">On-site</option>
-              </select>
-              <select value={dateFilter ?? ''} onChange={e => setDateFilter(e.target.value || null)} style={{ padding: '10px 12px', borderRadius: 12, border: '1.25px solid var(--border)', background: 'var(--surface-solid)', color: 'var(--muted-ink)', fontFamily: 'inherit', fontSize: '0.86rem' }}>
-                <option value="">Date: All</option>
-                <option value="1d">Past 24h</option>
-                <option value="3d">Past 3d</option>
-                <option value="7d">Past 7d</option>
-              </select>
+                Show {visibleJobs.length} jobs
+              </button>
             </div>
           </div>
         </>

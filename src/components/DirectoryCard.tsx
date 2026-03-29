@@ -29,7 +29,7 @@ export default function CompanyCard({ company, adminActions }: Props) {
       style={{
         background: hov ? 'var(--paper2)' : 'var(--surface-solid)',
         borderColor: hov ? 'var(--border-strong)' : undefined,
-        padding: '22px 20px',
+        padding: 'clamp(14px, 3vw, 22px) clamp(12px, 3vw, 20px)',
         cursor: adminActions ? 'default' : 'pointer',
         display: 'flex',
         flexDirection: 'column',

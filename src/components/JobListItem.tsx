@@ -91,14 +91,7 @@ const JobListItem = memo(function JobListItem({
         </button>
       )}
       <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-        <div style={{
-          width: 36, height: 36, flexShrink: 0,
-          background: 'var(--surface-solid)', border: '1px solid var(--border)',
-          borderRadius: 999, display: 'flex', alignItems: 'center',
-          justifyContent: 'center', overflow: 'hidden', padding: 4,
-        }}>
-          <CompanyLogo name={job.Company} url={job.ApplicationURL} domain={domain} size={36} borderRadius={999} />
-        </div>
+        <CompanyLogo name={job.Company} url={job.ApplicationURL} domain={domain} size={36} borderRadius={10} style={{ flexShrink: 0 }} />
 
         <div style={{ minWidth: 0, flex: 1 }}>
           <div style={{

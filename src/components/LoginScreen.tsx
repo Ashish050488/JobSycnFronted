@@ -1,9 +1,9 @@
 import { useUser } from '../context/UserContext';
 import { GoogleLogin } from '@react-oauth/google';
 import { useState, useEffect, useRef } from 'react';
-import { Zap, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { BRAND } from '../theme/brand';
+import BrandLogo from './BrandLogo';
 
 /* ── Falling tech keywords (matrix rain) ───────────────────────── */
 const TECH_WORDS = [
@@ -126,6 +126,13 @@ export default function LoginScreen() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 50, y: 50 });
+  const [isMobileLogin, setIsMobileLogin] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 640 : false);
+
+  useEffect(() => {
+    const onResize = () => setIsMobileLogin(window.innerWidth < 640);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   const handleMouseMove = (e: React.MouseEvent) => {
     const x = (e.clientX / window.innerWidth) * 100;
@@ -175,16 +182,16 @@ export default function LoginScreen() {
           to { stroke-dashoffset: 0; }
         }
         @keyframes ls-orbit1 {
-          0%   { transform: rotate(0deg) translateX(180px) rotate(0deg); }
-          100% { transform: rotate(360deg) translateX(180px) rotate(-360deg); }
+          0%   { transform: rotate(0deg) translateX(min(180px, 25vw)) rotate(0deg); }
+          100% { transform: rotate(360deg) translateX(min(180px, 25vw)) rotate(-360deg); }
         }
         @keyframes ls-orbit2 {
-          0%   { transform: rotate(120deg) translateX(220px) rotate(-120deg); }
-          100% { transform: rotate(480deg) translateX(220px) rotate(-480deg); }
+          0%   { transform: rotate(120deg) translateX(min(220px, 30vw)) rotate(-120deg); }
+          100% { transform: rotate(480deg) translateX(min(220px, 30vw)) rotate(-480deg); }
         }
         @keyframes ls-orbit3 {
-          0%   { transform: rotate(240deg) translateX(160px) rotate(-240deg); }
-          100% { transform: rotate(600deg) translateX(160px) rotate(-600deg); }
+          0%   { transform: rotate(240deg) translateX(min(160px, 22vw)) rotate(-240deg); }
+          100% { transform: rotate(600deg) translateX(min(160px, 22vw)) rotate(-600deg); }
         }
         @keyframes ls-glitch {
           0%, 90%, 100% { transform: translate(0); }
@@ -241,21 +248,25 @@ export default function LoginScreen() {
           opacity: 0.7,
         }} />
 
-        {/* ── Morphing blobs ───────────────────────────────── */}
-        <div style={{
-          position: 'absolute', width: 300, height: 300,
-          top: '15%', right: '10%',
-          background: 'linear-gradient(135deg, var(--primary-soft), var(--info-soft))',
-          animation: 'ls-morphBlob 12s ease-in-out infinite',
-          filter: 'blur(50px)', opacity: 0.4, pointerEvents: 'none',
-        }} />
-        <div style={{
-          position: 'absolute', width: 250, height: 250,
-          bottom: '10%', left: '8%',
-          background: 'linear-gradient(135deg, var(--success-soft), var(--primary-soft))',
-          animation: 'ls-morphBlob 15s ease-in-out 3s infinite',
-          filter: 'blur(45px)', opacity: 0.35, pointerEvents: 'none',
-        }} />
+        {/* ── Morphing blobs (hidden on small mobile) ────── */}
+        {!isMobileLogin && (
+          <>
+            <div style={{
+              position: 'absolute', width: 300, height: 300,
+              top: '15%', right: '10%',
+              background: 'linear-gradient(135deg, var(--primary-soft), var(--info-soft))',
+              animation: 'ls-morphBlob 12s ease-in-out infinite',
+              filter: 'blur(50px)', opacity: 0.4, pointerEvents: 'none',
+            }} />
+            <div style={{
+              position: 'absolute', width: 250, height: 250,
+              bottom: '10%', left: '8%',
+              background: 'linear-gradient(135deg, var(--success-soft), var(--primary-soft))',
+              animation: 'ls-morphBlob 15s ease-in-out 3s infinite',
+              filter: 'blur(45px)', opacity: 0.35, pointerEvents: 'none',
+            }} />
+          </>
+        )}
 
         {/* ── Orbiting dots ────────────────────────────────── */}
         <div style={{ position: 'absolute', top: '50%', left: '50%', pointerEvents: 'none' }}>
@@ -275,27 +286,31 @@ export default function LoginScreen() {
           }} />
         ))}
 
-        {/* ── Corner SVG brackets (draw-in) ────────────────── */}
-        <svg style={{ position: 'absolute', top: 24, left: 24, opacity: 0.15, pointerEvents: 'none' }} width="80" height="80" viewBox="0 0 80 80">
-          <path d="M 0 40 L 0 0 L 40 0" fill="none" stroke="var(--primary)" strokeWidth="1.5"
-            strokeDasharray="120" strokeDashoffset="120"
-            style={{ animation: 'ls-dash 1.5s ease 0.5s forwards' }} />
-        </svg>
-        <svg style={{ position: 'absolute', top: 24, right: 24, opacity: 0.15, pointerEvents: 'none' }} width="80" height="80" viewBox="0 0 80 80">
-          <path d="M 40 0 L 80 0 L 80 40" fill="none" stroke="var(--primary)" strokeWidth="1.5"
-            strokeDasharray="120" strokeDashoffset="120"
-            style={{ animation: 'ls-dash 1.5s ease 0.7s forwards' }} />
-        </svg>
-        <svg style={{ position: 'absolute', bottom: 24, left: 24, opacity: 0.15, pointerEvents: 'none' }} width="80" height="80" viewBox="0 0 80 80">
-          <path d="M 0 40 L 0 80 L 40 80" fill="none" stroke="var(--primary)" strokeWidth="1.5"
-            strokeDasharray="120" strokeDashoffset="120"
-            style={{ animation: 'ls-dash 1.5s ease 0.9s forwards' }} />
-        </svg>
-        <svg style={{ position: 'absolute', bottom: 24, right: 24, opacity: 0.15, pointerEvents: 'none' }} width="80" height="80" viewBox="0 0 80 80">
-          <path d="M 40 80 L 80 80 L 80 40" fill="none" stroke="var(--primary)" strokeWidth="1.5"
-            strokeDasharray="120" strokeDashoffset="120"
-            style={{ animation: 'ls-dash 1.5s ease 1.1s forwards' }} />
-        </svg>
+        {/* ── Corner SVG brackets — hidden on mobile ────────── */}
+        {!isMobileLogin && (
+          <>
+            <svg style={{ position: 'absolute', top: 24, left: 24, opacity: 0.15, pointerEvents: 'none' }} width="80" height="80" viewBox="0 0 80 80">
+              <path d="M 0 40 L 0 0 L 40 0" fill="none" stroke="var(--primary)" strokeWidth="1.5"
+                strokeDasharray="120" strokeDashoffset="120"
+                style={{ animation: 'ls-dash 1.5s ease 0.5s forwards' }} />
+            </svg>
+            <svg style={{ position: 'absolute', top: 24, right: 24, opacity: 0.15, pointerEvents: 'none' }} width="80" height="80" viewBox="0 0 80 80">
+              <path d="M 40 0 L 80 0 L 80 40" fill="none" stroke="var(--primary)" strokeWidth="1.5"
+                strokeDasharray="120" strokeDashoffset="120"
+                style={{ animation: 'ls-dash 1.5s ease 0.7s forwards' }} />
+            </svg>
+            <svg style={{ position: 'absolute', bottom: 24, left: 24, opacity: 0.15, pointerEvents: 'none' }} width="80" height="80" viewBox="0 0 80 80">
+              <path d="M 0 40 L 0 80 L 40 80" fill="none" stroke="var(--primary)" strokeWidth="1.5"
+                strokeDasharray="120" strokeDashoffset="120"
+                style={{ animation: 'ls-dash 1.5s ease 0.9s forwards' }} />
+            </svg>
+            <svg style={{ position: 'absolute', bottom: 24, right: 24, opacity: 0.15, pointerEvents: 'none' }} width="80" height="80" viewBox="0 0 80 80">
+              <path d="M 40 80 L 80 80 L 80 40" fill="none" stroke="var(--primary)" strokeWidth="1.5"
+                strokeDasharray="120" strokeDashoffset="120"
+                style={{ animation: 'ls-dash 1.5s ease 1.1s forwards' }} />
+            </svg>
+          </>
+        )}
 
         {/* ── Horizontal scanline ──────────────────────────── */}
         <div style={{
@@ -317,7 +332,7 @@ export default function LoginScreen() {
             background: 'var(--surface-solid)',
             border: '1.5px solid var(--border)',
             borderRadius: 22,
-            padding: '48px 40px 40px',
+            padding: isMobileLogin ? '32px 20px 28px' : '48px 40px 40px',
             boxShadow: 'var(--shadow-lg)',
             textAlign: 'center',
             position: 'relative',
@@ -338,8 +353,8 @@ export default function LoginScreen() {
               position: 'absolute',
               top: 16,
               right: 16,
-              width: 32,
-              height: 32,
+              width: 44,
+              height: 44,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -364,46 +379,20 @@ export default function LoginScreen() {
               <X size={18} />
             </Link>
 
-            {/* ── Logo ─────────────────────────────────────── */}
+            {/* ── Logo ───────────────────────────────────────────── */}
             <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: 12,
+              display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 6,
               marginBottom: 28,
               animation: 'ls-fadeUp 0.6s ease 0.15s both',
             }}>
-              <div style={{
-                position: 'relative',
-                width: 50, height: 50, borderRadius: 14,
-                background: 'linear-gradient(135deg, var(--primary-soft), var(--primary))',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: '0 4px 20px var(--primary-soft)',
+              <BrandLogo size="lg" />
+              <span style={{
+                fontSize: '0.65rem', color: 'var(--subtle-ink)',
+                letterSpacing: '0.12em', textTransform: 'uppercase',
+                paddingLeft: 2,
               }}>
-                <Zap size={22} color="#fff" fill="#fff" />
-                <svg style={{
-                  position: 'absolute', inset: -6,
-                  animation: 'ls-spin 8s linear infinite', opacity: 0.3,
-                }} viewBox="0 0 62 62">
-                  <circle cx="31" cy="31" r="28" fill="none" stroke="var(--primary)"
-                    strokeWidth="0.8" strokeDasharray="8 12" />
-                </svg>
-              </div>
-              <div style={{ textAlign: 'left' }}>
-                <span style={{
-                  fontFamily: "'Playfair Display', serif",
-                  fontSize: '1.65rem', fontWeight: 700,
-                  color: 'var(--ink)', letterSpacing: '-0.03em',
-                  display: 'block', lineHeight: 1,
-                }}>
-                  {BRAND.appName.replace('Jobs', '')}
-                  <span style={{ color: 'var(--primary)' }}>Jobs</span>
-                </span>
-                <span style={{
-                  fontSize: '0.65rem', color: 'var(--subtle-ink)',
-                  letterSpacing: '0.12em', textTransform: 'uppercase',
-                  marginTop: 3, display: 'block',
-                }}>
-                  India's Tech Job Tracker
-                </span>
-              </div>
+                India's Tech Job Tracker
+              </span>
             </div>
 
             {/* ── Typing headline ──────────────────────────── */}

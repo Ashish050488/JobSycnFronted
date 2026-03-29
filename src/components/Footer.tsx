@@ -1,7 +1,7 @@
 // FILE: src/components/Footer.tsx
 import { Link } from 'react-router-dom';
-import { Briefcase } from 'lucide-react';
-import { BRAND, BRAND_SPLIT, COPY } from '../theme/brand';
+import { BRAND, COPY } from '../theme/brand';
+import BrandLogo from './BrandLogo';
 
 export default function Footer() {
   const year = new Date().getFullYear();
@@ -23,15 +23,10 @@ export default function Footer() {
   return (
     <footer style={{ background: 'var(--surface-solid)', borderTop: '1.25px solid var(--border)', marginTop: 'auto' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '28px 24px 16px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 24, marginBottom: 20 }}>
-          <div style={{ gridColumn: 'span 2' }}>
-            <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', marginBottom: 10 }}>
-              <div style={{ width: 24, height: 24, borderRadius: 6, background: 'var(--primary-soft)', border: '1.25px solid var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Briefcase size={11} color="var(--primary)" />
-              </div>
-              <span style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--ink)' }}>
-                {BRAND_SPLIT.first}<span className="font-sketch" style={{ color: 'var(--primary)' }}>{BRAND_SPLIT.accent}</span>
-              </span>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'clamp(20px, 4vw, 36px)', marginBottom: 20 }}>
+          <div style={{ flex: '1 1 280px', minWidth: 0, maxWidth: 320 }}>
+            <Link to="/" style={{ textDecoration: 'none', marginBottom: 10, display: 'inline-block' }}>
+              <BrandLogo size="sm" />
             </Link>
             <p style={{ fontSize: '0.8rem', color: 'var(--muted-ink)', lineHeight: 1.6, maxWidth: 260 }}>
               {BRAND.description}

@@ -36,6 +36,8 @@ function TrendTag({ pct, trend }: { pct: number; trend: 'up' | 'down' | 'stable'
     return <span style={{ ...mono, color: 'var(--muted-ink)' }}>[──]</span>;
 }
 
+
+
 function Cursor() {
     return (
         <span style={{
@@ -71,7 +73,7 @@ export default function MarketPulse() {
     useEffect(() => {
         if (!data) return;
         setVisible(0);
-        const total = data.categories.length + 4; // 4 non-data rows
+        const total = data.categories.length + 4;
         let i = 0;
         const id = setInterval(() => { i++; setVisible(i); if (i >= total) clearInterval(id); }, 65);
         return () => clearInterval(id);
@@ -92,7 +94,7 @@ export default function MarketPulse() {
 
             <div style={{ maxWidth: 960, margin: '0 auto', padding: '0 24px' }}>
 
-                {/* Section header — outside terminal */}
+                {/* Section header */}
                 <div style={{ marginBottom: 24 }}>
                     <p className="font-sketch" style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--primary)', marginBottom: 8 }}>
                         Market Pulse
@@ -102,8 +104,8 @@ export default function MarketPulse() {
                     </h2>
                 </div>
 
-                {/* ── Terminal window ── */}
-                <div style={{
+                {/* ── Desktop: Terminal window ── */}
+                <div className="mp-desktop" style={{
                     borderRadius: 14,
                     border: '1.25px solid var(--border)',
                     overflow: 'hidden',
@@ -117,7 +119,6 @@ export default function MarketPulse() {
                         background: 'var(--paper2)',
                         borderBottom: '1px solid var(--border)',
                     }}>
-                        {/* macOS traffic lights */}
                         {['#ff5f57', '#febc2e', '#28c840'].map((c, i) => (
                             <span key={i} style={{
                                 width: 12, height: 12, borderRadius: '50%',
@@ -154,7 +155,6 @@ export default function MarketPulse() {
                             </div>
                         ) : (
                             <div>
-                                {/* Row 1 — curl prompt */}
                                 {visible >= 1 && (
                                     <div className="mp-line" style={{ marginBottom: 14, color: 'var(--muted-ink)', fontSize: '0.77rem' }}>
                                         <span style={{ color: 'var(--primary)', userSelect: 'none' }}>❯ </span>
@@ -165,7 +165,6 @@ export default function MarketPulse() {
                                     </div>
                                 )}
 
-                                {/* Row 2 — column headers */}
                                 {visible >= 2 && (
                                     <div className="mp-line" style={{
                                         display: 'grid',
@@ -187,7 +186,6 @@ export default function MarketPulse() {
                                     </div>
                                 )}
 
-                                {/* Data rows */}
                                 {data.categories.map((cat, i) => {
                                     if (visible < i + 3) return null;
                                     const { color } = roleBadgeStyle(cat.category);
@@ -205,16 +203,13 @@ export default function MarketPulse() {
                                                 animationDelay: `${i * 0.03}s`,
                                             }}
                                         >
-                                            {/* Name */}
                                             <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--ink)', overflow: 'hidden', whiteSpace: 'nowrap' }}>
                                                 {cat.category}
                                             </span>
-                                            {/* ASCII bar */}
                                             <span style={{ letterSpacing: '-0.5px', userSelect: 'none', lineHeight: 1, display: 'block', overflow: 'hidden' }}>
                                                 <span style={{ color }}>{Array(fill).fill('█').join('')}</span>
                                                 <span style={{ color: 'var(--border)', opacity: 0.7 }}>{Array(empty).fill('░').join('')}</span>
                                             </span>
-                                            {/* Count */}
                                             <span style={{
                                                 fontSize: '0.76rem', color: 'var(--muted-ink)',
                                                 textAlign: 'right', fontVariantNumeric: 'tabular-nums',
@@ -222,7 +217,6 @@ export default function MarketPulse() {
                                             }}>
                                                 {cat.totalRoles}
                                             </span>
-                                            {/* Trend */}
                                             <span style={{ textAlign: 'right' }}>
                                                 <TrendTag pct={cat.trendPercent} trend={cat.trend} />
                                             </span>
@@ -230,7 +224,6 @@ export default function MarketPulse() {
                                     );
                                 })}
 
-                                {/* Footer prompt */}
                                 {visible >= data.categories.length + 3 && (
                                     <div className="mp-line" style={{
                                         marginTop: 12, paddingTop: 10,
@@ -245,6 +238,158 @@ export default function MarketPulse() {
                             </div>
                         )}
                     </div>
+                </div>
+
+                {/* ── Mobile: Horizontally scrollable glassmorphism cards ── */}
+                <div className="mp-mobile" style={{ display: 'none' }}>
+                    {loading ? (
+                        <div style={{ display: 'flex', gap: 14, overflowX: 'hidden', padding: '4px 0' }}>
+                            {[1, 2, 3].map(i => (
+                                <div key={i} className="skeleton" style={{ minWidth: 200, height: 180, borderRadius: 20, flexShrink: 0 }} />
+                            ))}
+                        </div>
+                    ) : !data || data.categories.length === 0 ? (
+                        <div style={{
+                            padding: '32px 20px', textAlign: 'center',
+                            border: '1.25px dashed var(--border)', borderRadius: 14,
+                            color: 'var(--muted-ink)', fontSize: '0.88rem',
+                        }}>
+                            No market data available yet.
+                        </div>
+                    ) : (
+                        <>
+                            <style>{`
+                                @keyframes mpPulse { 0%,100%{box-shadow:0 0 0 0 var(--primary-soft)} 50%{box-shadow:0 0 0 8px transparent} }
+                                @keyframes mpRingFill { from{stroke-dashoffset:var(--ring-full)} to{stroke-dashoffset:var(--ring-offset)} }
+                                @keyframes mpCountUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+                                .mp-card-carousel { display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:8px 4px 16px;margin:0 -4px }
+                                .mp-card-carousel::-webkit-scrollbar { display:none }
+                                .mp-stat-card { scroll-snap-align:center;flex-shrink:0;min-width:170px;width:44vw;max-width:210px;position:relative;border-radius:20px;padding:18px 16px 14px;display:flex;flex-direction:column;gap:10px;overflow:hidden;border:1.25px solid var(--border);transition:transform 0.2s,box-shadow 0.2s }
+                                .mp-stat-card:active { transform:scale(0.97) }
+                            `}</style>
+
+                            {/* Live counter header */}
+                            <div style={{
+                                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                padding: '0 4px', marginBottom: 4,
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    <div style={{
+                                        width: 8, height: 8, borderRadius: '50%',
+                                        background: '#22c55e',
+                                        animation: 'mpPulse 2s ease infinite',
+                                    }} />
+                                    <span style={{
+                                        fontSize: '0.82rem', fontWeight: 700, color: 'var(--ink)',
+                                        fontVariantNumeric: 'tabular-nums',
+                                    }}>
+                                        {data.totalJobs.toLocaleString()} active roles
+                                    </span>
+                                </div>
+                                <span style={{ fontSize: '0.7rem', color: 'var(--subtle-ink)' }}>
+                                    scroll →
+                                </span>
+                            </div>
+
+                            {/* Scrollable cards */}
+                            <div className="mp-card-carousel">
+                                {data.categories.map((cat, i) => {
+                                    const { bg, color } = roleBadgeStyle(cat.category);
+                                    const pct = Math.round((cat.totalRoles / maxRoles) * 100);
+                                    const circumference = 2 * Math.PI * 28;
+                                    const offset = circumference - (pct / 100) * circumference;
+                                    const trendColor = cat.trend === 'up' ? '#22c55e' : cat.trend === 'down' ? '#f87171' : 'var(--muted-ink)';
+                                    const trendIcon = cat.trend === 'up' ? '↑' : cat.trend === 'down' ? '↓' : '–';
+
+                                    return (
+                                        <div
+                                            key={cat.category}
+                                            className="mp-stat-card anim-up"
+                                            style={{
+                                                background: 'var(--surface-solid)',
+                                                animationDelay: `${i * 0.08}s`,
+                                                boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
+                                            }}
+                                        >
+                                            {/* Gradient accent strip */}
+                                            <div style={{
+                                                position: 'absolute', top: 0, left: 0, right: 0, height: 3,
+                                                background: `linear-gradient(90deg, ${color}, ${bg})`,
+                                                borderRadius: '20px 20px 0 0',
+                                            }} />
+
+                                            {/* Category label + trend */}
+                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                <span style={{
+                                                    fontSize: '0.74rem', padding: '3px 10px', borderRadius: 999,
+                                                    background: bg, color: color, fontWeight: 700,
+                                                }}>
+                                                    {cat.category}
+                                                </span>
+                                                <span style={{
+                                                    fontSize: '0.72rem', fontWeight: 700, color: trendColor,
+                                                    display: 'flex', alignItems: 'center', gap: 2,
+                                                }}>
+                                                    {trendIcon} {cat.trendPercent === 100 && cat.trend === 'up' ? 'new' : cat.trendPercent > 0 ? `${cat.trendPercent}%` : ''}
+                                                </span>
+                                            </div>
+
+                                            {/* Ring chart + count */}
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '2px 0' }}>
+                                                <svg width="60" height="60" viewBox="0 0 64 64" style={{ flexShrink: 0, transform: 'rotate(-90deg)' }}>
+                                                    <circle cx="32" cy="32" r="28" fill="none" stroke="var(--border)" strokeWidth="5" opacity="0.4" />
+                                                    <circle
+                                                        cx="32" cy="32" r="28" fill="none"
+                                                        stroke={color} strokeWidth="5"
+                                                        strokeLinecap="round"
+                                                        strokeDasharray={circumference}
+                                                        strokeDashoffset={offset}
+                                                        style={{
+                                                            '--ring-full': `${circumference}px`,
+                                                            '--ring-offset': `${offset}px`,
+                                                            animation: `mpRingFill 1s cubic-bezier(0.16, 1, 0.3, 1) ${0.3 + i * 0.1}s both`,
+                                                        } as React.CSSProperties}
+                                                    />
+                                                </svg>
+
+                                                <div>
+                                                    <div className="font-sketch" style={{
+                                                        fontSize: '1.6rem', fontWeight: 800, color: 'var(--ink)',
+                                                        lineHeight: 1, fontVariantNumeric: 'tabular-nums',
+                                                        animation: `mpCountUp 0.5s ease ${0.4 + i * 0.1}s both`,
+                                                    }}>
+                                                        {cat.totalRoles}
+                                                    </div>
+                                                    <div style={{ fontSize: '0.68rem', color: 'var(--subtle-ink)', marginTop: 2 }}>
+                                                        open roles
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* New this week */}
+                                            {cat.newThisWeek > 0 && (
+                                                <div style={{
+                                                    fontSize: '0.7rem', color: 'var(--muted-ink)',
+                                                    display: 'flex', alignItems: 'center', gap: 4,
+                                                    paddingTop: 4, borderTop: '1px dashed var(--border)',
+                                                }}>
+                                                    <span style={{ color: '#22c55e' }}>+{cat.newThisWeek}</span> new this week
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Footer */}
+                            <p style={{
+                                fontSize: '0.72rem', color: 'var(--subtle-ink)',
+                                textAlign: 'center', marginTop: 6,
+                            }}>
+                                Trends activate after 14 days of scrape history
+                            </p>
+                        </>
+                    )}
                 </div>
             </div>
         </section>

@@ -798,64 +798,18 @@ a:active:not(.btn):not([role="button"]) {
 }
 
 /* ═══════════════════════════════════════════════════
-   RIPPLE — optional CSS-only ink ripple on .btn-ripple
-   ═══════════════════════════════════════════════════ */
-.btn-ripple {
-  position: relative;
-  overflow: hidden;
-}
-
-.btn-ripple::after {
-  content: '';
-  position: absolute;
-  inset: 50%;
-  background: currentColor;
-  border-radius: 50%;
-  opacity: 0;
-  transform: scale(0);
-  transition: none;
-}
-
-.btn-ripple:active::after {
-  inset: -50%;
-  opacity: 0.08;
-  transform: scale(1);
-  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s;
-}
-
-/* ═══════════════════════════════════════════════════
    DARK MODE — fix surfaces that look wrong with gray
    in dark mode (they should use the dark-aware vars)
    ═══════════════════════════════════════════════════ */
 
 /* When dark: many gray badge-style elements look washed out */
-[data-theme="dark"] .badge-gray,
 [data-theme="dark"] [style*="background: #f3f4f6"],
 [data-theme="dark"] [style*="background:#f3f4f6"],
 [data-theme="dark"] [style*="background: #f9fafb"],
 [data-theme="dark"] [style*="background:#f9fafb"],
 [data-theme="dark"] [style*="background: rgb(243, 244, 246)"] {
-  /* Remap to dark-aware surface var */
   background: var(--paper2) !important;
   color: var(--muted-ink) !important;
-}
-
-/* Filter pills in dark mode — stop using white/light grays */
-[data-theme="dark"] .filter-pill-active {
-  background: var(--primary) !important;
-  color: #fff !important;
-}
-
-[data-theme="dark"] .filter-pill {
-  background: var(--paper2) !important;
-  color: var(--muted-ink) !important;
-  border-color: var(--border) !important;
-}
-
-/* Nav hamburger in dark mode */
-[data-theme="dark"] .nav-hamburger {
-  background: var(--paper2) !important;
-  border-color: var(--border) !important;
 }
 
 /* Skeleton in dark mode - slightly lighter so it's visible */
@@ -960,4 +914,133 @@ body {
 /* ── Focus-visible ring update — more visible in dark mode ── */
 [data-theme="dark"] :focus-visible {
   box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--primary);
+}
+
+/* ═══════════════════════════════════════════════════
+   MOBILE RESPONSIVENESS — comprehensive breakpoints
+   ═══════════════════════════════════════════════════ */
+
+/* ── Mobile nav ───────────────────────────────────── */
+@media (max-width: 767px) {
+  .nav-tab {
+    font-size: 0.82rem;
+    padding: 8px 4px;
+  }
+
+  .sticky-filter-bar {
+    top: 56px;
+    padding: 10px 12px;
+    margin-bottom: 16px;
+    border-radius: 12px;
+  }
+
+  .companies-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+@media (min-width: 480px) and (max-width: 767px) {
+  .companies-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ── Tablet ───────────────────────────────────────── */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .companies-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ── Mobile bottom sheet ──────────────────────────── */
+@keyframes sheetSlideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+@keyframes sheetFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.mobile-sticky-actions {
+  position: sticky;
+  bottom: 0;
+  padding: 12px 16px;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+  background: var(--surface-solid);
+  border-top: 1.25px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 10;
+  flex-shrink: 0;
+}
+
+.mobile-sticky-actions button,
+.mobile-sticky-actions a {
+  width: 100%;
+}
+
+/* ── Market Pulse desktop/mobile toggle ───────────── */
+@media (max-width: 767px) {
+  .mp-desktop { display: none !important; }
+  .mp-mobile  { display: block !important; }
+}
+@media (min-width: 768px) {
+  .mp-desktop { display: block !important; }
+  .mp-mobile  { display: none !important; }
+}
+
+/* ── Mobile menu ──────────────────────────────────── */
+@keyframes mobileMenuSlideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.mobile-menu {
+  animation: mobileMenuSlideDown 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ── Mobile filter scroll strip ───────────────────── */
+.filter-scroll-strip {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+}
+
+.filter-scroll-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.filter-scroll-strip > * {
+  flex-shrink: 0;
+}
+
+/* ── Hero mobile stacking ─────────────────────────── */
+@media (max-width: 479px) {
+  .hero-cta-row {
+    flex-direction: column !important;
+    width: 100%;
+  }
+  .hero-cta-row > * {
+    width: 100% !important;
+  }
+  .hero-stats-row {
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+}
+
+/* ── Filter bottom sheet animations ──────────────── */
+@keyframes sheetSlideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+@keyframes sheetFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }

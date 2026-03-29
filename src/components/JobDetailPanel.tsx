@@ -240,13 +240,7 @@ export default function JobDetailPanel({
     <div>
       {/* Header */}
       <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-        <div style={{
-          width: 48, height: 48, flexShrink: 0, background: 'var(--surface-solid)',
-          border: '1px solid var(--border)', borderRadius: 10, display: 'flex',
-          alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: 6,
-        }}>
-              <CompanyLogo name={job.Company} url={job.ApplicationURL} domain={domain} size={48} borderRadius={12} />
-        </div>
+        <CompanyLogo name={job.Company} url={job.ApplicationURL} domain={domain} size={48} borderRadius={12} style={{ flexShrink: 0 }} />
         <div style={{ minWidth: 0, flex: 1 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <h2 style={{

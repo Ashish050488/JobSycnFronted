@@ -310,14 +310,7 @@ export default function PipelineView({ jobs, onStageChange }: PipelineViewProps)
                 }}
               >
                 {/* Company logo */}
-                <div style={{
-                  width: 32, height: 32, flexShrink: 0, borderRadius: '50%',
-                  background: 'var(--paper2)', border: '1px solid var(--border)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  overflow: 'hidden',
-                }}>
-                  <CompanyLogo name={group.company} url={firstUrl} size={32} borderRadius={'50%'} />
-                </div>
+                <CompanyLogo name={group.company} url={firstUrl} size={32} borderRadius={8} style={{ flexShrink: 0 }} />
 
                 {/* Company name */}
                 <span style={{

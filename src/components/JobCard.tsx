@@ -65,7 +65,7 @@ export default function JobCard({ job, domain }: Props) {
         (e.currentTarget as HTMLDivElement).style.boxShadow = 'none';
       }}
     >
-      <div style={{ padding: '20px 24px' }}>
+      <div style={{ padding: 'clamp(14px, 3.5vw, 20px) clamp(14px, 4vw, 24px)' }}>
         <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
           <div
             style={{
@@ -188,7 +188,7 @@ export default function JobCard({ job, domain }: Props) {
 
       <div
         style={{
-          padding: '12px 24px',
+          padding: 'clamp(10px, 2.5vw, 12px) clamp(14px, 4vw, 24px)',
           borderTop: '1px solid var(--border)',
           background: 'rgba(0,0,0,0.02)',
           borderRadius: '0 0 12px 12px',

@@ -49,11 +49,11 @@ export default function Home() {
           <p className="anim-up" style={{ animationDelay: '0.14s', fontSize: '1.05rem', color: 'var(--muted-ink)', lineHeight: 1.75, maxWidth: 500, margin: '0 auto 36px' }}>
             {COPY.home.heroSubtitle}
           </p>
-          <div className="anim-up" style={{ animationDelay: '0.2s', display: 'flex', justifyContent: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <div className="anim-up hero-cta-row" style={{ animationDelay: '0.2s', display: 'flex', justifyContent: 'center', gap: 10, flexWrap: 'wrap' }}>
             <div className="w-full sm:w-auto"><Link to="/jobs" className="block w-full"><Button size="lg" className="w-full">{COPY.home.heroCTA} <ArrowRight size={15} /></Button></Link></div>
             <div className="w-full sm:w-auto"><Link to="/directory" className="block w-full"><Button variant="ghost" size="lg" className="w-full">{COPY.home.heroSecondaryCTA}</Button></Link></div>
           </div>
-          <div className="anim-up" style={{ animationDelay: '0.28s', display: 'flex', justifyContent: 'center', gap: 'clamp(24px, 8vw, 48px)', marginTop: 'clamp(30px, 8vw, 60px)', flexWrap: 'wrap', paddingTop: 'clamp(20px, 6vw, 40px)', borderTop: '1.25px solid var(--border)' }}>
+          <div className="anim-up hero-stats-row" style={{ animationDelay: '0.28s', display: 'flex', justifyContent: 'center', gap: 'clamp(24px, 8vw, 48px)', marginTop: 'clamp(30px, 8vw, 60px)', flexWrap: 'wrap', paddingTop: 'clamp(20px, 6vw, 40px)', borderTop: '1.25px solid var(--border)' }}>
             {[[COPY.home.stat1Value, COPY.home.stat1Label], [COPY.home.stat2Value, COPY.home.stat2Label]].map(([v, l]) => (
               <div key={l} style={{ textAlign: 'center', minWidth: 120 }}>
                 <div className="font-sketch" style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', fontWeight: 700, color: 'var(--primary)' }}>{v}</div>
@@ -74,16 +74,16 @@ export default function Home() {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <button onClick={() => scrollCarousel('left')} aria-label={COPY.home.scrollLeft}
-                style={{ background: 'var(--surface-solid)', border: '1.25px solid var(--border)', borderRadius: 10, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--ink)', transition: 'all 0.22s' }}
+                style={{ background: 'var(--surface-solid)', border: '1.25px solid var(--border)', borderRadius: 10, width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--ink)', transition: 'all 0.22s' }}
                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--primary)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--primary)'; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--ink)'; }}>
-                <ChevronLeft size={16} />
+                <ChevronLeft size={18} />
               </button>
               <button onClick={() => scrollCarousel('right')} aria-label={COPY.home.scrollRight}
-                style={{ background: 'var(--surface-solid)', border: '1.25px solid var(--border)', borderRadius: 10, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--ink)', transition: 'all 0.22s' }}
+                style={{ background: 'var(--surface-solid)', border: '1.25px solid var(--border)', borderRadius: 10, width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--ink)', transition: 'all 0.22s' }}
                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--primary)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--primary)'; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--ink)'; }}>
-                <ChevronRight size={16} />
+                <ChevronRight size={18} />
               </button>
               <Link to="/directory"><Button variant="ghost">{COPY.home.fullDirectory} <ArrowRight size={13} /></Button></Link>
             </div>
@@ -91,7 +91,7 @@ export default function Home() {
 
           <div ref={carouselRef} className="snap-carousel stagger" style={{ scrollPaddingLeft: 4 }}>
             {companies.map(c => (
-              <div key={c.companyName} style={{ minWidth: 260, maxWidth: 300, flex: '0 0 auto' }}>
+              <div key={c.companyName} style={{ minWidth: 'clamp(200px, 42vw, 280px)', maxWidth: 300, flex: '0 0 auto' }}>
                 <CompanyCard company={c} />
               </div>
             ))}

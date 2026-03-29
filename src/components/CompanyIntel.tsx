@@ -1,5 +1,5 @@
 // FILE: src/components/CompanyIntel.tsx
-// Redesigned: compact "radar strip" — horizontal stat chips + 7-day posting heatmap
+// Redesigned: compact "radar strip" — stacked on mobile, horizontal on desktop
 import { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown, Minus, Zap, Clock } from 'lucide-react';
 
@@ -82,15 +82,14 @@ function FreshnessChip({ daysAgo }: { daysAgo: number }) {
 function PostingBars({ distribution, busiestDays }: { distribution: number[]; busiestDays: string[] }) {
     const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
     const max = Math.max(...distribution, 1);
-    const todayIdx = new Date().getDay(); // 0=Sun,1=Mon,...
-    // remap: our array is Mon(0)..Sun(6), JS getDay Sun=0
+    const todayIdx = new Date().getDay();
     const todayBarIdx = todayIdx === 0 ? 6 : todayIdx - 1;
 
     return (
-        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 3, height: 28 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 5, height: 52 }}>
             {DAYS_SHORT.map((label, i) => {
                 const val = distribution[i] ?? 0;
-                const height = Math.max(4, Math.round((val / max) * 24));
+                const height = Math.max(5, Math.round((val / max) * 26));
                 const isBusiest = busiestDays.includes(DAYS_FULL[i]);
                 const isToday = i === todayBarIdx;
                 const barColor = isToday
@@ -101,33 +100,55 @@ function PostingBars({ distribution, busiestDays }: { distribution: number[]; bu
 
                 return (
                     <div key={i} title={`${DAYS_FULL[i]}: ${val} posts`}
-                        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0 }}>
                         <div style={{
-                            width: 6, height, borderRadius: 2,
+                            width: 7, height, borderRadius: 2,
                             background: barColor,
                             transition: 'height 0.3s',
-                            position: 'relative',
-                        }}>
-                            {isToday && (
-                                <div style={{
-                                    position: 'absolute', bottom: -5, left: '50%', transform: 'translateX(-50%)',
-                                    width: 4, height: 4, borderRadius: '50%',
-                                    background: isBusiest ? '#16a34a' : 'var(--primary)',
-                                }} />
-                            )}
-                        </div>
-                        <span style={{ fontSize: 8, color: isToday ? 'var(--ink)' : 'var(--subtle-ink)', fontWeight: isToday ? 700 : 400 }}>{label}</span>
+                            marginBottom: 10,
+                        }} />
+                        <span style={{
+                            fontSize: 8, color: isToday ? 'var(--ink)' : 'var(--subtle-ink)',
+                            fontWeight: isToday ? 700 : 400,
+                            lineHeight: 1,
+                        }}>{label}</span>
+                        {isToday && (
+                            <div style={{
+                                width: 4, height: 4, borderRadius: '50%', marginTop: 3,
+                                background: isBusiest ? '#16a34a' : 'var(--primary)',
+                            }} />
+                        )}
                     </div>
                 );
             })}
-            {busiestDays.includes(today) && (
-                <span style={{
-                    fontSize: '0.66rem', fontWeight: 700, color: '#16a34a',
-                    marginLeft: 4, alignSelf: 'center', whiteSpace: 'nowrap',
-                }}>
-                    ✓ good day
-                </span>
-            )}
+        </div>
+    );
+}
+
+// ---------- Stat card for mobile layout ----------
+function StatBlock({ value, label, icon, color }: {
+    value: string | number; label: string; icon?: React.ReactNode; color?: string;
+}) {
+    return (
+        <div style={{
+            flex: '1 1 0',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+            padding: '6px 4px',
+        }}>
+            <div style={{
+                display: 'flex', alignItems: 'center', gap: 3,
+                fontFamily: "'Caveat', sans-serif", fontSize: '1.15rem',
+                fontWeight: 800, color: color || 'var(--primary)', lineHeight: 1,
+            }}>
+                {icon}
+                {value}
+            </div>
+            <span style={{
+                fontSize: '0.62rem', color: 'var(--subtle-ink)',
+                textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 500,
+            }}>
+                {label}
+            </span>
         </div>
     );
 }
@@ -136,6 +157,13 @@ export default function CompanyIntel({ companyName, rolePostedDate }: CompanyInt
     const [intel, setIntel] = useState<CompanyIntelData | null>(cache.get(companyName) ?? null);
     const [loading, setLoading] = useState(!cache.has(companyName));
     const [errored, setErrored] = useState(false);
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
+
+    useEffect(() => {
+        const onResize = () => setIsMobile(window.innerWidth < 640);
+        window.addEventListener('resize', onResize);
+        return () => window.removeEventListener('resize', onResize);
+    }, []);
 
     useEffect(() => {
         if (cache.has(companyName)) {
@@ -167,10 +195,97 @@ export default function CompanyIntel({ companyName, rolePostedDate }: CompanyInt
         ? '#16a34a' : intel?.hiringTrend === 'down'
             ? 'var(--danger)' : 'var(--subtle-ink)';
 
+    const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+    const isGoodDay = intel?.busiestDays?.includes(today);
+
+    // ── MOBILE LAYOUT ──
+    if (isMobile) {
+        return (
+            <div style={{
+                marginTop: 12, borderRadius: 12,
+                background: 'var(--paper2)', border: '1px solid var(--border)',
+                overflow: 'hidden',
+            }}>
+                {/* Header */}
+                <div style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '8px 12px',
+                    borderBottom: '1px solid var(--border)',
+                    background: 'var(--surface-solid)',
+                }}>
+                    <span className="font-sketch" style={{
+                        fontSize: '0.72rem', fontWeight: 700, color: 'var(--primary)',
+                        textTransform: 'uppercase', letterSpacing: '0.06em',
+                    }}>
+                        ⚡ Company Radar
+                    </span>
+                    {roleDaysAgo !== null && <FreshnessChip daysAgo={roleDaysAgo} />}
+                </div>
+
+                {loading ? (
+                    <div style={{ padding: 16, display: 'flex', gap: 8 }}>
+                        {[60, 80, 70].map((w, i) => (
+                            <div key={i} className="skeleton" style={{ height: 40, borderRadius: 8, flex: 1 }} />
+                        ))}
+                    </div>
+                ) : errored ? (
+                    <div style={{ fontSize: '0.74rem', color: 'var(--subtle-ink)', padding: 14, textAlign: 'center' }}>
+                        Intel unavailable
+                    </div>
+                ) : intel ? (
+                    <>
+                        {/* Stats grid */}
+                        <div style={{
+                            display: 'flex', alignItems: 'stretch',
+                            borderBottom: intel.postingDayDistribution.length > 0 ? '1px solid var(--border)' : 'none',
+                        }}>
+                            <StatBlock value={intel.totalOpenRoles} label="Open roles" />
+                            <div style={{ width: 1, background: 'var(--border)' }} />
+                            <StatBlock
+                                value={`+${intel.newRolesThisWeek}`}
+                                label="This week"
+                                icon={<TrendIcon size={12} color={trendColor} />}
+                                color={trendColor}
+                            />
+                            {intel.avgRoleAgeDays > 0 && (
+                                <>
+                                    <div style={{ width: 1, background: 'var(--border)' }} />
+                                    <StatBlock value={`~${intel.avgRoleAgeDays}d`} label="Avg open" />
+                                </>
+                            )}
+                        </div>
+
+                        {/* Activity bar + good day */}
+                        {intel.postingDayDistribution.length > 0 && (
+                            <div style={{
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                gap: 10, padding: '8px 14px',
+                            }}>
+                                <PostingBars
+                                    distribution={intel.postingDayDistribution}
+                                    busiestDays={intel.busiestDays}
+                                />
+                                {isGoodDay && (
+                                    <span style={{
+                                        fontSize: '0.68rem', fontWeight: 700, color: '#16a34a',
+                                        whiteSpace: 'nowrap',
+                                    }}>
+                                        ✓ good day
+                                    </span>
+                                )}
+                            </div>
+                        )}
+                    </>
+                ) : null}
+            </div>
+        );
+    }
+
+    // ── DESKTOP LAYOUT ──
     return (
         <div style={{
             marginTop: 12,
-            padding: '10px 12px',
+            padding: '10px 14px',
             borderRadius: 10,
             background: 'var(--paper2)',
             border: '1px solid var(--border)',
@@ -196,7 +311,6 @@ export default function CompanyIntel({ companyName, rolePostedDate }: CompanyInt
             </div>
 
             {loading ? (
-                /* 3 skeleton chips in a row */
                 <div style={{ display: 'flex', gap: 6, paddingLeft: 6 }}>
                     {[60, 80, 70].map((w, i) => (
                         <div key={i} className="skeleton" style={{ height: 26, borderRadius: 999, width: w }} />
@@ -258,6 +372,14 @@ export default function CompanyIntel({ companyName, rolePostedDate }: CompanyInt
                                 distribution={intel.postingDayDistribution}
                                 busiestDays={intel.busiestDays}
                             />
+                            {isGoodDay && (
+                                <span style={{
+                                    fontSize: '0.66rem', fontWeight: 700, color: '#16a34a',
+                                    whiteSpace: 'nowrap',
+                                }}>
+                                    ✓ good day
+                                </span>
+                            )}
                         </>
                     )}
                 </div>
