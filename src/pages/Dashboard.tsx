@@ -8,7 +8,7 @@ import { COPY } from '../theme/brand';
 import JobListItem from '../components/JobListItem';
 import type { ICompany } from '../types';
 import type { CompactBadge } from '../components/JobListItem';
-import JobDetailPanel, { inferWorkplace, stripHtmlText, buildSkillsRegex, relTime, getAutoTags, roleBadgeStyle } from '../components/JobDetailPanel';
+import JobDetailPanel, { stripHtmlText, buildSkillsRegex, relTime, getAutoTags, roleBadgeStyle } from '../components/JobDetailPanel';
 // Viewport info hook
 function useViewportInfo() {
   const [viewport, setViewport] = useState(() => ({
@@ -55,7 +55,10 @@ const ROLE_FILTER_OPTIONS = [
   { label: 'Full Stack', value: 'Full Stack' },
   { label: 'DevOps', value: 'DevOps/SRE' },
   { label: 'Data', value: 'Data' },
+  { label: 'Security', value: 'Security' },
   { label: 'ML/AI', value: 'ML/AI' },
+  { label: 'Product', value: 'Product' },
+  { label: 'Design', value: 'Design' },
   { label: 'QA', value: 'QA' },
   { label: 'Mobile', value: 'Mobile' },
   { label: 'Other', value: 'Other' },
@@ -262,7 +265,7 @@ export default function Dashboard() {
     roleCategory: roleCategoryFilter,
     experienceBand: experienceBandFilter,
     entryLevel: entryLevelFilter,
-    remote: workplaceFilter === 'remote',
+    workplace: workplaceFilter,
     platform: platformFilter,
     company: sel,
     date: dateFilter,
@@ -279,7 +282,7 @@ export default function Dashboard() {
       if (f.roleCategory) params.set('roleCategory', f.roleCategory);
       if (f.experienceBand) params.set('experienceBand', f.experienceBand);
       if (f.entryLevel || f.experienceBand === 'Fresher (0-1y)') params.set('entryLevel', 'true');
-      if (f.remote) params.set('remote', 'true');
+      if (f.workplace) params.set('workplace', f.workplace);
       if (f.platform) params.set('platform', f.platform);
       // Server-side date + search
       if (f.date) params.set('date', f.date);
@@ -293,7 +296,7 @@ export default function Dashboard() {
       setJobs(prev => append ? [...prev, ...newJobs] : newJobs);
     } catch (e) { console.error(e); }
     finally { if (append) setIsLoadingMore(false); else setLoading(false); }
-  }, [sel, roleCategoryFilter, experienceBandFilter, workplaceFilter, platformFilter, dateFilter, searchQuery]);
+  }, [sel, roleCategoryFilter, experienceBandFilter, entryLevelFilter, workplaceFilter, platformFilter, dateFilter, searchQuery]);
 
   useEffect(() => {
     fetchJobs(1, false);
@@ -330,39 +333,21 @@ export default function Dashboard() {
     const prev = new Date(previousVisitAt).getTime();
     if (Number.isNaN(prev)) return 0;
     return jobs.filter(job => {
-      const d = new Date((job.PostedDate || job.scrapedAt || '') as string).getTime();
+      const d = new Date((job.PostedDate || '') as string).getTime();
       return !Number.isNaN(d) && d > prev && !appliedJobIds.has(job._id);
     }).length;
   }, [jobs, currentUser, previousVisitAt, appliedJobIds]);
 
   // Only client-side filters in visibleJobs
   const visibleJobs = useMemo(() => {
-    const now = Date.now();
     return jobs.filter(job => {
-      // getAutoTags(job); // (removed unused variable)
-      // workplaceFilter: only filter hybrid/on-site client-side (remote is server-side)
-      if (workplaceFilter && workplaceFilter !== 'remote' && inferWorkplace(job) !== workplaceFilter) return false;
-      if (dateFilter) {
-        const postedAt = new Date((job.PostedDate || job.scrapedAt || '') as string).getTime();
-        if (!Number.isNaN(postedAt)) {
-          const diffDays = Math.floor((now - postedAt) / 86400000);
-          if (dateFilter === '1d' && diffDays > 1) return false;
-          if (dateFilter === '3d' && diffDays > 3) return false;
-          if (dateFilter === '7d' && diffDays > 7) return false;
-        }
-      }
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
-        const hay = `${job.JobTitle || ''} ${job.Company || ''} ${job.Location || ''} ${job.DescriptionPlain || ''}`.toLowerCase();
-        if (!hay.includes(q)) return false;
-      }
       if (hideApplied && appliedJobIds.has(job._id)) return false;
       if (dismissedJobIds.has(job._id)) return false;
       if (currentUser && showComeBackOnly && !comeBackMap.has(job._id)) return false;
       if (showNewOnly) {
         if (!previousVisitAt) return false;
         const prev = new Date(previousVisitAt).getTime();
-        const postedAt = new Date((job.PostedDate || job.scrapedAt || '') as string).getTime();
+        const postedAt = new Date((job.PostedDate || '') as string).getTime();
         if (Number.isNaN(prev) || Number.isNaN(postedAt) || postedAt <= prev || appliedJobIds.has(job._id)) return false;
       }
       return true;
@@ -380,7 +365,7 @@ export default function Dashboard() {
       }, 0);
       return scoreB - scoreA;
     });
-  }, [jobs, workplaceFilter, dateFilter, searchQuery, hideApplied, showComeBackOnly, showNewOnly, previousVisitAt, appliedJobIds, dismissedJobIds, comeBackMap, sortBy, userSkills]);
+  }, [jobs, hideApplied, showComeBackOnly, showNewOnly, previousVisitAt, appliedJobIds, dismissedJobIds, comeBackMap, sortBy, userSkills]);
 
   useEffect(() => {
     visibleJobsRef.current = visibleJobs;
@@ -510,8 +495,6 @@ export default function Dashboard() {
     setSortBy('default');
     setShowComeBackOnly(false);
     setCurrentPage(1);
-    // Refetch jobs with no filters
-    fetchJobs(1, false);
   };
 
 
@@ -997,7 +980,7 @@ export default function Dashboard() {
               <div>
                 <p style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--muted-ink)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Job Board</p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                  {[{ l: 'All', v: null }, { l: 'Lever', v: 'lever' }, { l: 'Greenhouse', v: 'greenhouse' }, { l: 'Ashby', v: 'ashby' }, { l: 'Workable', v: 'workable' }, { l: 'Workday', v: 'workday' }].map(o => (
+                  {[{ l: 'All', v: null }, { l: 'Lever', v: 'lever' }, { l: 'Greenhouse', v: 'greenhouse' }, { l: 'Ashby', v: 'ashby' }, { l: 'Workable', v: 'workable' }, { l: 'Recruitee', v: 'recruitee' }, { l: 'Workday', v: 'workday' }].map(o => (
                     <button key={o.l} onClick={() => setPlatformFilter(platformFilter === o.v ? null : o.v)} style={pillStyle(platformFilter === o.v)}>{o.l}</button>
                   ))}
                 </div>
