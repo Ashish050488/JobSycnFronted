@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 
 interface PaginationProps {
@@ -37,19 +38,30 @@ const btnDisabled: React.CSSProperties = {
 };
 
 export default function Pagination({ page, totalPages, onPageChange, siblingCount = 1 }: PaginationProps) {
+    const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 480 : false);
+
+    useEffect(() => {
+        const onResize = () => setIsMobile(window.innerWidth < 480);
+        window.addEventListener('resize', onResize);
+        return () => window.removeEventListener('resize', onResize);
+    }, []);
+
     if (totalPages <= 1) return null;
 
     const pages = getPageNumbers(page, totalPages, siblingCount);
+    const showEdgeButtons = !isMobile;
 
     return (
-        <nav aria-label="Pagination" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 6, flexWrap: 'wrap', padding: '24px 0' }}>
+        <nav aria-label="Pagination" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: isMobile ? 4 : 6, flexWrap: 'wrap', padding: isMobile ? '20px 0' : '24px 0' }}>
             {/* First */}
-            <button onClick={() => onPageChange(1)} disabled={page === 1} aria-label="First page"
-                style={page === 1 ? btnDisabled : btnBase}
-                onMouseEnter={e => { if (page !== 1) { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--primary)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--primary)'; } }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--ink)'; }}>
-                <ChevronsLeft size={15} />
-            </button>
+            {showEdgeButtons && (
+                <button onClick={() => onPageChange(1)} disabled={page === 1} aria-label="First page"
+                    style={page === 1 ? btnDisabled : btnBase}
+                    onMouseEnter={e => { if (page !== 1) { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--primary)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--primary)'; } }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--ink)'; }}>
+                    <ChevronsLeft size={15} />
+                </button>
+            )}
             {/* Prev */}
             <button onClick={() => onPageChange(page - 1)} disabled={page === 1} aria-label="Previous page"
                 style={page === 1 ? btnDisabled : btnBase}
@@ -76,12 +88,14 @@ export default function Pagination({ page, totalPages, onPageChange, siblingCoun
                 <ChevronRight size={15} />
             </button>
             {/* Last */}
-            <button onClick={() => onPageChange(totalPages)} disabled={page === totalPages} aria-label="Last page"
-                style={page === totalPages ? btnDisabled : btnBase}
-                onMouseEnter={e => { if (page !== totalPages) { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--primary)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--primary)'; } }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--ink)'; }}>
-                <ChevronsRight size={15} />
-            </button>
+            {showEdgeButtons && (
+                <button onClick={() => onPageChange(totalPages)} disabled={page === totalPages} aria-label="Last page"
+                    style={page === totalPages ? btnDisabled : btnBase}
+                    onMouseEnter={e => { if (page !== totalPages) { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--primary)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--primary)'; } }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--ink)'; }}>
+                    <ChevronsRight size={15} />
+                </button>
+            )}
         </nav>
     );
 }

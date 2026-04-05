@@ -142,7 +142,7 @@ export default function Progress() {
 
   return (
     <div style={{ background: 'var(--paper)', minHeight: '100vh' }}>
-      <Container style={{ padding: isMobile ? '24px 24px 40px' : '32px 24px 48px' }}>
+      <Container style={{ paddingTop: isMobile ? 24 : 32, paddingBottom: isMobile ? 40 : 48 }}>
 
         <PageHeader
           label={COPY.progress.pageLabel}

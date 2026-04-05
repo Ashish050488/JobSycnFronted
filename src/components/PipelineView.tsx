@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Search, X, ChevronDown, Briefcase } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import PipelineCard, { STAGES, STAGE_ORDER } from './PipelineCard';
@@ -109,6 +109,13 @@ export default function PipelineView({ jobs, onStageChange }: PipelineViewProps)
   const [searchFocused, setSearchFocused] = useState(false);
   const [stageFilter, setStageFilter] = useState<string | null>(null);
   const [expandedCompanies, setExpandedCompanies] = useState<Set<string>>(new Set());
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 640 : false);
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 640);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   const stageCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -306,7 +313,7 @@ export default function PipelineView({ jobs, onStageChange }: PipelineViewProps)
                   gap: 10, padding: '14px 18px',
                   background: isExpanded ? 'var(--primary-soft)' : 'transparent',
                   border: 'none', cursor: 'pointer', fontFamily: 'inherit',
-                  transition: 'background 0.18s', textAlign: 'left',
+                  transition: 'background 0.18s', textAlign: 'left', flexWrap: isMobile ? 'wrap' : 'nowrap',
                 }}
               >
                 {/* Company logo */}
@@ -316,12 +323,13 @@ export default function PipelineView({ jobs, onStageChange }: PipelineViewProps)
                 <span style={{
                   fontWeight: 700, fontSize: '0.92rem', color: 'var(--ink)',
                   overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  flex: isMobile ? '1 1 calc(100% - 44px)' : '0 1 auto',
                 }}>
                   {group.company}
                 </span>
 
                 {/* Stage summary dots */}
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0, order: isMobile ? 3 : 0, width: isMobile ? '100%' : 'auto', marginLeft: isMobile ? 42 : 0, flexWrap: 'wrap' }}>
                   {STAGE_ORDER.map(s => {
                     const count = group.stageCounts[s];
                     if (!count) return null;
@@ -340,7 +348,7 @@ export default function PipelineView({ jobs, onStageChange }: PipelineViewProps)
                   })}
                 </div>
 
-                <span style={{ flex: 1 }} />
+                <span style={{ flex: 1, minWidth: isMobile ? 0 : undefined }} />
 
                 <span style={{
                   fontSize: '0.75rem', color: 'var(--muted-ink)',

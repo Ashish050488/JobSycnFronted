@@ -53,6 +53,13 @@ export default function MarketPulse() {
     const [data, setData] = useState<MarketPulseData | null>(sessionCache);
     const [loading, setLoading] = useState(!sessionCache);
     const [visible, setVisible] = useState(0);
+    const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+
+    useEffect(() => {
+        const onResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener('resize', onResize);
+        return () => window.removeEventListener('resize', onResize);
+    }, []);
 
     useEffect(() => {
         if (sessionCache) { setData(sessionCache); setLoading(false); return; }
@@ -85,7 +92,7 @@ export default function MarketPulse() {
     };
 
     return (
-        <section style={{ padding: '80px 0', background: 'var(--surface-solid)', borderTop: '1.25px solid var(--border)' }}>
+        <section style={{ padding: isMobile ? '56px 0' : '80px 0', background: 'var(--surface-solid)', borderTop: '1.25px solid var(--border)' }}>
             <style>{`
         @keyframes mpBlink { 0%,100%{opacity:1} 50%{opacity:0} }
         .mp-line { opacity:0; animation: mpIn 0.22s ease forwards; }
@@ -95,7 +102,7 @@ export default function MarketPulse() {
             <div style={{ maxWidth: 960, margin: '0 auto', padding: '0 24px' }}>
 
                 {/* Section header */}
-                <div style={{ marginBottom: 24 }}>
+                <div style={{ marginBottom: isMobile ? 18 : 24 }}>
                     <p className="font-sketch" style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--primary)', marginBottom: 8 }}>
                         Market Pulse
                     </p>

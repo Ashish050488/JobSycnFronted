@@ -13,6 +13,7 @@
 html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  overflow-x: hidden;
 }
 
 :root {
@@ -47,7 +48,13 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
+  overflow-x: hidden;
   transition: background 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+#root {
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 @media (max-width: 639px) {
@@ -158,6 +165,15 @@ body::before {
   color: var(--primary);
   text-decoration: underline;
 }
+.job-description-html {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+.job-description-html * {
+  max-width: 100%;
+}
 .job-description-html a:hover {
   opacity: 0.8;
 }
@@ -180,6 +196,32 @@ body::before {
   margin-bottom: 0.5em;
   color: var(--ink);
   font-weight: 600;
+}
+.job-description-html table {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+}
+.job-description-html pre,
+.job-description-html code {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.job-description-html img,
+.job-description-html svg,
+.job-description-html video,
+.job-description-html iframe,
+.job-description-html canvas {
+  max-width: 100% !important;
+  height: auto !important;
+}
+.job-description-html [style*="width"] {
+  max-width: 100% !important;
+}
+.jd-content {
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 /* ── Cleaned description: collapsible boilerplate sections ── */
@@ -418,6 +460,18 @@ body::before {
   background: color-mix(in srgb, var(--paper) 82%, transparent);
   backdrop-filter: blur(20px) saturate(1.4);
   -webkit-backdrop-filter: blur(20px) saturate(1.4);
+}
+
+.page-header-row {
+  min-width: 0;
+}
+
+.page-header-copy {
+  min-width: 0;
+}
+
+.page-header-actions {
+  min-width: 0;
 }
 
 /* Nav link: sketched underline that draws in when active */
@@ -719,6 +773,15 @@ body::before {
   align-items: stretch;
 }
 
+.footer-grid {
+  grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(0, 0.8fr));
+}
+
+.footer-meta {
+  align-items: center;
+  justify-content: space-between;
+}
+
 @media (max-width: 600px) {
   .companies-grid {
     grid-template-columns: 1fr;
@@ -927,6 +990,26 @@ body {
     padding: 8px 4px;
   }
 
+  .job-description-html table,
+  .job-description-html thead,
+  .job-description-html tbody,
+  .job-description-html tr,
+  .job-description-html th,
+  .job-description-html td {
+    display: block;
+    width: 100% !important;
+  }
+
+  .job-description-html tr {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .job-description-html th,
+  .job-description-html td {
+    padding: 4px 0;
+  }
+
   .sticky-filter-bar {
     top: 56px;
     padding: 10px 12px;
@@ -937,6 +1020,42 @@ body {
   .companies-grid {
     grid-template-columns: 1fr;
     gap: 12px;
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .footer-meta {
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 639px) {
+  .page-header,
+  .page-header-with-actions {
+    text-align: left;
+  }
+
+  .page-header-label,
+  .page-header-copy {
+    text-align: left !important;
+  }
+
+  .page-header-row,
+  .page-header-row-with-actions {
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+  }
+
+  .page-header-copy,
+  .page-header-actions {
+    width: 100%;
+  }
+
+  .page-header-actions {
+    justify-content: flex-start;
   }
 }
 
@@ -950,6 +1069,10 @@ body {
 @media (min-width: 768px) and (max-width: 1023px) {
   .companies-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .footer-grid {
+    grid-template-columns: minmax(0, 1.1fr) repeat(2, minmax(0, 0.9fr));
   }
 }
 

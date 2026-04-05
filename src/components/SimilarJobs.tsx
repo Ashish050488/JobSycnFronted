@@ -111,6 +111,13 @@ export default function SimilarJobs({ jobId, company: _company, userSkills, onSe
     const cacheKey = `${jobId}::${userSkills.length}`;
     const [jobs, setJobs] = useState<SimilarJob[]>(cache.get(cacheKey) ?? []);
     const [loading, setLoading] = useState(!cache.has(cacheKey));
+    const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 640 : false);
+
+    useEffect(() => {
+        const onResize = () => setIsMobile(window.innerWidth < 640);
+        window.addEventListener('resize', onResize);
+        return () => window.removeEventListener('resize', onResize);
+    }, []);
 
     useEffect(() => {
         if (cache.has(cacheKey)) {
@@ -146,7 +153,7 @@ export default function SimilarJobs({ jobId, company: _company, userSkills, onSe
             </p>
 
             {loading ? (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10 }}>
                     {[1, 2, 3, 4].map(i => (
                         <div key={i} className="skeleton" style={{ height: 80, borderRadius: 12 }} />
                     ))}
@@ -154,7 +161,7 @@ export default function SimilarJobs({ jobId, company: _company, userSkills, onSe
             ) : (
                 <div style={{
                     display: 'grid',
-                    gridTemplateColumns: jobs.length === 1 ? '1fr' : 'repeat(auto-fill, minmax(200px, 1fr))',
+                    gridTemplateColumns: jobs.length === 1 ? '1fr' : isMobile ? '1fr' : 'repeat(auto-fill, minmax(200px, 1fr))',
                     gap: 10,
                 }}>
                     {jobs.map(job => (

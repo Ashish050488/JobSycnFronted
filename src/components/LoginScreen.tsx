@@ -126,13 +126,19 @@ export default function LoginScreen() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 50, y: 50 });
-  const [isMobileLogin, setIsMobileLogin] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 640 : false);
+  const [viewport, setViewport] = useState(() => ({
+    width: typeof window !== 'undefined' ? window.innerWidth : 1280,
+    height: typeof window !== 'undefined' ? window.innerHeight : 720,
+  }));
 
   useEffect(() => {
-    const onResize = () => setIsMobileLogin(window.innerWidth < 640);
+    const onResize = () => setViewport({ width: window.innerWidth, height: window.innerHeight });
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, []);
+
+  const isMobileLogin = viewport.width < 640;
+  const isShortLogin = viewport.height < 760;
 
   const handleMouseMove = (e: React.MouseEvent) => {
     const x = (e.clientX / window.innerWidth) * 100;
@@ -226,8 +232,10 @@ export default function LoginScreen() {
         style={{
           position: 'fixed', inset: 0, zIndex: 9999,
           background: 'var(--paper)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          overflow: 'hidden',
+          display: 'flex', alignItems: isMobileLogin ? 'flex-start' : 'center', justifyContent: 'center',
+          overflowX: 'hidden',
+          overflowY: isMobileLogin ? 'auto' : 'hidden',
+          padding: isMobileLogin ? 'max(16px, env(safe-area-inset-top)) 12px max(16px, env(safe-area-inset-bottom))' : 0,
         }}
       >
 
@@ -237,7 +245,7 @@ export default function LoginScreen() {
         {/* ── Mouse-following orb ──────────────────────────── */}
         <div style={{
           position: 'absolute',
-          width: 600, height: 600,
+          width: isMobileLogin ? 360 : 600, height: isMobileLogin ? 360 : 600,
           left: `${mousePos.x}%`, top: `${mousePos.y}%`,
           transform: 'translate(-50%, -50%)',
           background: 'radial-gradient(circle, var(--primary-soft) 0%, transparent 65%)',
@@ -325,14 +333,15 @@ export default function LoginScreen() {
         {/* ═══════════════════════════════════════════════════ */}
         <div style={{
           position: 'relative', zIndex: 2,
-          width: 'min(460px, calc(100vw - 32px))',
+          width: isMobileLogin ? 'min(420px, 100%)' : 'min(460px, calc(100vw - 32px))',
           animation: 'ls-scaleIn 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+          margin: isMobileLogin ? '0 auto' : undefined,
         }}>
           <div style={{
             background: 'var(--surface-solid)',
             border: '1.5px solid var(--border)',
             borderRadius: 22,
-            padding: isMobileLogin ? '32px 20px 28px' : '48px 40px 40px',
+            padding: isShortLogin ? '24px 16px 20px' : isMobileLogin ? '32px 20px 28px' : '48px 40px 40px',
             boxShadow: 'var(--shadow-lg)',
             textAlign: 'center',
             position: 'relative',
@@ -481,7 +490,7 @@ export default function LoginScreen() {
                     useOneTap={false}
                     shape="rectangular"
                     size="large"
-                    width={280}
+                    width={isMobileLogin ? 240 : 280}
                     text="signin_with"
                     theme="outline"
                   />
@@ -502,13 +511,14 @@ export default function LoginScreen() {
             <div style={{
               height: 1,
               background: 'linear-gradient(90deg, transparent, var(--border), var(--primary-soft), var(--border), transparent)',
-              margin: '0 -40px 22px',
+              margin: isMobileLogin ? '0 -16px 18px' : '0 -40px 22px',
               animation: 'ls-fadeUp 0.6s ease 0.48s both',
             }} />
 
             {/* ── Counting stats ────────────────────────────── */}
             <div style={{
-              display: 'flex', justifyContent: 'center', gap: 36,
+              display: 'flex', justifyContent: 'center', gap: isMobileLogin ? 20 : 36,
+              flexWrap: isMobileLogin ? 'wrap' : 'nowrap',
               animation: 'ls-fadeUp 0.6s ease 0.52s both',
             }}>
               {[

@@ -237,29 +237,30 @@ export default function JobDetailPanel({
   const applied = appliedJobIds.has(job._id);
 
   return (
-    <div>
+    <div style={{ minWidth: 0, overflowX: 'hidden' }}>
       {/* Header */}
-      <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+      <div style={{ display: 'flex', gap: mobileMode ? 12 : 16, alignItems: 'flex-start', flexDirection: mobileMode ? 'column' : 'row' }}>
         <CompanyLogo name={job.Company} url={job.ApplicationURL} domain={domain} size={48} borderRadius={12} style={{ flexShrink: 0 }} />
         <div style={{ minWidth: 0, flex: 1 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, flexWrap: 'wrap' }}>
             <h2 style={{
               fontFamily: "'Playfair Display',serif",
               fontSize: mobileMode ? '1.2rem' : '1.4rem',
               fontWeight: 700, color: 'var(--ink)', lineHeight: 1.25, letterSpacing: '-0.02em',
+              flex: '1 1 260px',
             }}>
               {job.JobTitle}
             </h2>
             {job.ATSPlatform && (
               <span style={{
                 background: 'var(--paper2)', padding: '2px 8px', borderRadius: 6,
-                fontSize: 11, color: 'var(--muted-ink)', flexShrink: 0, marginLeft: 8,
+                fontSize: 11, color: 'var(--muted-ink)', flexShrink: 0, marginLeft: mobileMode ? 0 : 8,
               }}>
                 {platformLabel[job.ATSPlatform] ?? job.ATSPlatform}
               </span>
             )}
           </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 14px', marginTop: 8 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: mobileMode ? '6px 12px' : '4px 14px', marginTop: 8 }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: '0.82rem', color: 'var(--muted-ink)' }}>
               <Building2 size={13} />{job.Company}
             </span>
@@ -414,7 +415,7 @@ export default function JobDetailPanel({
 
         {/* AllLocations */}
         {Array.isArray(job.AllLocations) && job.AllLocations.length > 1 && (
-          <div style={{ fontSize: '0.7rem', color: 'var(--subtle-ink)', marginTop: 5, marginLeft: 6 }}>
+          <div style={{ fontSize: '0.7rem', color: 'var(--subtle-ink)', marginTop: 5, marginLeft: 6, overflowWrap: 'anywhere' }}>
             Also: {job.AllLocations.join(' · ')}
           </div>
         )}
@@ -523,7 +524,7 @@ export default function JobDetailPanel({
                 )}
                 <button
                   onClick={() => setCbExpanded(false)}
-                  style={{ padding: '7px 14px', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 400, fontFamily: 'inherit', background: 'transparent', color: 'var(--muted-ink)', border: '1px solid var(--border)', transition: 'all 0.18s', marginLeft: 'auto' }}
+                  style={{ padding: '7px 14px', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 400, fontFamily: 'inherit', background: 'transparent', color: 'var(--muted-ink)', border: '1px solid var(--border)', transition: 'all 0.18s', marginLeft: mobileMode ? 0 : 'auto', width: mobileMode ? '100%' : 'auto' }}
                 >
                   Cancel
                 </button>
@@ -566,7 +567,7 @@ export default function JobDetailPanel({
       <div
         ref={descRef}
         className="job-description-html jd-content"
-        style={{ fontSize: is3xl ? 15 : 14, lineHeight: 1.7, color: 'var(--muted-ink)', padding: '12px 0', maxWidth: is3xl ? 800 : 720 }}
+        style={{ fontSize: mobileMode ? 13.5 : is3xl ? 15 : 14, lineHeight: 1.7, color: 'var(--muted-ink)', padding: '12px 0', maxWidth: '100%', overflowX: 'hidden' }}
         dangerouslySetInnerHTML={{ __html: job.DescriptionCleaned || job.Description || 'No description provided.' }}
       />
 
@@ -576,7 +577,7 @@ export default function JobDetailPanel({
           {job.DescriptionLists.map((section, i) => (
             <div key={i} style={{ marginTop: 16 }}>
               <h4 style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)', marginBottom: 8 }}>{section.text}</h4>
-              <div className="job-description-html" style={{ fontSize: '0.875rem', lineHeight: 1.7, color: 'var(--muted-ink)' }} dangerouslySetInnerHTML={{ __html: section.content }} />
+              <div className="job-description-html" style={{ fontSize: '0.875rem', lineHeight: 1.7, color: 'var(--muted-ink)', maxWidth: '100%', overflowX: 'hidden' }} dangerouslySetInnerHTML={{ __html: section.content }} />
             </div>
           ))}
         </div>
@@ -586,7 +587,7 @@ export default function JobDetailPanel({
       {job.AdditionalInfo && (
         <div style={{ marginTop: 16 }}>
           <h4 style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)', marginBottom: 8 }}>Additional Information</h4>
-          <div className="job-description-html" style={{ fontSize: '0.875rem', lineHeight: 1.7, color: 'var(--muted-ink)' }} dangerouslySetInnerHTML={{ __html: job.AdditionalInfo }} />
+          <div className="job-description-html" style={{ fontSize: '0.875rem', lineHeight: 1.7, color: 'var(--muted-ink)', maxWidth: '100%', overflowX: 'hidden' }} dangerouslySetInnerHTML={{ __html: job.AdditionalInfo }} />
         </div>
       )}
 

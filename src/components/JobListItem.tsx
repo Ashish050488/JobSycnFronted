@@ -1,5 +1,5 @@
 // FILE: src/components/JobListItem.tsx
-import { useState, memo } from 'react';
+import { useEffect, useState, memo } from 'react';
 import { Clock, CheckCircle2, X } from 'lucide-react';
 import { Badge } from './ui';
 import type { IJob } from '../types';
@@ -45,13 +45,21 @@ const JobListItem = memo(function JobListItem({
   onDismiss,
 }: JobListItemProps) {
   const [hovered, setHovered] = useState(false);
+  const [isMobileCard, setIsMobileCard] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+
+  useEffect(() => {
+    const onResize = () => setIsMobileCard(window.innerWidth < 768);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   return (
     <div
       onClick={() => onSelect(job)}
       style={{
         minHeight: 80,
-        padding: '14px 16px',
+        padding: isMobileCard ? '14px 12px' : '14px 16px',
+        paddingRight: isMobileCard ? 44 : 16,
         borderBottom: '1px solid var(--border)',
         cursor: 'pointer',
         background: isSelected ? 'var(--primary-soft)' : 'transparent',
@@ -76,18 +84,18 @@ const JobListItem = memo(function JobListItem({
           title="Not interested"
           style={{
             position: 'absolute', top: 10, right: 10,
-            background: hovered ? 'var(--paper2)' : 'transparent',
-            border: hovered ? '1px solid var(--border)' : 'none',
+            background: hovered || isMobileCard ? 'var(--paper2)' : 'transparent',
+            border: hovered || isMobileCard ? '1px solid var(--border)' : 'none',
             borderRadius: 6, padding: '2px 6px',
             display: 'flex', alignItems: 'center', gap: 3,
             cursor: 'pointer', color: 'var(--subtle-ink)',
             fontSize: '0.68rem', fontFamily: 'inherit',
-            opacity: hovered ? 1 : 0,
+            opacity: hovered || isMobileCard ? 1 : 0,
             transition: 'opacity 0.18s, background 0.18s',
             zIndex: 1,
           }}
         >
-          <X size={10} /> Not interested
+          <X size={10} /> {!isMobileCard && 'Not interested'}
         </button>
       )}
       <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
@@ -113,13 +121,13 @@ const JobListItem = memo(function JobListItem({
           </div>
           <div style={{
             display: 'flex', gap: 6, alignItems: 'center',
-            marginTop: 4, fontSize: '0.78rem', color: 'var(--muted-ink)',
+            marginTop: 4, fontSize: '0.78rem', color: 'var(--muted-ink)', flexWrap: isMobileCard ? 'wrap' : 'nowrap',
           }}>
-            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: isMobileCard ? 'normal' : 'nowrap' }}>
               {job.Company}
             </span>
-            <span style={{ opacity: 0.4 }}>|</span>
-            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {!isMobileCard && <span style={{ opacity: 0.4 }}>|</span>}
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: isMobileCard ? 'normal' : 'nowrap' }}>
               {job.Location}
             </span>
           </div>

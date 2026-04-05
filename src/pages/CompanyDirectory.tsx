@@ -13,6 +13,7 @@ const ITEMS_PER_PAGE = 24;
 
 export default function CompanyDirectory() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [viewportWidth, setViewportWidth] = useState(() => typeof window !== 'undefined' ? window.innerWidth : 1280);
 
   // URL-driven state
   const pageParam = parseInt(searchParams.get('page') || '1', 10);
@@ -38,6 +39,14 @@ export default function CompanyDirectory() {
 
   // Cleanup debounce on unmount
   useEffect(() => () => { if (debounceRef.current) clearTimeout(debounceRef.current); }, []);
+
+  useEffect(() => {
+    const onResize = () => setViewportWidth(window.innerWidth);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  const isMobile = viewportWidth < 640;
 
   const { companies, total, totalPages, loading } = useCompanies({
     page,
@@ -79,12 +88,12 @@ export default function CompanyDirectory() {
       </div>
 
       {/* ── Content ────────────────────────────────────── */}
-      <Container style={{ padding: '32px 24px 48px' }}>
+      <Container style={{ padding: isMobile ? '20px 0 36px' : '32px 0 48px' }}>
         {/* Sticky filter bar */}
-        <div className="sticky-filter-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 0 }}>
+        <div className="sticky-filter-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'stretch' : 'center', flexWrap: 'wrap', gap: 12, flexDirection: isMobile ? 'column' : 'row' }}>
+          <div style={{ display: 'flex', alignItems: isMobile ? 'stretch' : 'center', gap: 12, flex: 1, minWidth: 0, flexDirection: isMobile ? 'column' : 'row', width: isMobile ? '100%' : 'auto' }}>
             {/* Search */}
-            <div style={{ position: 'relative', flex: 1, maxWidth: 360, minWidth: 180 }}>
+            <div style={{ position: 'relative', flex: 1, maxWidth: isMobile ? '100%' : 360, minWidth: isMobile ? '100%' : 180, width: isMobile ? '100%' : 'auto' }}>
               <Search size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--subtle-ink)', pointerEvents: 'none' }} />
               <input
                 type="text"
@@ -101,17 +110,18 @@ export default function CompanyDirectory() {
                 onBlur={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = 'none'; }}
               />
             </div>
-            <Badge variant="neutral">{total} compan{total === 1 ? 'y' : 'ies'}</Badge>
+            <Badge variant="neutral" style={{ alignSelf: isMobile ? 'flex-start' : 'center' }}>{total} compan{total === 1 ? 'y' : 'ies'}</Badge>
           </div>
 
           {/* Sort */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: isMobile ? '100%' : 'auto' }}>
             <ArrowUpDown size={14} style={{ color: 'var(--subtle-ink)' }} />
             <select
               value={sort}
               onChange={e => handleSortChange(e.target.value as SortOption)}
               aria-label={COPY.directory.sortAriaLabel}
               style={{
+                flex: isMobile ? 1 : undefined,
                 padding: '8px 32px 8px 10px', fontFamily: 'inherit', fontSize: '0.85rem',
                 background: 'var(--paper2)', color: 'var(--ink)', border: '1.25px solid var(--border)',
                 borderRadius: 10, outline: 'none', cursor: 'pointer',
@@ -139,7 +149,7 @@ export default function CompanyDirectory() {
             <div className="companies-grid stagger">
               {companies.map(c => <CompanyCard key={c.companyName} company={c} />)}
             </div>
-            <Pagination page={page} totalPages={totalPages} onPageChange={handlePageChange} />
+            <Pagination page={page} totalPages={totalPages} onPageChange={handlePageChange} siblingCount={isMobile ? 0 : 1} />
           </>
         )}
       </Container>

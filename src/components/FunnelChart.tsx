@@ -37,6 +37,7 @@ export default function FunnelChart({ stageCounts, totalApplied }: FunnelChartPr
   }, []);
 
   const maxCount = getMaxCount(stageCounts);
+  const conversionIndent = isMobile ? 72 : 102;
 
   // Empty state
   if (totalApplied === 0) {
@@ -111,14 +112,14 @@ export default function FunnelChart({ stageCounts, totalApplied }: FunnelChartPr
     if (currentCount > 0 && nextCount > 0) {
       const pct = Math.round((nextCount / currentCount) * 100);
       return (
-        <div key={`arrow-${index}`} style={{ fontSize: '0.72rem', color: 'var(--subtle-ink)', margin: '2px 0 6px 102px' }}>
+        <div key={`arrow-${index}`} style={{ fontSize: '0.72rem', color: 'var(--subtle-ink)', margin: `2px 0 6px ${conversionIndent}px` }}>
           ↓ {pct}% moved forward
         </div>
       );
     }
     if (currentCount > 0 && nextCount === 0) {
       return (
-        <div key={`arrow-${index}`} style={{ fontSize: '0.72rem', color: 'var(--subtle-ink)', margin: '2px 0 6px 102px', opacity: 0.4 }}>
+        <div key={`arrow-${index}`} style={{ fontSize: '0.72rem', color: 'var(--subtle-ink)', margin: `2px 0 6px ${conversionIndent}px`, opacity: 0.4 }}>
           ↓ —
         </div>
       );

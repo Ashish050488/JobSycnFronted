@@ -14,7 +14,7 @@ export function Container({ children, size = 'xl', style, className = '' }: {
   children: ReactNode; size?: 'sm' | 'md' | 'lg' | 'xl'; style?: CSSProperties; className?: string;
 }) {
   const maxW = { sm: '640px', md: '768px', lg: '1024px', xl: '1200px' }[size];
-  return <div style={{ maxWidth: maxW, margin: '0 auto', padding: '0 24px', ...style }} className={className}>{children}</div>;
+  return <div style={{ maxWidth: maxW, margin: '0 auto', padding: '0 clamp(16px, 4vw, 24px)', ...style }} className={className}>{children}</div>;
 }
 
 // ── Stack ─────────────────────────────────────────────────────────────────────
@@ -157,7 +157,7 @@ export function Card({ children, style, onClick, hoverable, className = '' }: { 
       style={{
         background: 'var(--surface-solid)',
         border: '1.25px solid var(--ink-border, var(--border))',
-        borderRadius: 14, padding: '20px 24px',
+        borderRadius: 14, padding: 'clamp(16px, 3vw, 24px)',
         transition: 'border-color 0.22s, box-shadow 0.22s, transform 0.22s',
         cursor: onClick ? 'pointer' : undefined,
         ...style,
@@ -220,14 +220,14 @@ export function PageHeader({ label, title, subtitle, actions }: {
   label?: string; title: ReactNode; subtitle?: ReactNode; actions?: ReactNode;
 }) {
   return (
-    <div style={{ marginBottom: 16 }}>
-      {label && <p className="font-sketch" style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--primary)', marginBottom: 4, textAlign: actions ? 'left' : 'center' }}>{label}</p>}
-      <div style={{ display: 'flex', justifyContent: actions ? 'space-between' : 'center', alignItems: 'center', flexWrap: 'wrap', gap: 10, textAlign: actions ? 'left' : 'center' }}>
-        <div style={{ textAlign: actions ? 'left' : 'center' }}>
+    <div className={`page-header${actions ? ' page-header-with-actions' : ''}`} style={{ marginBottom: 16 }}>
+      {label && <p className="font-sketch page-header-label" style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--primary)', marginBottom: 4, textAlign: actions ? 'left' : 'center' }}>{label}</p>}
+      <div className={`page-header-row${actions ? ' page-header-row-with-actions' : ''}`} style={{ display: 'flex', justifyContent: actions ? 'space-between' : 'center', alignItems: 'center', flexWrap: 'wrap', gap: 10, textAlign: actions ? 'left' : 'center' }}>
+        <div className="page-header-copy" style={{ textAlign: actions ? 'left' : 'center', minWidth: 0 }}>
           <h1 style={{ fontSize: 'clamp(1.3rem,2.8vw,1.9rem)', fontWeight: 700, color: 'var(--ink)', letterSpacing: '-0.02em', lineHeight: 1.15 }}>{title}</h1>
           {subtitle && <div style={{ color: 'var(--muted-ink)', marginTop: 4, fontSize: '0.82rem', lineHeight: 1.5 }}>{subtitle}</div>}
         </div>
-        {actions && <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexShrink: 0 }}>{actions}</div>}
+        {actions && <div className="page-header-actions" style={{ display: 'flex', gap: 10, alignItems: 'center', flexShrink: 0, flexWrap: 'wrap' }}>{actions}</div>}
       </div>
     </div>
   );
@@ -248,7 +248,7 @@ export function FormField({ label, hint, children }: { label: string; hint?: str
 export function EmptyState({ icon, title, body, action }: { icon?: ReactNode; title: string; body?: string; action?: ReactNode }) {
   return (
     <div className="sketch-ink" style={{
-      textAlign: 'center', padding: '64px 24px',
+      textAlign: 'center', padding: 'clamp(40px, 8vw, 64px) clamp(16px, 4vw, 24px)',
       background: 'var(--surface-solid)', border: '1.25px dashed var(--ink-border-strong, var(--border-strong))',
       borderRadius: 14,
     }}>

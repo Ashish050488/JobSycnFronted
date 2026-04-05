@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { AppliedJobEntry } from '../types';
 
 interface HeatmapCalendarProps {
@@ -112,6 +112,14 @@ function buildGrid(dailyCounts: Map<string, number>): DayData[][] {
 /* ─── component ────────────────────────────────────────────── */
 
 export default function HeatmapCalendar({ appliedJobs, dailyGoal }: HeatmapCalendarProps) {
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 640 : false);
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 640);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
   const today = useMemo(() => {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
@@ -170,13 +178,13 @@ export default function HeatmapCalendar({ appliedJobs, dailyGoal }: HeatmapCalen
   ];
 
   const dayLabels = ['Mon', '', 'Wed', '', 'Fri', '', 'Sun'];
-  const CELL = 14;
-  const GAP = 3;
+  const CELL = isMobile ? 12 : 14;
+  const GAP = isMobile ? 2 : 3;
 
   return (
     <div style={{ width: '100%', maxWidth: 560, margin: '0 auto' }}>
       {/* Header row */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+      <div style={{ display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', justifyContent: 'space-between', marginBottom: 18, gap: 12, flexWrap: 'wrap' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <span className="font-sketch" style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--primary)' }}>Activity</span>
@@ -204,7 +212,7 @@ export default function HeatmapCalendar({ appliedJobs, dailyGoal }: HeatmapCalen
           <div style={{ display: 'flex', flexDirection: 'column', gap: GAP, paddingTop: 18 }}>
             {dayLabels.map((label, i) => (
               <div key={i} style={{
-                width: 28, height: CELL, fontSize: '0.68rem',
+                width: isMobile ? 24 : 28, height: CELL, fontSize: '0.68rem',
                 color: 'var(--subtle-ink)', textAlign: 'right', lineHeight: `${CELL}px`,
               }}>
                 {label}
@@ -250,7 +258,7 @@ export default function HeatmapCalendar({ appliedJobs, dailyGoal }: HeatmapCalen
       </div>
 
       {/* Legend + summary stats */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 18, flexWrap: 'wrap', gap: 8 }}>
+      <div style={{ display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', justifyContent: 'space-between', marginTop: 18, flexWrap: 'wrap', gap: 8, flexDirection: isMobile ? 'column' : 'row' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: '0.68rem', color: 'var(--subtle-ink)' }}>
           <span>Less</span>
           {legendLevels.map((level, i) => (
@@ -261,7 +269,7 @@ export default function HeatmapCalendar({ appliedJobs, dailyGoal }: HeatmapCalen
           ))}
           <span>More</span>
         </div>
-        <div style={{ fontSize: '0.78rem', color: 'var(--muted-ink)', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ fontSize: '0.78rem', color: 'var(--muted-ink)', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
           <span>{appliedThisWeek} applied this week</span>
           <span style={{ opacity: 0.5 }}>·</span>
           <span>Goal met {goalMetDays} of last 7 days</span>

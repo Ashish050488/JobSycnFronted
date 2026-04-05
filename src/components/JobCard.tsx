@@ -1,4 +1,5 @@
 // FILE: src/components/JobCard.tsx
+import { useEffect, useState } from 'react';
 import { MapPin, Building2, ExternalLink, Clock } from 'lucide-react';
 import type { IJob } from '../types';
 import CompanyLogo from './CompanyLogo';
@@ -12,6 +13,13 @@ interface Props {
 }
 
 export default function JobCard({ job, domain }: Props) {
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 640 : false);
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 640);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   const relTime = (d: string | null) => {
     if (!d) return null;
@@ -66,7 +74,7 @@ export default function JobCard({ job, domain }: Props) {
       }}
     >
       <div style={{ padding: 'clamp(14px, 3.5vw, 20px) clamp(14px, 4vw, 24px)' }}>
-        <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+        <div style={{ display: 'flex', gap: isMobile ? 12 : 16, alignItems: 'flex-start' }}>
           <div
             style={{
               width: 44,
@@ -109,8 +117,8 @@ export default function JobCard({ job, domain }: Props) {
                   onMouseEnter={e => ((e.currentTarget.style.color = 'var(--acid)'))}
                   onMouseLeave={e => ((e.currentTarget.style.color = 'var(--text-primary)'))}
                 >
-                  {job.JobTitle}
-                  <ExternalLink size={13} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+                  <span style={{ minWidth: 0 }}>{job.JobTitle}</span>
+                  <ExternalLink size={13} style={{ color: 'var(--text-muted)', flexShrink: 0, marginTop: 2 }} />
                 </h3>
               </a>
               <div
@@ -193,12 +201,12 @@ export default function JobCard({ job, domain }: Props) {
           background: 'rgba(0,0,0,0.02)',
           borderRadius: '0 0 12px 12px',
           display: 'flex',
-          justifyContent: 'space-between',
+          justifyContent: isMobile ? 'stretch' : 'space-between',
           alignItems: 'center',
         }}
       >
-        <a href={job.DirectApplyURL || job.ApplicationURL} target="_blank" rel="noopener noreferrer">
-          <Button size="sm">
+        <a href={job.DirectApplyURL || job.ApplicationURL} target="_blank" rel="noopener noreferrer" style={{ display: 'block', width: isMobile ? '100%' : 'auto' }}>
+          <Button size="sm" style={{ width: isMobile ? '100%' : undefined }}>
             {COPY.jobs.applyNow} <ExternalLink size={11} />
           </Button>
         </a>

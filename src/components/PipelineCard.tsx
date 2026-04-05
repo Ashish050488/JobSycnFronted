@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ExternalLink, MapPin, Building2 } from 'lucide-react';
 import CompanyLogo from './CompanyLogo';
 
@@ -51,8 +51,15 @@ export default function PipelineCard({
   applicationURL, stage, stageUpdatedAt, appliedAt, isListingActive, onStageChange,
 }: PipelineCardProps) {
   const [hovered, setHovered] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 640 : false);
   const stageKey = (STAGES[stage as StageName] ? stage : 'applied') as StageName;
   const stageConfig = STAGES[stageKey];
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 640);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   // Inline SVG chevron for select dropdown, colored by stage text color
   const chevronSvg = encodeURIComponent(
@@ -78,7 +85,7 @@ export default function PipelineCard({
       onMouseLeave={() => setHovered(false)}
     >
       {/* Row 1: Logo + Info + Stage selector */}
-      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', flexDirection: isMobile ? 'column' : 'row' }}>
         {/* Company logo */}
         <div style={{
           width: 40, height: 40, flexShrink: 0, borderRadius: 10,
@@ -90,7 +97,7 @@ export default function PipelineCard({
         </div>
 
         {/* Job info */}
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ flex: 1, minWidth: 0, width: isMobile ? '100%' : 'auto' }}>
           {/* Title — link only when listing is still active */}
           {applicationURL && isListingActive ? (
             <a href={applicationURL} target="_blank" rel="noopener noreferrer"
@@ -170,9 +177,10 @@ export default function PipelineCard({
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'right 8px center',
             outline: 'none',
-            minWidth: 95,
-            marginLeft: 8,
+            minWidth: isMobile ? '100%' : 95,
+            marginLeft: isMobile ? 0 : 8,
             transition: 'background-color 0.3s, color 0.3s, box-shadow 0.18s',
+            width: isMobile ? '100%' : 'auto',
           }}
           onFocus={e => (e.currentTarget.style.boxShadow = 'var(--shadow-sm, 0 1px 4px rgba(0,0,0,0.1))')}
           onBlur={e => (e.currentTarget.style.boxShadow = 'none')}
@@ -185,7 +193,7 @@ export default function PipelineCard({
 
       {/* Row 2: Applied time + Stage updated time */}
       <div style={{
-        display: 'flex', gap: 12, marginTop: 10,
+        display: 'flex', gap: 12, marginTop: 10, flexWrap: 'wrap',
         fontSize: '0.72rem', color: 'var(--subtle-ink)'
       }}>
         <span>Applied {relativeTime(appliedAt)}</span>

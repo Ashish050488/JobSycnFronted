@@ -116,12 +116,12 @@ export default function Dashboard() {
   const savedListScrollTopRef = useRef<number | null>(null);
 
   // Viewport and user context
-  const { isXsSm, isMd, isLg, is3xl, isShortLandscape, useSplitView } = useViewportInfo();
+  const { isXsSm, isLg, is3xl, isShortLandscape, useSplitView } = useViewportInfo();
   const useBottomSheet = !useSplitView;
   const { currentUser, userSkills, appliedJobIds, dismissedJobIds, previousVisitAt, toggleApplied, toggleDismissed } = useUser();
 
   // Active filter count for mobile badge
-  const activeFilterCount = [roleCategoryFilter, experienceBandFilter, workplaceFilter, dateFilter, platformFilter, sel].filter(Boolean).length;
+  const activeFilterCount = [roleCategoryFilter, experienceBandFilter, workplaceFilter, dateFilter, platformFilter, sel, entryLevelFilter, hideApplied, showNewOnly, showComeBackOnly].filter(Boolean).length;
 
   // Style helpers
   const activeChipStyle: React.CSSProperties = {
@@ -130,7 +130,7 @@ export default function Dashboard() {
     background: 'var(--primary-soft)', border: '1.25px solid var(--primary)',
     color: 'var(--primary)', fontSize: '0.78rem', fontWeight: 600,
     cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
-    transition: 'all 0.15s', flexShrink: 0,
+    transition: 'all 0.15s', flexShrink: 0, maxWidth: '100%',
   };
   const desktopSelectStyle = (active: boolean): React.CSSProperties => ({
     padding: '8px 12px', borderRadius: 999,
@@ -257,8 +257,8 @@ export default function Dashboard() {
   }, [mobileSheetOpen]);
   useEffect(() => {
     if (!useBottomSheet) setMobileSheetOpen(false);
-    if (!isMd) setFilterModalOpen(false);
-  }, [useBottomSheet, isMd]);
+    if (!useBottomSheet) setFilterModalOpen(false);
+  }, [useBottomSheet]);
   useEffect(() => { document.title = COPY.site.documentTitleJobs; }, []);
   // --- Server-side filter state ---
   const serverFilters = {
@@ -497,19 +497,27 @@ export default function Dashboard() {
     setCurrentPage(1);
   };
 
+  const activeMobileFilters = [
+    roleCategoryFilter ? { label: roleCategoryFilter, clear: () => setRoleCategoryFilter(null) } : null,
+    experienceBandFilter ? { label: experienceBandFilter, clear: () => setExperienceBandFilter(null) } : null,
+    workplaceFilter ? { label: workplaceFilter === 'on-site' ? 'On-site' : workplaceFilter[0].toUpperCase() + workplaceFilter.slice(1), clear: () => setWorkplaceFilter(null) } : null,
+    dateFilter ? { label: dateFilter === '1d' ? 'Past 24h' : dateFilter === '3d' ? 'Past 3 days' : 'Past week', clear: () => setDateFilter(null) } : null,
+    platformFilter ? { label: platformFilter[0].toUpperCase() + platformFilter.slice(1), clear: () => setPlatformFilter(null) } : null,
+    sel ? { label: sel, clear: () => setSp({}) } : null,
+    entryLevelFilter ? { label: 'Fresher', clear: () => setEntryLevelFilter(false) } : null,
+    hideApplied ? { label: 'Hide applied', clear: () => setHideApplied(false) } : null,
+    showNewOnly ? { label: 'New only', clear: () => setShowNewOnly(false) } : null,
+    showComeBackOnly ? { label: 'Come back later', clear: () => setShowComeBackOnly(false) } : null,
+  ].filter((item): item is { label: string; clear: () => void } => Boolean(item));
+
 
   const SheetActions = ({ job }: { job: IJob }) => {
     const applied = appliedJobIds.has(job._id);
     return (
-      <div style={{
-        position: 'sticky',
-        bottom: 0,
-        padding: '8px 16px calc(8px + env(safe-area-inset-bottom))',
-        borderTop: '1px solid var(--border)',
-        background: 'var(--surface-solid)',
+      <div className="mobile-sticky-actions" style={{
         display: 'flex',
+        flexDirection: isXsSm ? 'column' : 'row',
         gap: 10,
-        zIndex: 2,
       }}>
         <a href={job.DirectApplyURL || job.ApplicationURL} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', flex: 1 }}>
           <Button size="lg" style={{ width: '100%', minHeight: 44 }}>{COPY.jobs.applyNow} <ExternalLink size={14} /></Button>
@@ -526,6 +534,8 @@ export default function Dashboard() {
               background: applied ? 'var(--primary)' : 'transparent',
               color: applied ? '#fff' : 'var(--primary)',
               border: '1.5px solid var(--primary)',
+              width: isXsSm ? '100%' : 'auto',
+              justifyContent: 'center',
             }}
           >
             <CheckCircle2 size={15} />
@@ -552,14 +562,15 @@ export default function Dashboard() {
       {/* ── Dismiss undo toast ──────── */}
       {pendingDismiss && (
         <div style={{
-          position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
+          position: 'fixed', bottom: isXsSm ? 'max(12px, env(safe-area-inset-bottom))' : 24, left: isXsSm ? 16 : '50%', right: isXsSm ? 16 : 'auto', transform: isXsSm ? 'none' : 'translateX(-50%)',
           background: 'var(--ink)', color: 'var(--paper)',
           borderRadius: 12, padding: '12px 18px',
-          display: 'flex', alignItems: 'center', gap: 14,
+          display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap',
           boxShadow: '0 4px 24px rgba(0,0,0,0.25)',
           zIndex: 9999, fontSize: '0.88rem', fontWeight: 500,
           animation: 'toastIn 0.25s ease',
-          whiteSpace: 'nowrap',
+          whiteSpace: isXsSm ? 'normal' : 'nowrap',
+          maxWidth: isXsSm ? 'none' : 'min(90vw, 520px)',
         }}>
           <span>Job hidden.</span>
           <button
@@ -581,14 +592,15 @@ export default function Dashboard() {
             <div style={{
               marginBottom: 12, padding: '10px 14px', borderRadius: 10,
               background: 'var(--primary-soft)', border: '1px solid var(--primary)',
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8
+              display: 'flex', alignItems: isXsSm ? 'stretch' : 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8
             }}>
               <span style={{ fontSize: '0.85rem', color: 'var(--ink)' }}>
                 <strong style={{ color: 'var(--primary)' }}>Browsing as guest</strong> — sign in to track applications, filter by skills, hide applied jobs & more
               </span>
               <a href="/login" style={{
                 padding: '6px 14px', borderRadius: 8, background: 'var(--primary)',
-                color: '#fff', textDecoration: 'none', fontSize: '0.8rem', fontWeight: 600
+                color: '#fff', textDecoration: 'none', fontSize: '0.8rem', fontWeight: 600,
+                width: isXsSm ? '100%' : 'auto', textAlign: 'center'
               }}>Sign In</a>
             </div>
           )}
@@ -600,7 +612,7 @@ export default function Dashboard() {
           />
         </Container>
       </div>
-      <Container style={{ padding: isXsSm ? '20px 16px' : '28px 24px', maxWidth: is3xl ? 1600 : undefined }}>
+      <Container style={{ paddingTop: isXsSm ? 20 : 28, paddingBottom: isXsSm ? 24 : 32, maxWidth: is3xl ? 1600 : undefined }}>
         <div style={{ minWidth: 0 }}>
           {/* Search bar + filter button */}
           <div style={{ display: 'flex', gap: 8, marginBottom: 14, alignItems: 'center' }}>
@@ -663,64 +675,114 @@ export default function Dashboard() {
           )}
           {/* ══ FILTER AREA ══ */}
           {useBottomSheet ? (
-            /* ── Mobile/Tablet: Compact filter button + active chips ── */
-            <div style={{ padding: '10px 0 12px', marginBottom: 8 }}>
-              <div className="filter-scroll-strip" style={{ marginBottom: activeFilterCount > 0 ? 10 : 0 }}>
+            <div style={{ padding: '10px 0 14px', marginBottom: 8 }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: isXsSm ? 'repeat(2, minmax(0, 1fr))' : 'repeat(4, minmax(0, 1fr))',
+                  gap: 8,
+                  padding: 10,
+                  borderRadius: 18,
+                  border: '1px solid var(--border)',
+                  background: 'linear-gradient(135deg, color-mix(in srgb, var(--primary-soft) 16%, transparent), color-mix(in srgb, var(--surface-solid) 90%, transparent))',
+                }}
+              >
                 <button
                   onClick={() => setFilterModalOpen(true)}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 6,
-                    padding: '9px 16px', borderRadius: 12,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 10,
+                    padding: '12px 14px',
+                    borderRadius: 14,
                     border: activeFilterCount > 0 ? '1.5px solid var(--primary)' : '1.25px solid var(--border)',
                     background: activeFilterCount > 0 ? 'var(--primary-soft)' : 'var(--surface-solid)',
-                    color: activeFilterCount > 0 ? 'var(--primary)' : 'var(--muted-ink)',
-                    cursor: 'pointer', fontSize: '0.84rem', fontFamily: 'inherit',
-                    fontWeight: activeFilterCount > 0 ? 600 : 500,
-                    transition: 'all 0.18s', flexShrink: 0,
+                    color: activeFilterCount > 0 ? 'var(--primary)' : 'var(--ink)',
+                    cursor: 'pointer',
+                    fontSize: '0.86rem',
+                    fontFamily: 'inherit',
+                    fontWeight: 700,
+                    transition: 'all 0.18s',
+                    gridColumn: '1 / -1',
+                    textAlign: 'left',
                   }}
                 >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-                  Filters
-                  {activeFilterCount > 0 && (
-                    <span style={{
-                      width: 20, height: 20, borderRadius: '50%',
-                      background: 'var(--primary)', color: '#fff',
-                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: '0.7rem', fontWeight: 700, marginLeft: 2,
-                    }}>
-                      {activeFilterCount}
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                    <span style={{ width: 34, height: 34, borderRadius: 12, border: '1px solid var(--border)', background: 'rgba(255,255,255,0.7)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
                     </span>
-                  )}
+                    <span style={{ minWidth: 0 }}>
+                      <span style={{ display: 'block' }}>Browse filters</span>
+                      <span style={{ display: 'block', marginTop: 2, fontSize: '0.72rem', fontWeight: 500, color: activeFilterCount > 0 ? 'var(--primary)' : 'var(--muted-ink)' }}>
+                        {activeFilterCount > 0 ? `${activeFilterCount} active right now` : 'Role, date, board, company, and more'}
+                      </span>
+                    </span>
+                  </span>
+                  <span style={{ fontSize: '0.9rem', color: activeFilterCount > 0 ? 'var(--primary)' : 'var(--subtle-ink)' }}>Open</span>
                 </button>
+
                 {currentUser && (
-                  <button onClick={() => setHideApplied(h => !h)} style={{
-                    ...pillStyle(hideApplied), padding: '8px 14px', borderRadius: 12,
-                  }}>
-                    {hideApplied ? <><EyeOff size={12} style={{ verticalAlign: -2, marginRight: 4 }} />Hidden</> : <><Eye size={12} style={{ verticalAlign: -2, marginRight: 4 }} />Applied</>}
+                  <button
+                    onClick={() => setHideApplied(h => !h)}
+                    style={{
+                      ...pillStyle(hideApplied),
+                      padding: '11px 12px',
+                      borderRadius: 14,
+                      width: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    {hideApplied ? <><EyeOff size={13} style={{ verticalAlign: -2, marginRight: 6 }} />Hidden</> : <><Eye size={13} style={{ verticalAlign: -2, marginRight: 6 }} />Applied</>}
                   </button>
                 )}
-                <button onClick={() => setEntryLevelFilter(f => !f)} style={{
-                  ...pillStyle(entryLevelFilter), padding: '8px 14px', borderRadius: 12,
-                }}>
-                  <GraduationCap size={12} style={{ verticalAlign: -2, marginRight: 4 }} />Fresher
+
+                <button
+                  onClick={() => setEntryLevelFilter(f => !f)}
+                  style={{
+                      ...pillStyle(entryLevelFilter),
+                      padding: '11px 12px',
+                      borderRadius: 14,
+                      width: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                  }}
+                >
+                  <GraduationCap size={13} style={{ verticalAlign: -2, marginRight: 6 }} />Fresher
                 </button>
+
                 {currentUser && newJobsCount > 0 && (
-                  <button onClick={() => setShowNewOnly(n => !n)} style={{
-                    ...pillStyle(showNewOnly), padding: '8px 14px', borderRadius: 12,
-                  }}>
-                    <Sparkles size={12} style={{ verticalAlign: -2, marginRight: 4 }} />New
+                  <button
+                    onClick={() => setShowNewOnly(n => !n)}
+                    style={{
+                      ...pillStyle(showNewOnly),
+                      padding: '11px 12px',
+                      borderRadius: 14,
+                      width: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Sparkles size={13} style={{ verticalAlign: -2, marginRight: 6 }} />New
                   </button>
                 )}
               </div>
-              {activeFilterCount > 0 && (
-                <div className="filter-scroll-strip">
-                  {roleCategoryFilter && <button onClick={() => setRoleCategoryFilter(null)} style={activeChipStyle}>{roleCategoryFilter} <X size={11} style={{ marginLeft: 4 }} /></button>}
-                  {experienceBandFilter && <button onClick={() => setExperienceBandFilter(null)} style={activeChipStyle}>{experienceBandFilter} <X size={11} style={{ marginLeft: 4 }} /></button>}
-                  {workplaceFilter && <button onClick={() => setWorkplaceFilter(null)} style={activeChipStyle}>{workplaceFilter} <X size={11} style={{ marginLeft: 4 }} /></button>}
-                  {dateFilter && <button onClick={() => setDateFilter(null)} style={activeChipStyle}>{dateFilter === '1d' ? '24h' : dateFilter === '3d' ? '3 days' : '7 days'} <X size={11} style={{ marginLeft: 4 }} /></button>}
-                  {platformFilter && <button onClick={() => setPlatformFilter(null)} style={activeChipStyle}>{platformFilter} <X size={11} style={{ marginLeft: 4 }} /></button>}
-                  {sel && <button onClick={() => setSp({})} style={activeChipStyle}>{sel} <X size={11} style={{ marginLeft: 4 }} /></button>}
-                  <button onClick={clearAllFilters} style={{ ...activeChipStyle, background: 'transparent', border: '1px dashed var(--border)', color: 'var(--muted-ink)' }}>Clear all</button>
+
+              {activeMobileFilters.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
+                  {activeMobileFilters.map(filter => (
+                    <button key={filter.label} onClick={filter.clear} style={activeChipStyle}>
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{filter.label}</span>
+                      <X size={11} style={{ marginLeft: 4, flexShrink: 0 }} />
+                    </button>
+                  ))}
+                  <button onClick={clearAllFilters} style={{ ...activeChipStyle, background: 'transparent', border: '1px dashed var(--border)', color: 'var(--muted-ink)' }}>
+                    Clear all
+                  </button>
                 </div>
               )}
             </div>
@@ -739,13 +801,13 @@ export default function Dashboard() {
           ) : visibleJobs.length === 0 ? (
             <EmptyState icon={<Briefcase size={36} />} title={searchQuery ? 'No jobs match your filters' : COPY.jobs.noJobsTitle} body={searchQuery ? 'No jobs match your filters. Try adjusting or clearing them.' : COPY.jobs.noJobsBody} action={<Button variant="ghost" onClick={clearAllFilters}>{COPY.jobs.clearFilters}</Button>} />
           ) : (
-            <div style={{ display: 'flex', gap: 0, height: 'calc(100dvh - 220px)', minHeight: 420, overflow: 'hidden', border: '1.25px solid var(--border)', borderRadius: 14, background: 'var(--surface-solid)' }}>
+            <div style={{ display: 'flex', flexDirection: useBottomSheet ? 'column' : 'row', gap: 0, height: useBottomSheet ? 'auto' : 'min(calc(100dvh - 220px), 920px)', minHeight: useBottomSheet ? 0 : 420, overflow: useBottomSheet ? 'visible' : 'hidden', border: '1.25px solid var(--border)', borderRadius: useBottomSheet ? 12 : 14, background: 'var(--surface-solid)' }}>
               {/* Left Panel: Job List */}
               <div ref={listRef} className="thin-scroll" style={{
                 width: useBottomSheet ? '100%' : (is3xl ? 320 : isLg ? '40%' : '30%'),
-                minWidth: useBottomSheet ? undefined : (is3xl ? 320 : 280),
+                minWidth: useBottomSheet ? 0 : (is3xl ? 320 : 280),
                 flexShrink: 0,
-                overflowY: 'auto',
+                overflowY: useBottomSheet ? 'visible' : 'auto',
                 borderRight: useBottomSheet ? 'none' : '1.25px solid var(--border)',
                 WebkitOverflowScrolling: 'touch',
               }}>
@@ -791,7 +853,9 @@ export default function Dashboard() {
                         fontSize: 15,
                         cursor: isLoadingMore ? 'not-allowed' : 'pointer',
                         marginTop: 8,
-                        minWidth: 180,
+                        minWidth: isXsSm ? '100%' : 180,
+                        width: isXsSm ? '100%' : undefined,
+                        maxWidth: 320,
                         transition: 'background 0.2s',
                         opacity: isLoadingMore ? 0.7 : 1,
                       }}
@@ -803,7 +867,7 @@ export default function Dashboard() {
               </div>
               {/* Right Panel: Detail */}
               {!useBottomSheet && (
-                <div ref={detailPanelRef} className="thin-scroll" style={{ width: isLg ? '60%' : '70%', flex: isLg ? '1 1 60%' : '1 1 70%', overflowY: 'auto', padding: is3xl ? '28px 36px' : '24px 32px', WebkitOverflowScrolling: 'touch' }}>
+                <div ref={detailPanelRef} className="thin-scroll" style={{ width: isLg ? '60%' : '70%', flex: isLg ? '1 1 60%' : '1 1 70%', overflowY: 'auto', overflowX: 'hidden', padding: is3xl ? '28px 36px' : '24px 32px', WebkitOverflowScrolling: 'touch' }}>
                   {selectedJob ? (
                     <JobDetailPanel
                       job={selectedJob}
@@ -854,7 +918,8 @@ export default function Dashboard() {
             style={{
               position: 'fixed',
               left: 0, right: 0, bottom: 0,
-              height: isShortLandscape ? '90dvh' : (isXsSm ? '92dvh' : '80dvh'),
+              height: isShortLandscape ? '100dvh' : (isXsSm ? '92dvh' : '84dvh'),
+              maxHeight: '100dvh',
               zIndex: 201,
               background: 'var(--surface-solid)',
               borderRadius: '20px 20px 0 0',
@@ -864,7 +929,7 @@ export default function Dashboard() {
           >
             {/* Sticky header */}
             <div style={{
-              padding: '8px 16px',
+              padding: '18px 16px 10px',
               borderBottom: '1px solid var(--border)',
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               flexShrink: 0,
@@ -889,7 +954,7 @@ export default function Dashboard() {
               <div style={{ width: 60 }} />{/* spacer for centering */}
             </div>
             {/* Scrollable content */}
-            <div className="thin-scroll" style={{ flex: 1, overflowY: 'auto', padding: isXsSm ? '16px 14px 12px' : '20px 18px 16px', WebkitOverflowScrolling: 'touch' }}>
+            <div className="thin-scroll" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: isXsSm ? '16px 14px 8px' : '20px 18px 16px', WebkitOverflowScrolling: 'touch' }}>
               <JobDetailPanel
                 job={selectedJob}
                 mobileMode
@@ -915,8 +980,8 @@ export default function Dashboard() {
             className="thin-scroll"
             style={{
               position: 'fixed', left: 0, right: 0, bottom: 0,
-              maxHeight: '85dvh', overflowY: 'auto',
-              borderRadius: '20px 20px 0 0',
+              maxHeight: '85dvh', overflowY: 'auto', overflowX: 'hidden',
+              borderRadius: '24px 24px 0 0',
               border: '1.25px solid var(--border)', borderBottom: 'none',
               background: 'var(--surface-solid)',
               padding: '0 0 max(16px, env(safe-area-inset-bottom))',
@@ -927,7 +992,7 @@ export default function Dashboard() {
             {/* Handle + header */}
             <div style={{ position: 'sticky', top: 0, background: 'var(--surface-solid)', zIndex: 2, padding: '10px 20px 12px', borderBottom: '1px solid var(--border)' }}>
               <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--border-strong)', margin: '0 auto 12px' }} />
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                 <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--ink)' }}>Filters</span>
                 <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                   {activeFilterCount > 0 && <button onClick={clearAllFilters} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600, fontFamily: 'inherit' }}>Clear all</button>}
@@ -937,7 +1002,7 @@ export default function Dashboard() {
             </div>
 
             {/* Filter sections */}
-            <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
               {/* Role Category */}
               <div>
                 <p style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--muted-ink)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Role</p>
@@ -984,6 +1049,33 @@ export default function Dashboard() {
                     <button key={o.l} onClick={() => setPlatformFilter(platformFilter === o.v ? null : o.v)} style={pillStyle(platformFilter === o.v)}>{o.l}</button>
                   ))}
                 </div>
+              </div>
+              <div>
+                <p style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--muted-ink)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Company</p>
+                <select
+                  value={sel}
+                  onChange={e => {
+                    const company = e.target.value;
+                    if (!company) {
+                      setSp({});
+                    } else {
+                      setSp({ company });
+                    }
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '12px 14px',
+                    borderRadius: 14,
+                    border: '1px solid var(--border)',
+                    background: 'var(--surface-solid)',
+                    color: sel ? 'var(--ink)' : 'var(--muted-ink)',
+                    fontFamily: 'inherit',
+                    fontSize: '0.88rem',
+                  }}
+                >
+                  <option value="">All companies</option>
+                  {cos.map(c => <option key={c.companyName} value={c.companyName}>{c.companyName}</option>)}
+                </select>
               </div>
             </div>
 
