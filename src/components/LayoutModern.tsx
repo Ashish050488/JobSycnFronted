@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, type ReactNode, type CSSProperties } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { Sun, Moon, LogOut, BookOpen, BarChart3, Menu, X, Zap, Building2 } from 'lucide-react';
+import { Sun, Moon, LogOut, BookOpen, BarChart3, Menu, X, Zap, Building2, Flame } from 'lucide-react';
 import { useTheme } from '../theme/ThemeProvider';
 import { COPY } from '../theme/brand';
 import { useUser } from '../context/UserContext';
@@ -219,6 +219,7 @@ export default function LayoutModern() {
               }}
             >
               {navLink('/jobs', COPY.nav.browseJobs, <Zap size={15} />)}
+              {navLink('/hiring', "Who's Hiring", <Flame size={15} />)}
               {navLink('/directory', COPY.nav.companies, <Building2 size={15} />)}
               {navLink('/progress', COPY.nav.myProgress, <BarChart3 size={15} />)}
             </div>
@@ -493,6 +494,7 @@ export default function LayoutModern() {
 
             <div style={{ display: 'grid', gap: 8 }}>
               {mobileNavLink('/jobs', COPY.nav.browseJobs, <Zap size={17} />, 'Fresh roles from company career pages')}
+              {mobileNavLink('/hiring', "Who's Hiring", <Flame size={17} />, 'Live leaderboard of companies posting new roles')}
               {mobileNavLink('/directory', COPY.nav.companies, <Building2 size={17} />, 'Explore hiring teams across India')}
               {mobileNavLink('/progress', COPY.nav.myProgress, <BarChart3 size={17} />, 'Track applications, streaks, and reminders')}
             </div>

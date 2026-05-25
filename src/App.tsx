@@ -9,6 +9,7 @@ import Progress from './pages/Progress';
 import Legal from './pages/Legal';
 import LoginScreen from './components/LoginScreen';
 import { useUser } from './context/UserContext';
+import HiringLeaderboard from './pages/HiringLeaderboard';
 
 function AppRoutes() {
   const { currentUser, isLoading } = useUser();
@@ -21,6 +22,7 @@ function AppRoutes() {
         <Route index element={<Home />} />
         <Route path="legal" element={<Legal />} />
         <Route path="directory" element={currentUser ? <CompanyDirectory /> : <LoginScreen />} />
+        <Route path="hiring" element={<HiringLeaderboard />} />
         <Route path="jobs" element={<Dashboard />} />
         <Route path="progress" element={currentUser ? <Progress /> : <LoginScreen />} />
       </Route>

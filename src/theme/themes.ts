@@ -25,14 +25,14 @@ export const lightVars: Record<string, string> = {
   '--primary-soft': 'rgba(45,106,79,0.12)',
 
   // Semantic
-  '--success': '#40916C',
-  '--success-soft': 'rgba(64,145,108,0.10)',
+  '--success': '#059669',
+  '--success-soft': 'rgba(5,150,105,0.10)',
   '--warning': '#D97706',
   '--warning-soft': 'rgba(217,119,6,0.10)',
-  '--danger': '#DC2626',
-  '--danger-soft': 'rgba(220,38,38,0.10)',
-  '--info': '#1F6FEB',
-  '--info-soft': 'rgba(31,111,235,0.10)',
+  '--danger': '#EA580C',
+  '--danger-soft': 'rgba(234,88,12,0.10)',
+  '--info': '#2563EB',
+  '--info-soft': 'rgba(37,99,235,0.10)',
 
   // Focus
   '--focus-ring': '0 0 0 3px rgba(45,106,79,0.30)',
@@ -93,14 +93,14 @@ export const darkVars: Record<string, string> = {
   '--primary-hover': '#95D5B2',
   '--primary-soft': 'rgba(116,198,157,0.14)',
 
-  '--success': '#74C69D',
-  '--success-soft': 'rgba(116,198,157,0.10)',
+  '--success': '#34D399',
+  '--success-soft': 'rgba(52,211,153,0.12)',
   '--warning': '#FBBF24',
   '--warning-soft': 'rgba(251,191,36,0.10)',
-  '--danger': '#F87171',
-  '--danger-soft': 'rgba(248,113,113,0.10)',
-  '--info': '#6EA8FF',
-  '--info-soft': 'rgba(110,168,255,0.14)',
+  '--danger': '#FB923C',
+  '--danger-soft': 'rgba(251,146,60,0.12)',
+  '--info': '#60A5FA',
+  '--info-soft': 'rgba(96,165,250,0.14)',
 
   '--focus-ring': '0 0 0 3px rgba(116,198,157,0.30)',
   '--link': '#95D5B2',

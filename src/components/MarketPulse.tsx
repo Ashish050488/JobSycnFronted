@@ -32,7 +32,7 @@ function TrendTag({ pct, trend }: { pct: number; trend: 'up' | 'down' | 'stable'
     if (trend === 'up')
         return <span style={{ ...mono, color: '#22c55e', fontWeight: 700 }}>[↑{pct}%]</span>;
     if (trend === 'down')
-        return <span style={{ ...mono, color: '#f87171', fontWeight: 700 }}>[↓{Math.abs(pct)}%]</span>;
+        return <span style={{ ...mono, color: '#FB923C', fontWeight: 700 }}>[↓{Math.abs(pct)}%]</span>;
     return <span style={{ ...mono, color: 'var(--muted-ink)' }}>[──]</span>;
 }
 
@@ -126,7 +126,7 @@ export default function MarketPulse() {
                         background: 'var(--paper2)',
                         borderBottom: '1px solid var(--border)',
                     }}>
-                        {['#ff5f57', '#febc2e', '#28c840'].map((c, i) => (
+                        {['#fb923c', '#febc2e', '#28c840'].map((c, i) => (
                             <span key={i} style={{
                                 width: 12, height: 12, borderRadius: '50%',
                                 background: c, display: 'inline-block', flexShrink: 0,
@@ -305,7 +305,7 @@ export default function MarketPulse() {
                                     const pct = Math.round((cat.totalRoles / maxRoles) * 100);
                                     const circumference = 2 * Math.PI * 28;
                                     const offset = circumference - (pct / 100) * circumference;
-                                    const trendColor = cat.trend === 'up' ? '#22c55e' : cat.trend === 'down' ? '#f87171' : 'var(--muted-ink)';
+                                    const trendColor = cat.trend === 'up' ? '#22c55e' : cat.trend === 'down' ? '#FB923C' : 'var(--muted-ink)';
                                     const trendIcon = cat.trend === 'up' ? '↑' : cat.trend === 'down' ? '↓' : '–';
 
                                     return (

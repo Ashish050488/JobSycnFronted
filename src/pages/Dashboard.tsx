@@ -9,6 +9,11 @@ import JobListItem from '../components/JobListItem';
 import type { ICompany } from '../types';
 import type { CompactBadge } from '../components/JobListItem';
 import JobDetailPanel, { stripHtmlText, buildSkillsRegex, relTime, getAutoTags, roleBadgeStyle } from '../components/JobDetailPanel';
+import { DashboardJobSheet } from '../components/DashboardJobSheet';
+import { DashboardFilterSheet } from '../components/DashboardFilterSheet';
+import { DashboardSearchBar } from '../components/DashboardSearchBar';
+import { DashboardMobileFilters } from '../components/DashboardMobileFilters';
+import { DashboardFilterBar } from '../components/DashboardFilterBar';
 // Viewport info hook
 function useViewportInfo() {
   const [viewport, setViewport] = useState(() => ({
@@ -34,7 +39,7 @@ function useViewportInfo() {
 function compactJobBadges(job: IJob): CompactBadge[] {
   const autoTags = getAutoTags(job);
   const badges: CompactBadge[] = [];
-  if (autoTags.urgency === 'Urgent') badges.push({ key: 'urgent', label: 'Urgent', bg: '#fee2e2', color: '#b91c1c' });
+  if (autoTags.urgency === 'Urgent') badges.push({ key: 'urgent', label: 'Urgent', bg: '#fff7ed', color: '#c2410c' });
   if (autoTags.roleCategory) {
     const tone = roleBadgeStyle(autoTags.roleCategory);
     badges.push({ key: 'role', label: autoTags.roleCategory, bg: tone.bg, color: tone.color });
@@ -511,41 +516,6 @@ export default function Dashboard() {
   ].filter((item): item is { label: string; clear: () => void } => Boolean(item));
 
 
-  const SheetActions = ({ job }: { job: IJob }) => {
-    const applied = appliedJobIds.has(job._id);
-    return (
-      <div className="mobile-sticky-actions" style={{
-        display: 'flex',
-        flexDirection: isXsSm ? 'column' : 'row',
-        gap: 10,
-      }}>
-        <a href={job.DirectApplyURL || job.ApplicationURL} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', flex: 1 }}>
-          <Button size="lg" style={{ width: '100%', minHeight: 44 }}>{COPY.jobs.applyNow} <ExternalLink size={14} /></Button>
-        </a>
-        {currentUser && (
-          <button
-            onClick={() => handleToggleApplied(job._id)}
-            style={{
-              minHeight: 44,
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              padding: '10px 16px', borderRadius: 10, cursor: 'pointer',
-              fontSize: '0.88rem', fontWeight: 600, fontFamily: 'inherit',
-              transition: 'all 0.18s', flexShrink: 0,
-              background: applied ? 'var(--primary)' : 'transparent',
-              color: applied ? '#fff' : 'var(--primary)',
-              border: '1.5px solid var(--primary)',
-              width: isXsSm ? '100%' : 'auto',
-              justifyContent: 'center',
-            }}
-          >
-            <CheckCircle2 size={15} />
-            {applied ? 'Applied' : 'Mark Applied'}
-          </button>
-        )}
-      </div>
-    );
-  };
-
   const closeMobileSheet = () => setMobileSheetOpen(false);
 
   return (
@@ -614,187 +584,53 @@ export default function Dashboard() {
       </div>
       <Container style={{ paddingTop: isXsSm ? 20 : 28, paddingBottom: isXsSm ? 24 : 32, maxWidth: is3xl ? 1600 : undefined }}>
         <div style={{ minWidth: 0 }}>
-          {/* Search bar + filter button */}
-          <div style={{ display: 'flex', gap: 8, marginBottom: 14, alignItems: 'center' }}>
-            <div style={{ position: 'relative', flex: 1 }}>
-              <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--muted-ink)', pointerEvents: 'none' }} />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Search by title, company, location, or tech stack..."
-                style={{
-                  width: '100%', height: 48, padding: '10px 36px 10px 38px', borderRadius: 12,
-                  border: '1.25px solid var(--border)', background: 'var(--surface-solid)',
-                  color: 'var(--ink)', fontSize: isXsSm ? 16 : '0.92rem', fontFamily: 'inherit',
-                  outline: 'none', transition: 'border-color 0.18s',
-                  boxSizing: 'border-box',
-                }}
-                onFocus={e => { (e.target as HTMLInputElement).style.borderColor = 'var(--primary)'; }}
-                onBlur={e => { (e.target as HTMLInputElement).style.borderColor = 'var(--border)'; }}
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  style={{
-                    position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
-                    background: 'none', border: 'none', cursor: 'pointer',
-                    color: 'var(--muted-ink)', display: 'flex', alignItems: 'center', padding: 2,
-                  }}
-                >
-                  <X size={15} />
-                </button>
-              )}
-            </div>
-          </div>
-          {/* Sort by skills row — only when user has skills and is logged in */}
-          {currentUser && userSkills.length > 0 && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-              <span style={{ fontSize: '0.75rem', color: 'var(--muted-ink)' }}>Sort by:</span>
-              <button
-                onClick={() => setSortBy(v => v === 'match' ? 'default' : 'match')}
-                style={{
-                  padding: '3px 10px', borderRadius: 999, fontSize: '0.75rem', fontFamily: 'inherit',
-                  border: sortBy === 'match' ? '1.5px solid var(--primary)' : '1.25px solid var(--border)',
-                  background: sortBy === 'match' ? 'var(--primary)' : 'transparent',
-                  color: sortBy === 'match' ? '#fff' : 'var(--muted-ink)',
-                  cursor: 'pointer', fontWeight: sortBy === 'match' ? 600 : 400, transition: 'all 0.18s',
-                }}
-              >
-                ✶ Best match
-              </button>
-              {sortBy === 'match' && (
-                <button
-                  onClick={() => setSortBy('default')}
-                  style={{ padding: '3px 10px', borderRadius: 999, fontSize: '0.75rem', fontFamily: 'inherit', border: '1.25px solid var(--border)', background: 'transparent', color: 'var(--muted-ink)', cursor: 'pointer', transition: 'all 0.18s' }}
-                >
-                  Default
-                </button>
-              )}
-            </div>
-          )}
+          <DashboardSearchBar
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            sortBy={sortBy}
+            setSortBy={setSortBy}
+            isXsSm={isXsSm}
+            currentUser={currentUser}
+            userSkills={userSkills}
+          />
           {/* ══ FILTER AREA ══ */}
           {useBottomSheet ? (
-            <div style={{ padding: '10px 0 14px', marginBottom: 8 }}>
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: isXsSm ? 'repeat(2, minmax(0, 1fr))' : 'repeat(4, minmax(0, 1fr))',
-                  gap: 8,
-                  padding: 10,
-                  borderRadius: 18,
-                  border: '1px solid var(--border)',
-                  background: 'linear-gradient(135deg, color-mix(in srgb, var(--primary-soft) 16%, transparent), color-mix(in srgb, var(--surface-solid) 90%, transparent))',
-                }}
-              >
-                <button
-                  onClick={() => setFilterModalOpen(true)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: 10,
-                    padding: '12px 14px',
-                    borderRadius: 14,
-                    border: activeFilterCount > 0 ? '1.5px solid var(--primary)' : '1.25px solid var(--border)',
-                    background: activeFilterCount > 0 ? 'var(--primary-soft)' : 'var(--surface-solid)',
-                    color: activeFilterCount > 0 ? 'var(--primary)' : 'var(--ink)',
-                    cursor: 'pointer',
-                    fontSize: '0.86rem',
-                    fontFamily: 'inherit',
-                    fontWeight: 700,
-                    transition: 'all 0.18s',
-                    gridColumn: '1 / -1',
-                    textAlign: 'left',
-                  }}
-                >
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-                    <span style={{ width: 34, height: 34, borderRadius: 12, border: '1px solid var(--border)', background: 'rgba(255,255,255,0.7)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-                    </span>
-                    <span style={{ minWidth: 0 }}>
-                      <span style={{ display: 'block' }}>Browse filters</span>
-                      <span style={{ display: 'block', marginTop: 2, fontSize: '0.72rem', fontWeight: 500, color: activeFilterCount > 0 ? 'var(--primary)' : 'var(--muted-ink)' }}>
-                        {activeFilterCount > 0 ? `${activeFilterCount} active right now` : 'Role, date, board, company, and more'}
-                      </span>
-                    </span>
-                  </span>
-                  <span style={{ fontSize: '0.9rem', color: activeFilterCount > 0 ? 'var(--primary)' : 'var(--subtle-ink)' }}>Open</span>
-                </button>
-
-                {currentUser && (
-                  <button
-                    onClick={() => setHideApplied(h => !h)}
-                    style={{
-                      ...pillStyle(hideApplied),
-                      padding: '11px 12px',
-                      borderRadius: 14,
-                      width: '100%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    {hideApplied ? <><EyeOff size={13} style={{ verticalAlign: -2, marginRight: 6 }} />Hidden</> : <><Eye size={13} style={{ verticalAlign: -2, marginRight: 6 }} />Applied</>}
-                  </button>
-                )}
-
-                <button
-                  onClick={() => setEntryLevelFilter(f => !f)}
-                  style={{
-                      ...pillStyle(entryLevelFilter),
-                      padding: '11px 12px',
-                      borderRadius: 14,
-                      width: '100%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                  }}
-                >
-                  <GraduationCap size={13} style={{ verticalAlign: -2, marginRight: 6 }} />Fresher
-                </button>
-
-                {currentUser && newJobsCount > 0 && (
-                  <button
-                    onClick={() => setShowNewOnly(n => !n)}
-                    style={{
-                      ...pillStyle(showNewOnly),
-                      padding: '11px 12px',
-                      borderRadius: 14,
-                      width: '100%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <Sparkles size={13} style={{ verticalAlign: -2, marginRight: 6 }} />New
-                  </button>
-                )}
-              </div>
-
-              {activeMobileFilters.length > 0 && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
-                  {activeMobileFilters.map(filter => (
-                    <button key={filter.label} onClick={filter.clear} style={activeChipStyle}>
-                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{filter.label}</span>
-                      <X size={11} style={{ marginLeft: 4, flexShrink: 0 }} />
-                    </button>
-                  ))}
-                  <button onClick={clearAllFilters} style={{ ...activeChipStyle, background: 'transparent', border: '1px dashed var(--border)', color: 'var(--muted-ink)' }}>
-                    Clear all
-                  </button>
-                </div>
-              )}
-            </div>
+            <DashboardMobileFilters
+              isXsSm={isXsSm}
+              activeFilterCount={activeFilterCount}
+              currentUser={currentUser}
+              newJobsCount={newJobsCount}
+              hideApplied={hideApplied}
+              entryLevelFilter={entryLevelFilter}
+              showNewOnly={showNewOnly}
+              activeMobileFilters={activeMobileFilters}
+              activeChipStyle={activeChipStyle}
+              pillStyle={pillStyle}
+              setFilterModalOpen={setFilterModalOpen}
+              setHideApplied={setHideApplied}
+              setEntryLevelFilter={setEntryLevelFilter}
+              setShowNewOnly={setShowNewOnly}
+              clearAllFilters={clearAllFilters}
+            />
           ) : (
-            <div style={{ display: 'flex', gap: 10, padding: '12px 0 14px', marginBottom: 12, borderBottom: '1px solid var(--border)', flexWrap: 'wrap' }}>
-              <select value={roleCategoryFilter ?? ''} onChange={e => setRoleCategoryFilter(e.target.value || null)} style={desktopSelectStyle(!!roleCategoryFilter)}><option value="">Role: All</option>{ROLE_FILTER_OPTIONS.filter(o => o.value).map(opt => <option key={opt.label} value={opt.value!}>{opt.label}</option>)}</select>
-              <select value={experienceBandFilter ?? ''} onChange={e => setExperienceBandFilter(e.target.value || null)} style={desktopSelectStyle(!!experienceBandFilter)}><option value="">Exp: All</option>{EXPERIENCE_FILTER_OPTIONS.filter(o => o.value).map(opt => <option key={opt.label} value={opt.value!}>{opt.label}</option>)}</select>
-              <select value={workplaceFilter ?? ''} onChange={e => setWorkplaceFilter(e.target.value || null)} style={desktopSelectStyle(!!workplaceFilter)}><option value="">Workplace: All</option><option value="remote">Remote</option><option value="hybrid">Hybrid</option><option value="on-site">On-site</option></select>
-              <select value={dateFilter ?? ''} onChange={e => setDateFilter(e.target.value || null)} style={desktopSelectStyle(!!dateFilter)}><option value="">Date: All</option><option value="1d">Past 24h</option><option value="3d">Past 3d</option><option value="7d">Past 7d</option></select>
-              <select value={platformFilter ?? ''} onChange={e => setPlatformFilter(e.target.value || null)} style={desktopSelectStyle(!!platformFilter)}><option value="">Board: All</option><option value="lever">Lever</option><option value="greenhouse">Greenhouse</option><option value="ashby">Ashby</option><option value="workable">Workable</option><option value="recruitee">Recruitee</option><option value="workday">Workday</option></select>
-              <select value={sel} onChange={e => { const company = e.target.value; if (!company) { setSp({}); } else { setSp({ company }); } }} style={desktopSelectStyle(!!sel)}><option value="">Companies: All</option>{cos.map(c => <option key={c.companyName} value={c.companyName}>{c.companyName}</option>)}</select>
-            </div>
+            <DashboardFilterBar
+              roleCategoryFilter={roleCategoryFilter}
+              experienceBandFilter={experienceBandFilter}
+              workplaceFilter={workplaceFilter}
+              dateFilter={dateFilter}
+              platformFilter={platformFilter}
+              sel={sel}
+              cos={cos}
+              roleOptions={ROLE_FILTER_OPTIONS}
+              experienceOptions={EXPERIENCE_FILTER_OPTIONS}
+              desktopSelectStyle={desktopSelectStyle}
+              setRoleCategoryFilter={setRoleCategoryFilter}
+              setExperienceBandFilter={setExperienceBandFilter}
+              setWorkplaceFilter={setWorkplaceFilter}
+              setDateFilter={setDateFilter}
+              setPlatformFilter={setPlatformFilter}
+              setSp={p => setSp(p)}
+            />
           )}
           {loading ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>{[1, 2, 3, 4].map(i => <div key={i} className="skeleton" style={{ height: 148 }} />)}</div>
@@ -894,207 +730,46 @@ export default function Dashboard() {
 
       {/* Mobile/tablet bottom sheet */}
       {useBottomSheet && mobileSheetOpen && selectedJob && (
-        <>
-          {/* Backdrop */}
-          <div
-            onClick={closeMobileSheet}
-            style={{
-              position: 'fixed', inset: 0, zIndex: 200,
-              background: 'rgba(0,0,0,0.45)',
-              animation: 'sheetFadeIn 0.2s ease',
-            }}
-          />
-          {/* Sheet */}
-          <div
-            onTouchStart={e => {
-              const touch = e.touches[0];
-              (e.currentTarget as HTMLDivElement).dataset.touchStartY = String(touch.clientY);
-            }}
-            onTouchEnd={e => {
-              const startY = Number((e.currentTarget as HTMLDivElement).dataset.touchStartY || '0');
-              const endY = e.changedTouches[0]?.clientY ?? startY;
-              if (endY - startY > 50) closeMobileSheet();
-            }}
-            style={{
-              position: 'fixed',
-              left: 0, right: 0, bottom: 0,
-              height: isShortLandscape ? '100dvh' : (isXsSm ? '92dvh' : '84dvh'),
-              maxHeight: '100dvh',
-              zIndex: 201,
-              background: 'var(--surface-solid)',
-              borderRadius: '20px 20px 0 0',
-              display: 'flex', flexDirection: 'column',
-              animation: 'sheetSlideUp 0.28s ease',
-            }}
-          >
-            {/* Sticky header */}
-            <div style={{
-              padding: '18px 16px 10px',
-              borderBottom: '1px solid var(--border)',
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              flexShrink: 0,
-            }}>
-              <button
-                onClick={closeMobileSheet}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  color: 'var(--primary)', fontSize: '0.85rem', fontWeight: 600,
-                  fontFamily: 'inherit',
-                }}
-              >
-                <ArrowLeft size={16} /> Back
-              </button>
-              {/* Drag handle (decorative) */}
-              <div style={{
-                width: 36, height: 4, borderRadius: 2,
-                background: 'var(--border-strong)',
-                position: 'absolute', left: '50%', transform: 'translateX(-50%)', top: 8,
-              }} />
-              <div style={{ width: 60 }} />{/* spacer for centering */}
-            </div>
-            {/* Scrollable content */}
-            <div className="thin-scroll" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: isXsSm ? '16px 14px 8px' : '20px 18px 16px', WebkitOverflowScrolling: 'touch' }}>
-              <JobDetailPanel
-                job={selectedJob}
-                mobileMode
-                is3xl={is3xl}
-                appliedJobIds={appliedJobIds}
-                comeBackMap={comeBackMap}
-                onToggleApplied={handleToggleApplied}
-                onToggleComeBack={toggleComeBack}
-                onRemoveComeBack={removeComeBack}
-                onSelectJob={handleSelectJobById}
-              />
-            </div>
-            <SheetActions job={selectedJob} />
-          </div>
-        </>
+        <DashboardJobSheet
+          selectedJob={selectedJob}
+          isXsSm={isXsSm}
+          isShortLandscape={isShortLandscape}
+          is3xl={is3xl}
+          appliedJobIds={appliedJobIds}
+          comeBackMap={comeBackMap}
+          currentUser={currentUser}
+          onClose={closeMobileSheet}
+          onToggleApplied={handleToggleApplied}
+          onToggleComeBack={toggleComeBack}
+          onRemoveComeBack={removeComeBack}
+          onSelectJob={handleSelectJobById}
+        />
       )}
 
       {/* ── Mobile Filter Bottom Sheet ── */}
       {useBottomSheet && filterModalOpen && (
-        <>
-          <div onClick={() => setFilterModalOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 220, animation: 'sheetFadeIn 0.2s ease' }} />
-          <div
-            className="thin-scroll"
-            style={{
-              position: 'fixed', left: 0, right: 0, bottom: 0,
-              maxHeight: '85dvh', overflowY: 'auto', overflowX: 'hidden',
-              borderRadius: '24px 24px 0 0',
-              border: '1.25px solid var(--border)', borderBottom: 'none',
-              background: 'var(--surface-solid)',
-              padding: '0 0 max(16px, env(safe-area-inset-bottom))',
-              zIndex: 221,
-              animation: 'sheetSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1)',
-            }}
-          >
-            {/* Handle + header */}
-            <div style={{ position: 'sticky', top: 0, background: 'var(--surface-solid)', zIndex: 2, padding: '10px 20px 12px', borderBottom: '1px solid var(--border)' }}>
-              <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--border-strong)', margin: '0 auto 12px' }} />
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--ink)' }}>Filters</span>
-                <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                  {activeFilterCount > 0 && <button onClick={clearAllFilters} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600, fontFamily: 'inherit' }}>Clear all</button>}
-                  <button onClick={() => setFilterModalOpen(false)} style={{ width: 36, height: 36, borderRadius: '50%', border: '1px solid var(--border)', background: 'var(--paper2)', color: 'var(--muted-ink)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={16} /></button>
-                </div>
-              </div>
-            </div>
-
-            {/* Filter sections */}
-            <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {/* Role Category */}
-              <div>
-                <p style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--muted-ink)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Role</p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                  <button onClick={() => setRoleCategoryFilter(null)} style={pillStyle(!roleCategoryFilter)}>All</button>
-                  {ROLE_FILTER_OPTIONS.filter(o => o.value).map(opt => (
-                    <button key={opt.label} onClick={() => setRoleCategoryFilter(roleCategoryFilter === opt.value ? null : (opt.value ?? null))} style={pillStyle(roleCategoryFilter === opt.value)}>{opt.label}</button>
-                  ))}
-                </div>
-              </div>
-              {/* Experience */}
-              <div>
-                <p style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--muted-ink)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Experience</p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                  <button onClick={() => setExperienceBandFilter(null)} style={pillStyle(!experienceBandFilter)}>All</button>
-                  {EXPERIENCE_FILTER_OPTIONS.filter(o => o.value).map(opt => (
-                    <button key={opt.label} onClick={() => setExperienceBandFilter(experienceBandFilter === opt.value ? null : (opt.value ?? null))} style={pillStyle(experienceBandFilter === opt.value)}>{opt.label}</button>
-                  ))}
-                </div>
-              </div>
-              {/* Workplace */}
-              <div>
-                <p style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--muted-ink)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Workplace</p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                  {[{ l: 'All', v: null }, { l: 'Remote', v: 'remote' }, { l: 'Hybrid', v: 'hybrid' }, { l: 'On-site', v: 'on-site' }].map(o => (
-                    <button key={o.l} onClick={() => setWorkplaceFilter(workplaceFilter === o.v ? null : o.v)} style={pillStyle(workplaceFilter === o.v)}>{o.l}</button>
-                  ))}
-                </div>
-              </div>
-              {/* Date */}
-              <div>
-                <p style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--muted-ink)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Posted</p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                  {[{ l: 'Any time', v: null }, { l: 'Past 24h', v: '1d' }, { l: 'Past 3 days', v: '3d' }, { l: 'Past week', v: '7d' }].map(o => (
-                    <button key={o.l} onClick={() => setDateFilter(dateFilter === o.v ? null : o.v)} style={pillStyle(dateFilter === o.v)}>{o.l}</button>
-                  ))}
-                </div>
-              </div>
-              {/* Platform */}
-              <div>
-                <p style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--muted-ink)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Job Board</p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                  {[{ l: 'All', v: null }, { l: 'Lever', v: 'lever' }, { l: 'Greenhouse', v: 'greenhouse' }, { l: 'Ashby', v: 'ashby' }, { l: 'Workable', v: 'workable' }, { l: 'Recruitee', v: 'recruitee' }, { l: 'Workday', v: 'workday' }].map(o => (
-                    <button key={o.l} onClick={() => setPlatformFilter(platformFilter === o.v ? null : o.v)} style={pillStyle(platformFilter === o.v)}>{o.l}</button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <p style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--muted-ink)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Company</p>
-                <select
-                  value={sel}
-                  onChange={e => {
-                    const company = e.target.value;
-                    if (!company) {
-                      setSp({});
-                    } else {
-                      setSp({ company });
-                    }
-                  }}
-                  style={{
-                    width: '100%',
-                    padding: '12px 14px',
-                    borderRadius: 14,
-                    border: '1px solid var(--border)',
-                    background: 'var(--surface-solid)',
-                    color: sel ? 'var(--ink)' : 'var(--muted-ink)',
-                    fontFamily: 'inherit',
-                    fontSize: '0.88rem',
-                  }}
-                >
-                  <option value="">All companies</option>
-                  {cos.map(c => <option key={c.companyName} value={c.companyName}>{c.companyName}</option>)}
-                </select>
-              </div>
-            </div>
-
-            {/* Sticky apply button */}
-            <div style={{ position: 'sticky', bottom: 0, padding: '12px 20px', paddingBottom: 'max(12px, env(safe-area-inset-bottom))', background: 'var(--surface-solid)', borderTop: '1px solid var(--border)' }}>
-              <button
-                onClick={() => setFilterModalOpen(false)}
-                style={{
-                  width: '100%', padding: '14px 0', borderRadius: 12,
-                  background: 'var(--primary)', color: '#fff', border: 'none',
-                  fontSize: '0.92rem', fontWeight: 700, cursor: 'pointer',
-                  fontFamily: 'inherit', transition: 'opacity 0.15s',
-                }}
-              >
-                Show {visibleJobs.length} jobs
-              </button>
-            </div>
-          </div>
-        </>
+        <DashboardFilterSheet
+          roleCategoryFilter={roleCategoryFilter}
+          experienceBandFilter={experienceBandFilter}
+          workplaceFilter={workplaceFilter}
+          dateFilter={dateFilter}
+          platformFilter={platformFilter}
+          sel={sel}
+          activeFilterCount={activeFilterCount}
+          visibleJobsCount={visibleJobs.length}
+          cos={cos}
+          roleOptions={ROLE_FILTER_OPTIONS}
+          experienceOptions={EXPERIENCE_FILTER_OPTIONS}
+          setRoleCategoryFilter={setRoleCategoryFilter}
+          setExperienceBandFilter={setExperienceBandFilter}
+          setWorkplaceFilter={setWorkplaceFilter}
+          setDateFilter={setDateFilter}
+          setPlatformFilter={setPlatformFilter}
+          setSp={p => setSp(p)}
+          clearAllFilters={clearAllFilters}
+          onClose={() => setFilterModalOpen(false)}
+          pillStyle={pillStyle}
+        />
       )}
     </div>
   );

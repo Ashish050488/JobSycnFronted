@@ -367,7 +367,7 @@ export default function JobDetailPanel({
           {autoTags.urgency && (
             <span style={{
               fontSize: '0.72rem', padding: '2px 9px', borderRadius: 999,
-              background: '#fee2e2', color: '#b91c1c', fontWeight: 700,
+              background: '#fff7ed', color: '#c2410c', fontWeight: 700,
             }}>🔥 {autoTags.urgency}</span>
           )}
 
