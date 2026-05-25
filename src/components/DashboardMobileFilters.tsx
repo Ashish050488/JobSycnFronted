@@ -1,4 +1,5 @@
 import { Eye, EyeOff, Sparkles, GraduationCap, X } from 'lucide-react';
+import type { AppUser } from '../context/UserContext';
 
 interface ActiveFilter {
   label: string;
@@ -8,7 +9,7 @@ interface ActiveFilter {
 interface DashboardMobileFiltersProps {
   isXsSm: boolean;
   activeFilterCount: number;
-  currentUser: unknown;
+  currentUser: AppUser | null;
   newJobsCount: number;
   hideApplied: boolean;
   entryLevelFilter: boolean;

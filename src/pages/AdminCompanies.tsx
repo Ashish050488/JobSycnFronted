@@ -54,7 +54,7 @@ export default function AdminCompanies() {
   const sorted = [...filtered].sort((a, b) => {
     if (sort === 'a-z') return a.companyName.localeCompare(b.companyName);
     if (sort === 'z-a') return b.companyName.localeCompare(a.companyName);
-    if (sort === 'most-hiring') return (b.totalRoles || 0) - (a.totalRoles || 0);
+    if (sort === 'most-hiring') return (b.totalRoles ?? b.openRoles ?? 0) - (a.totalRoles ?? a.openRoles ?? 0);
     return 0;
   });
   const total = sorted.length;

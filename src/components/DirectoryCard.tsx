@@ -72,7 +72,7 @@ export default function CompanyCard({ company, adminActions }: Props) {
           <h3 style={{ fontWeight: 700, color: 'var(--ink)', fontSize: '1rem', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {company.companyName}
           </h3>
-          {company.totalRoles > 0 && <Badge variant="primary">{company.totalRoles} open role{company.totalRoles > 1 ? 's' : ''}</Badge>}
+          {(company.totalRoles ?? company.openRoles) > 0 && <Badge variant="primary">{company.totalRoles ?? company.openRoles} open role{(company.totalRoles ?? company.openRoles) > 1 ? 's' : ''}</Badge>}
         </div>
       </div>
 

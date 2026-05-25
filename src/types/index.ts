@@ -85,8 +85,10 @@ export interface ICompany {
   _id?: string;
   companyName: string;
   openRoles: number;
+  totalRoles?: number;
   cities: string[];
   domain: string;
+  careersUrl?: string;
   source: 'scraped' | 'manual';
   logo?: string;
   industry?: string;

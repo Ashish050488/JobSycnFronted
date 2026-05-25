@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 import {
   TrendingUp, TrendingDown, Minus, Flame, Clock, AlertTriangle,
   Share2, ChevronDown, ChevronUp, Building2, Crown, Medal, Trophy,
-  ExternalLink, MapPin,
 } from 'lucide-react';
 import { Container, Spinner, EmptyState } from '../components/ui';
 import { LeaderboardSummaryCard } from '../components/LeaderboardSummaryCard';

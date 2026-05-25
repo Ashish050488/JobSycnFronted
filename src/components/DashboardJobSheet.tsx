@@ -2,14 +2,15 @@ import { ArrowLeft, ExternalLink, CheckCircle2 } from 'lucide-react';
 import { Button } from './ui';
 import { COPY } from '../theme/brand';
 import JobDetailPanel from './JobDetailPanel';
+import type { AppUser } from '../context/UserContext';
 import type { IJob } from '../types';
 
 interface SheetActionsProps {
   job: IJob;
   isXsSm: boolean;
   appliedJobIds: Set<string>;
-  currentUser: unknown;
-  onToggleApplied: (jobId: string) => void;
+  currentUser: AppUser | null;
+  onToggleApplied: (jobId: string) => Promise<void>;
 }
 
 function SheetActions({ job, isXsSm, appliedJobIds, currentUser, onToggleApplied }: SheetActionsProps) {
@@ -54,9 +55,9 @@ interface DashboardJobSheetProps {
   is3xl: boolean;
   appliedJobIds: Set<string>;
   comeBackMap: Map<string, { note: string; addedAt: string }>;
-  currentUser: unknown;
+  currentUser: AppUser | null;
   onClose: () => void;
-  onToggleApplied: (jobId: string) => void;
+  onToggleApplied: (jobId: string) => Promise<void>;
   onToggleComeBack: (jobId: string, note: string) => void;
   onRemoveComeBack: (jobId: string) => void;
   onSelectJob: (id: string) => void;

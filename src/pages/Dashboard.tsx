@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Briefcase, X, ExternalLink, ArrowLeft, Search, CheckCircle2, Eye, EyeOff, Sparkles, GraduationCap } from 'lucide-react';
+import { Briefcase, X } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import type { IJob } from '../types';
 import { Container, PageHeader, Button, EmptyState } from '../components/ui';
