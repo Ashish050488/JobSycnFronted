@@ -1,69 +1,116 @@
-import { getDayBuckets, getGoalMetDays, getStreak, getThisWeekApplied, getWeekStart } from '../utils/progress';
+// FILE: src/components/ActivityChart.tsx
 import type { AppliedJobEntry } from '../types';
+import {
+  getDayBuckets, getGoalMetDays, getThisWeekApplied, getWeekStart, getStreak,
+} from '../utils/progress';
 
-interface ActivityChartProps {
+interface Props {
   appliedJobs: AppliedJobEntry[];
   dailyGoal: number;
-  isMobile: boolean;
-  barMaxHeight?: number;
 }
 
-export default function ActivityChart({ appliedJobs, dailyGoal, isMobile, barMaxHeight = 120 }: ActivityChartProps) {
+export default function ActivityChart({ appliedJobs, dailyGoal }: Props) {
   const buckets = getDayBuckets(appliedJobs, 7);
-  const maxCount = Math.max(...buckets.map(bucket => bucket.count), 1);
-  const hasApplications = buckets.some(bucket => bucket.count > 0);
+  const weekTotal = getThisWeekApplied(appliedJobs);
+  const goalMet = getGoalMetDays(appliedJobs, dailyGoal, 7);
   const streak = getStreak(appliedJobs);
-  const goalMetDays = getGoalMetDays(appliedJobs, dailyGoal, 7);
-  const thisWeekApplied = getThisWeekApplied(appliedJobs);
-  const weekStart = getWeekStart();
-  const weekRangeLabel = `${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}–today`;
-
-  if (!hasApplications) {
-    return (
-      <div style={{ background: 'var(--surface-solid)', border: '1.25px solid var(--border)', borderRadius: 18, padding: '32px 24px', textAlign: 'center' }}>
-        <div style={{ fontSize: '0.92rem', color: 'var(--muted-ink)' }}>No applications this week yet. Your weekly chart will show up here once you start applying.</div>
-      </div>
-    );
-  }
-
-  const chartHeight = barMaxHeight + 36;
-  const barWidth = isMobile ? 28 : 38;
-  const gap = isMobile ? 10 : 16;
+  const max = Math.max(...buckets.map(b => b.count), dailyGoal, 1);
 
   return (
-    <div style={{ background: 'var(--surface-solid)', border: '1.25px solid var(--border)', borderRadius: 18, padding: isMobile ? '22px 18px' : '24px 26px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap', marginBottom: 18 }}>
-        <div>
-          <div className="font-sketch" style={{ fontSize: '1rem', color: 'var(--primary)', marginBottom: 4 }}>Weekly Activity</div>
-          <div style={{ fontSize: '0.86rem', color: 'var(--muted-ink)' }}>Applied to {thisWeekApplied} job{thisWeekApplied === 1 ? '' : 's'} this week ({weekRangeLabel})</div>
-        </div>
-        {streak > 0 && (
-          <div style={{ fontSize: '0.84rem', color: 'var(--primary)', fontWeight: 700 }}>🔥 {streak}-day streak</div>
-        )}
+    <div>
+      {/* Stat row */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))',
+        gap: 10, marginBottom: 18,
+      }}>
+        <Stat label="This week" value={weekTotal} suffix="applied" />
+        <Stat label="Goal-met days" value={goalMet} suffix={`/ ${7}`} accent={goalMet >= 4} />
+        <Stat label="Current streak" value={streak} suffix={streak === 1 ? 'day' : 'days'} accent={streak > 0} />
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap, height: chartHeight, marginBottom: 18, overflowX: 'auto', paddingBottom: 6 }}>
-        {buckets.map(bucket => {
-          const height = bucket.count === 0 ? 8 : Math.max(18, (bucket.count / maxCount) * barMaxHeight);
-          const background = bucket.isToday ? 'var(--primary)' : bucket.count > 0 ? 'rgba(45,106,79,0.28)' : 'var(--border)';
-
+      {/* Bars */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'flex-end',
+        gap: 8,
+        height: 160,
+        padding: '12px 4px 0',
+        borderBottom: '1px dashed var(--border)',
+      }}>
+        {buckets.map((b, i) => {
+          const h = Math.max(4, (b.count / max) * 130);
+          const isMet = b.count >= dailyGoal && b.count > 0;
+          const isEmpty = b.count === 0;
           return (
-            <div key={bucket.date.toISOString()} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: barWidth }}>
-              <div style={{ fontSize: '0.78rem', color: bucket.count > 0 ? 'var(--primary)' : 'var(--muted-ink)', fontWeight: 700, marginBottom: 6, minHeight: 18 }}>
-                {bucket.count > 0 ? bucket.count : ''}
-              </div>
-              <div style={{ width: barWidth, height, borderRadius: 8, background, transition: 'height 0.22s ease' }} />
-              <div style={{ fontSize: '0.76rem', color: bucket.isToday ? 'var(--ink)' : 'var(--muted-ink)', fontWeight: bucket.isToday ? 700 : 500, marginTop: 8 }}>
-                {bucket.dayName}
-              </div>
+            <div key={i} style={{
+              flex: 1,
+              display: 'flex', flexDirection: 'column',
+              alignItems: 'center', justifyContent: 'flex-end',
+              gap: 6, height: '100%', minWidth: 0,
+            }}>
+              {!isEmpty && (
+                <div style={{
+                  fontSize: '0.7rem', fontWeight: 600,
+                  color: isMet ? 'var(--success)' : 'var(--ink-muted)',
+                  fontVariantNumeric: 'tabular-nums',
+                }}>{b.count}</div>
+              )}
+              <div style={{
+                width: '100%', maxWidth: 32,
+                height: h,
+                borderRadius: '8px 8px 4px 4px',
+                background: isEmpty ? 'var(--paper-2)' : isMet ? 'var(--success)' : 'var(--accent)',
+                opacity: b.isToday ? 1 : isEmpty ? 1 : 0.75,
+                border: b.isToday ? '1.5px solid var(--ink)' : 'none',
+                transition: 'all 240ms cubic-bezier(0.16, 1, 0.3, 1)',
+              }} />
             </div>
           );
         })}
       </div>
+      {/* Day labels */}
+      <div style={{
+        display: 'flex', gap: 8, padding: '8px 4px 0',
+      }}>
+        {buckets.map((b, i) => (
+          <div key={i} style={{
+            flex: 1,
+            textAlign: 'center',
+            fontSize: '0.7rem',
+            color: b.isToday ? 'var(--ink)' : 'var(--ink-muted)',
+            fontWeight: b.isToday ? 600 : 500,
+            minWidth: 0,
+          }}>
+            {b.dayName.slice(0, 3)}
+          </div>
+        ))}
+      </div>
+      <div style={{ display: 'none' }}>{getWeekStart().toISOString()}</div>
+    </div>
+  );
+}
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 18px', fontSize: '0.84rem', color: 'var(--muted-ink)' }}>
-        <span>⭐ Hit goal {goalMetDays} of last 7 days</span>
-        <span>Goal: {dailyGoal}/day</span>
+function Stat({ label, value, suffix, accent }: { label: string; value: number; suffix: string; accent?: boolean }) {
+  return (
+    <div style={{
+      padding: '10px 12px',
+      background: 'var(--paper-2)',
+      borderRadius: 10,
+      border: '1px solid var(--border)',
+    }}>
+      <div style={{ fontSize: '0.7rem', color: 'var(--ink-muted)', letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 600 }}>
+        {label}
+      </div>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginTop: 4 }}>
+        <span className="font-display" style={{
+          fontSize: '1.35rem', fontWeight: 600,
+          color: accent ? 'var(--success)' : 'var(--ink)',
+          letterSpacing: '-0.02em',
+          lineHeight: 1,
+          fontVariantNumeric: 'tabular-nums',
+        }}>{value}</span>
+        <span style={{ fontSize: '0.72rem', color: 'var(--ink-muted)' }}>{suffix}</span>
       </div>
     </div>
   );

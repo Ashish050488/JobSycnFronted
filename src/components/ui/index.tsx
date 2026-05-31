@@ -1,23 +1,33 @@
-// ─── Design System UI Primitives ─────────────────────────────────────────────
-// Paper + Ink sketch aesthetic. All components read from CSS variables only.
+// ─── Design System UI Primitives ─────────────────────────────────────
+// Notion paper aesthetic with Apple-grade polish.
+// All runtime styling reads from CSS variables set by ThemeProvider.
 
-import { type ReactNode, type CSSProperties, type ButtonHTMLAttributes, type InputHTMLAttributes, type TextareaHTMLAttributes, type SelectHTMLAttributes, forwardRef } from 'react';
+import {
+  type ReactNode, type CSSProperties, type ButtonHTMLAttributes,
+  type InputHTMLAttributes, type TextareaHTMLAttributes, type SelectHTMLAttributes,
+  forwardRef,
+} from 'react';
 
-// ── Types ─────────────────────────────────────────────────────────────────────
 type Size = 'sm' | 'md' | 'lg';
-type Variant = 'primary' | 'ghost' | 'danger' | 'success' | 'outline';
-// UPDATED: Added 'acid' to the union type
+type Variant = 'primary' | 'ghost' | 'danger' | 'success' | 'outline' | 'secondary';
 type BadgeVariant = 'primary' | 'green' | 'red' | 'yellow' | 'blue' | 'neutral' | 'acid';
 
-// ── Container ─────────────────────────────────────────────────────────────────
+// ── Container ────────────────────────────────────────────────────────
 export function Container({ children, size = 'xl', style, className = '' }: {
   children: ReactNode; size?: 'sm' | 'md' | 'lg' | 'xl'; style?: CSSProperties; className?: string;
 }) {
   const maxW = { sm: '640px', md: '768px', lg: '1024px', xl: '1200px' }[size];
-  return <div style={{ maxWidth: maxW, margin: '0 auto', padding: '0 clamp(16px, 4vw, 24px)', ...style }} className={className}>{children}</div>;
+  return (
+    <div
+      className={className}
+      style={{ maxWidth: maxW, margin: '0 auto', padding: '0 clamp(16px, 4vw, 24px)', ...style }}
+    >
+      {children}
+    </div>
+  );
 }
 
-// ── Stack ─────────────────────────────────────────────────────────────────────
+// ── Stack ─────────────────────────────────────────────────────────────
 export function Stack({ children, gap = 16, dir = 'col', align, justify, wrap, className = '' }: {
   children: ReactNode; gap?: number; dir?: 'row' | 'col'; align?: string; justify?: string; wrap?: boolean; className?: string;
 }) {
@@ -31,88 +41,101 @@ export function Stack({ children, gap = 16, dir = 'col', align, justify, wrap, c
   );
 }
 
-// ── Button ────────────────────────────────────────────────────────────────────
+// ── Button ────────────────────────────────────────────────────────────
 const BTN_BASE: CSSProperties = {
-  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-  fontFamily: 'inherit', fontWeight: 600, letterSpacing: '0.01em',
-  border: 'none', borderRadius: '10px',
-  cursor: 'pointer', textDecoration: 'none', lineHeight: 1,
-  transition: 'all 0.22s cubic-bezier(0.2,0.8,0.2,1)',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 6,
+  fontFamily: 'inherit',
+  fontWeight: 500,
+  letterSpacing: '-0.005em',
+  border: '1px solid transparent',
+  borderRadius: 10,
+  cursor: 'pointer',
+  textDecoration: 'none',
+  lineHeight: 1,
+  transition: 'all 180ms cubic-bezier(0.2, 0.8, 0.2, 1)',
   whiteSpace: 'nowrap',
-};
-const BTN_SIZE: Record<Size, CSSProperties> = {
-  sm: { fontSize: '0.8rem', padding: '8px 16px' },
-  md: { fontSize: '0.875rem', padding: '11px 22px' },
-  lg: { fontSize: '0.95rem', padding: '14px 28px' },
-};
-const BTN_VARIANT: Record<Variant, CSSProperties> = {
-  primary: { background: 'var(--primary)', color: '#ffffff' },
-  ghost: { background: 'transparent', color: 'var(--ink2)', border: '1.25px solid var(--ink-border-strong, var(--border-strong))' },
-  danger: { background: 'var(--danger-soft)', color: 'var(--danger)', border: '1.25px solid var(--danger)' },
-  success: { background: 'var(--success-soft)', color: 'var(--success)', border: '1.25px solid var(--success)' },
-  outline: { background: 'transparent', color: 'var(--ink)', border: '1.25px solid var(--ink-border-strong, var(--border-strong))' },
+  WebkitTapHighlightColor: 'transparent',
 };
 
+const BTN_SIZE: Record<Size, CSSProperties> = {
+  sm: { fontSize: '0.8125rem', padding: '7px 14px', minHeight: 32 },
+  md: { fontSize: '0.875rem', padding: '9px 18px', minHeight: 38 },
+  lg: { fontSize: '0.9375rem', padding: '12px 22px', minHeight: 44 },
+};
+
+const BTN_VARIANT: Record<Variant, CSSProperties> = {
+  primary: { background: 'var(--ink)', color: 'var(--paper)', borderColor: 'var(--ink)' },
+  secondary: { background: 'var(--paper-2)', color: 'var(--ink)', borderColor: 'var(--border)' },
+  ghost: { background: 'transparent', color: 'var(--ink-2)', borderColor: 'var(--border)' },
+  outline: { background: 'transparent', color: 'var(--ink)', borderColor: 'var(--border-strong)' },
+  danger: { background: 'var(--danger-soft)', color: 'var(--danger)', borderColor: 'transparent' },
+  success: { background: 'var(--success-soft)', color: 'var(--success)', borderColor: 'transparent' },
+};
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: Variant; size?: Size; loading?: boolean; as?: 'button' | 'a'; href?: string; children: ReactNode;
-}
-export function Button({ variant = 'primary', size = 'md', loading, children, style, as: Tag = 'button', href, className = '', ...rest }: ButtonProps & { className?: string }) {
-  const sketchClass = (variant === 'ghost' || variant === 'outline') ? 'sketch-ink marker-hover' : '';
-  const merged: CSSProperties = { ...BTN_BASE, ...BTN_SIZE[size], ...BTN_VARIANT[variant], ...(loading ? { opacity: 0.65, cursor: 'not-allowed' } : {}), ...style };
-  if (Tag === 'a') return <a href={href} className={`${sketchClass} ${className}`} style={merged} {...(rest as any)}>{loading ? <Spinner size={14} /> : children}</a>;
-  return <button disabled={loading || rest.disabled} className={`${sketchClass} ${className}`} style={merged} {...rest}>{loading ? <Spinner size={14} /> : children}</button>;
+  variant?: Variant; size?: Size; loading?: boolean;
+  as?: 'button' | 'a'; href?: string; children: ReactNode;
 }
 
-// ── Spinner ───────────────────────────────────────────────────────────────────
+export function Button({
+  variant = 'primary', size = 'md', loading, children, style,
+  as: Tag = 'button', href, className = '', ...rest
+}: ButtonProps & { className?: string }) {
+  const merged: CSSProperties = {
+    ...BTN_BASE, ...BTN_SIZE[size], ...BTN_VARIANT[variant],
+    ...(loading ? { opacity: 0.65, cursor: 'not-allowed' } : {}),
+    ...style,
+  };
+  if (Tag === 'a') {
+    return <a href={href} className={className} style={merged} {...(rest as any)}>{loading ? <Spinner size={14} /> : children}</a>;
+  }
+  return (
+    <button
+      disabled={loading || rest.disabled}
+      className={className}
+      style={merged}
+      {...rest}
+    >
+      {loading ? <Spinner size={14} /> : children}
+    </button>
+  );
+}
+
+// ── Spinner ───────────────────────────────────────────────────────────
 export function Spinner({ size = 18, color = 'currentColor' }: { size?: number; color?: string }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" style={{ animation: 'spin 0.7s linear infinite' }}>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       <path d="M12 2a10 10 0 0 1 10 10" strokeLinecap="round" />
     </svg>
   );
 }
 
-// ── Input ─────────────────────────────────────────────────────────────────────
+// ── Input ─────────────────────────────────────────────────────────────
 const INPUT_STYLE: CSSProperties = {
-  width: '100%', padding: '12px 14px',
-  fontFamily: 'inherit', fontSize: '0.925rem',
-  background: 'var(--surface-solid)',
+  width: '100%',
+  padding: '10px 12px',
+  fontFamily: 'inherit',
+  fontSize: '0.9375rem',
+  background: 'var(--surface)',
   color: 'var(--ink)',
-  border: '1.25px solid var(--ink-border, var(--border))',
-  borderRadius: '10px', outline: 'none',
-  transition: 'border-color 0.22s, box-shadow 0.22s',
+  border: '1px solid var(--border-strong)',
+  borderRadius: 10,
+  outline: 'none',
+  transition: 'border-color 180ms ease, box-shadow 180ms ease',
 };
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement> & { error?: string }>(
-  ({ error, style, onFocus, onBlur, className = '', ...rest }, ref) => {
-    return (
-      <div style={{ width: '100%' }}>
-        <input
-          ref={ref}
-          className={`sketch-ink ${className}`}
-          style={{ ...INPUT_STYLE, ...(error ? { borderColor: 'var(--danger)' } : {}), ...style }}
-          onFocus={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.boxShadow = 'var(--focus-ring)'; onFocus?.(e); }}
-          onBlur={e => { e.currentTarget.style.borderColor = error ? 'var(--danger)' : 'var(--ink-border, var(--border))'; e.currentTarget.style.boxShadow = 'none'; onBlur?.(e); }}
-          {...rest}
-        />
-        {error && <p style={{ color: 'var(--danger)', fontSize: '0.75rem', marginTop: 5, fontWeight: 500 }}>{error}</p>}
-      </div>
-    );
-  }
-);
-
-// ── Textarea ──────────────────────────────────────────────────────────────────
-export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<HTMLTextAreaElement> & { error?: string }>(
   ({ error, style, onFocus, onBlur, className = '', ...rest }, ref) => (
     <div style={{ width: '100%' }}>
-      <textarea
+      <input
         ref={ref}
-        className={`sketch-ink ${className}`}
-        style={{ ...INPUT_STYLE, resize: 'vertical', minHeight: 100, ...style }}
-        onFocus={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.boxShadow = 'var(--focus-ring)'; onFocus?.(e); }}
-        onBlur={e => { e.currentTarget.style.borderColor = 'var(--ink-border, var(--border))'; e.currentTarget.style.boxShadow = 'none'; onBlur?.(e); }}
+        className={className}
+        style={{ ...INPUT_STYLE, ...(error ? { borderColor: 'var(--danger)' } : {}), ...style }}
+        onFocus={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.boxShadow = 'var(--focus-ring)'; onFocus?.(e); }}
+        onBlur={e => { e.currentTarget.style.borderColor = error ? 'var(--danger)' : 'var(--border-strong)'; e.currentTarget.style.boxShadow = 'none'; onBlur?.(e); }}
         {...rest}
       />
       {error && <p style={{ color: 'var(--danger)', fontSize: '0.75rem', marginTop: 5, fontWeight: 500 }}>{error}</p>}
@@ -120,25 +143,42 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<H
   )
 );
 
-// ── Select ────────────────────────────────────────────────────────────────────
+// ── Textarea ──────────────────────────────────────────────────────────
+export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<HTMLTextAreaElement> & { error?: string }>(
+  ({ error, style, onFocus, onBlur, className = '', ...rest }, ref) => (
+    <div style={{ width: '100%' }}>
+      <textarea
+        ref={ref}
+        className={className}
+        style={{ ...INPUT_STYLE, resize: 'vertical', minHeight: 100, ...style }}
+        onFocus={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.boxShadow = 'var(--focus-ring)'; onFocus?.(e); }}
+        onBlur={e => { e.currentTarget.style.borderColor = 'var(--border-strong)'; e.currentTarget.style.boxShadow = 'none'; onBlur?.(e); }}
+        {...rest}
+      />
+      {error && <p style={{ color: 'var(--danger)', fontSize: '0.75rem', marginTop: 5, fontWeight: 500 }}>{error}</p>}
+    </div>
+  )
+);
+
+// ── Select ────────────────────────────────────────────────────────────
 export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSelectElement> & { error?: string }>(
   ({ error, style, onFocus, onBlur, children, className = '', ...rest }, ref) => (
     <div style={{ width: '100%', position: 'relative' }}>
       <select
         ref={ref}
-        className={`sketch-ink ${className}`}
+        className={className}
         style={{
           ...INPUT_STYLE,
           appearance: 'none',
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%236F6F6F' stroke-width='2'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E")`,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%236F6E69' stroke-width='2'%3E%3Cpath d='M3 5l4 4 4-4'/%3E%3C/svg%3E")`,
           backgroundRepeat: 'no-repeat',
-          backgroundPosition: 'right 12px center',
-          paddingRight: 36,
+          backgroundPosition: 'right 10px center',
+          paddingRight: 32,
           cursor: 'pointer',
-          ...style
+          ...style,
         }}
-        onFocus={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.boxShadow = 'var(--focus-ring)'; onFocus?.(e); }}
-        onBlur={e => { e.currentTarget.style.borderColor = 'var(--ink-border, var(--border))'; e.currentTarget.style.boxShadow = 'none'; onBlur?.(e); }}
+        onFocus={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.boxShadow = 'var(--focus-ring)'; onFocus?.(e); }}
+        onBlur={e => { e.currentTarget.style.borderColor = 'var(--border-strong)'; e.currentTarget.style.boxShadow = 'none'; onBlur?.(e); }}
         {...rest}
       >
         {children}
@@ -148,48 +188,41 @@ export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSel
   )
 );
 
-// ── Card ──────────────────────────────────────────────────────────────────────
-export function Card({ children, style, onClick, hoverable, className = '' }: { children: ReactNode; style?: CSSProperties; onClick?: () => void; hoverable?: boolean; className?: string }) {
+// ── Card ──────────────────────────────────────────────────────────────
+export function Card({ children, hoverable, style, onClick, className = '' }: {
+  children: ReactNode; hoverable?: boolean; style?: CSSProperties; onClick?: () => void; className?: string;
+}) {
   return (
     <div
       onClick={onClick}
-      className={`sketch-ink sketch-surface ${hoverable ? 'marker-hover' : ''} ${className}`}
-      style={{
-        background: 'var(--surface-solid)',
-        border: '1.25px solid var(--ink-border, var(--border))',
-        borderRadius: 14, padding: 'clamp(16px, 3vw, 24px)',
-        transition: 'border-color 0.22s, box-shadow 0.22s, transform 0.22s',
-        cursor: onClick ? 'pointer' : undefined,
-        ...style,
-      }}
-      onMouseEnter={hoverable ? e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--ink-border-strong, var(--border-strong))'; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = 'var(--shadow-md)'; } : undefined}
-      onMouseLeave={hoverable ? e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--ink-border, var(--border))'; (e.currentTarget as HTMLDivElement).style.transform = 'none'; (e.currentTarget as HTMLDivElement).style.boxShadow = 'var(--highlight-edge, none)'; } : undefined}
+      className={`card ${hoverable ? 'hover' : ''} ${className}`}
+      style={{ padding: 'clamp(16px, 3vw, 22px)', ...style }}
     >
       {children}
     </div>
   );
 }
 
-// ── Badge ─────────────────────────────────────────────────────────────────────
+// ── Badge ─────────────────────────────────────────────────────────────
 const BADGE_STYLE: Record<BadgeVariant, CSSProperties> = {
-  primary: { background: 'var(--primary-soft)', color: 'var(--primary)', border: '1.25px solid var(--primary)' },
-  green: { background: 'var(--success-soft)', color: 'var(--success)', border: '1.25px solid var(--success)' },
-  red: { background: 'var(--danger-soft)', color: 'var(--danger)', border: '1.25px solid var(--danger)' },
-  yellow: { background: 'var(--warning-soft)', color: 'var(--warning)', border: '1.25px solid var(--warning)' },
-  blue: { background: 'var(--info-soft)', color: 'var(--info)', border: '1.25px solid var(--info)' },
-  neutral: { background: 'var(--paper2)', color: 'var(--muted-ink)', border: '1.25px solid var(--border)' },
-  // UPDATED: Added style mapping for 'acid'
-  acid: { background: 'var(--acid-soft)', color: 'var(--acid)', border: '1.25px solid var(--acid)' },
+  primary: { background: 'var(--accent-soft)', color: 'var(--accent)' },
+  green: { background: 'var(--success-soft)', color: 'var(--success)' },
+  red: { background: 'var(--danger-soft)', color: 'var(--danger)' },
+  yellow: { background: 'var(--warning-soft)', color: 'var(--warning)' },
+  blue: { background: 'var(--info-soft)', color: 'var(--info)' },
+  neutral: { background: 'var(--paper-2)', color: 'var(--ink-muted)' },
+  acid: { background: 'var(--accent-soft)', color: 'var(--accent)' },
 };
 
 export function Badge({ children, variant = 'neutral', style }: { children: ReactNode; variant?: BadgeVariant; style?: CSSProperties }) {
   return (
-    <span className="sketch-ink" style={{
+    <span style={{
       display: 'inline-flex', alignItems: 'center', gap: 4,
-      padding: '3px 10px', borderRadius: 6,
-      fontFamily: "'Caveat', ui-sans-serif",
-      fontSize: '0.82rem', fontWeight: 600,
+      padding: '3px 9px', borderRadius: 999,
+      fontFamily: 'inherit', fontSize: '0.7rem', fontWeight: 600,
+      letterSpacing: '-0.005em',
       whiteSpace: 'nowrap',
+      border: '1px solid transparent',
       ...BADGE_STYLE[variant], ...style,
     }}>
       {children}
@@ -197,106 +230,141 @@ export function Badge({ children, variant = 'neutral', style }: { children: Reac
   );
 }
 
-// ── Label ─────────────────────────────────────────────────────────────────────
+// ── Label ─────────────────────────────────────────────────────────────
 export function Label({ children, htmlFor }: { children: ReactNode; htmlFor?: string }) {
   return (
     <label htmlFor={htmlFor} style={{
-      display: 'block', marginBottom: 7,
-      fontSize: '0.8rem', fontWeight: 600,
-      color: 'var(--muted-ink)',
+      display: 'block', marginBottom: 6,
+      fontSize: '0.78rem', fontWeight: 500,
+      color: 'var(--ink-muted)',
     }}>
       {children}
     </label>
   );
 }
 
-// ── Divider ───────────────────────────────────────────────────────────────────
+// ── Divider ───────────────────────────────────────────────────────────
 export function Divider({ style }: { style?: CSSProperties }) {
-  return <hr style={{ border: 'none', borderTop: '1.25px solid var(--ink-border, var(--border))', ...style }} />;
+  return <hr style={{ border: 'none', borderTop: '1px solid var(--border)', ...style }} />;
 }
 
-// ── PageHeader ────────────────────────────────────────────────────────────────
+// ── PageHeader (Notion-style: serif title, soft eyebrow, optional actions) ──
 export function PageHeader({ label, title, subtitle, actions }: {
   label?: string; title: ReactNode; subtitle?: ReactNode; actions?: ReactNode;
 }) {
   return (
-    <div className={`page-header${actions ? ' page-header-with-actions' : ''}`} style={{ marginBottom: 16 }}>
-      {label && <p className="font-sketch page-header-label" style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--primary)', marginBottom: 4, textAlign: actions ? 'left' : 'center' }}>{label}</p>}
-      <div className={`page-header-row${actions ? ' page-header-row-with-actions' : ''}`} style={{ display: 'flex', justifyContent: actions ? 'space-between' : 'center', alignItems: 'center', flexWrap: 'wrap', gap: 10, textAlign: actions ? 'left' : 'center' }}>
-        <div className="page-header-copy" style={{ textAlign: actions ? 'left' : 'center', minWidth: 0 }}>
-          <h1 style={{ fontSize: 'clamp(1.3rem,2.8vw,1.9rem)', fontWeight: 700, color: 'var(--ink)', letterSpacing: '-0.02em', lineHeight: 1.15 }}>{title}</h1>
-          {subtitle && <div style={{ color: 'var(--muted-ink)', marginTop: 4, fontSize: '0.82rem', lineHeight: 1.5 }}>{subtitle}</div>}
+    <div style={{ marginBottom: 20 }}>
+      {label && (
+        <p style={{
+          fontSize: '0.75rem', fontWeight: 500,
+          color: 'var(--ink-muted)',
+          marginBottom: 6,
+          letterSpacing: '0.04em',
+          textTransform: 'uppercase',
+        }}>
+          {label}
+        </p>
+      )}
+      <div style={{
+        display: 'flex',
+        justifyContent: actions ? 'space-between' : 'flex-start',
+        alignItems: 'flex-end',
+        flexWrap: 'wrap', gap: 12,
+      }}>
+        <div style={{ minWidth: 0, flex: '1 1 280px' }}>
+          <h1 className="font-display" style={{
+            fontSize: 'clamp(1.6rem, 3.6vw, 2.25rem)',
+            fontWeight: 600,
+            color: 'var(--ink)',
+            lineHeight: 1.1,
+            letterSpacing: '-0.025em',
+          }}>
+            {title}
+          </h1>
+          {subtitle && (
+            <div style={{ color: 'var(--ink-muted)', marginTop: 6, fontSize: '0.875rem', lineHeight: 1.55 }}>
+              {subtitle}
+            </div>
+          )}
         </div>
-        {actions && <div className="page-header-actions" style={{ display: 'flex', gap: 10, alignItems: 'center', flexShrink: 0, flexWrap: 'wrap' }}>{actions}</div>}
+        {actions && <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', flexShrink: 0 }}>{actions}</div>}
       </div>
     </div>
   );
 }
 
-// ── FormField ─────────────────────────────────────────────────────────────────
+// ── FormField ─────────────────────────────────────────────────────────
 export function FormField({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
   return (
     <div>
       <Label>{label}</Label>
       {children}
-      {hint && <p style={{ color: 'var(--subtle-ink)', fontSize: '0.75rem', marginTop: 5 }}>{hint}</p>}
+      {hint && <p style={{ color: 'var(--ink-faint)', fontSize: '0.75rem', marginTop: 5 }}>{hint}</p>}
     </div>
   );
 }
 
-// ── EmptyState ────────────────────────────────────────────────────────────────
+// ── EmptyState ────────────────────────────────────────────────────────
 export function EmptyState({ icon, title, body, action }: { icon?: ReactNode; title: string; body?: string; action?: ReactNode }) {
   return (
-    <div className="sketch-ink" style={{
-      textAlign: 'center', padding: 'clamp(40px, 8vw, 64px) clamp(16px, 4vw, 24px)',
-      background: 'var(--surface-solid)', border: '1.25px dashed var(--ink-border-strong, var(--border-strong))',
+    <div style={{
+      textAlign: 'center',
+      padding: 'clamp(40px, 8vw, 64px) clamp(20px, 4vw, 32px)',
+      background: 'var(--surface)',
+      border: '1px solid var(--border)',
       borderRadius: 14,
     }}>
-      {icon && <div style={{ color: 'var(--subtle-ink)', marginBottom: 16, display: 'flex', justifyContent: 'center' }}>{icon}</div>}
-      <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--ink)', marginBottom: 8 }}>{title}</h3>
-      {body && <p style={{ color: 'var(--muted-ink)', fontSize: '0.88rem', maxWidth: 360, margin: '0 auto 20px', lineHeight: 1.5 }}>{body}</p>}
+      {icon && <div style={{ color: 'var(--ink-faint)', marginBottom: 14, display: 'flex', justifyContent: 'center' }}>{icon}</div>}
+      <h3 style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--ink)', marginBottom: 6 }}>{title}</h3>
+      {body && <p style={{ color: 'var(--ink-muted)', fontSize: '0.875rem', maxWidth: 380, margin: '0 auto 18px', lineHeight: 1.55 }}>{body}</p>}
       {action}
     </div>
   );
 }
 
-// ── Alert ─────────────────────────────────────────────────────────────────────
+// ── Alert ─────────────────────────────────────────────────────────────
 export function Alert({ type = 'info', children }: { type?: 'success' | 'error' | 'warning' | 'info'; children: ReactNode }) {
   const colorMap = {
-    success: { bg: 'var(--success-soft)', fg: 'var(--success)', border: 'var(--success)' },
-    error: { bg: 'var(--danger-soft)', fg: 'var(--danger)', border: 'var(--danger)' },
-    warning: { bg: 'var(--warning-soft)', fg: 'var(--warning)', border: 'var(--warning)' },
-    info: { bg: 'var(--info-soft)', fg: 'var(--info)', border: 'var(--info)' },
-  };
-  const c = colorMap[type];
+    success: { bg: 'var(--success-soft)', fg: 'var(--success)' },
+    error: { bg: 'var(--danger-soft)', fg: 'var(--danger)' },
+    warning: { bg: 'var(--warning-soft)', fg: 'var(--warning)' },
+    info: { bg: 'var(--info-soft)', fg: 'var(--info)' },
+  }[type];
   return (
-    <div className="sketch-ink" style={{
-      padding: '12px 16px', borderRadius: 10, fontSize: '0.875rem', fontWeight: 500,
-      background: c.bg, color: c.fg, border: `1.25px solid ${c.border}`,
+    <div style={{
+      padding: '11px 14px',
+      borderRadius: 10,
+      fontSize: '0.875rem',
+      fontWeight: 500,
+      background: colorMap.bg,
+      color: colorMap.fg,
     }}>
       {children}
     </div>
   );
 }
 
-// ── StatCard ──────────────────────────────────────────────────────────────────
+// ── StatCard ──────────────────────────────────────────────────────────
 export function StatCard({ icon, value, label, accent }: { icon: ReactNode; value: ReactNode; label: string; accent?: boolean }) {
   return (
-    <Card style={{ textAlign: 'center', ...(accent ? { border: '1.25px solid var(--primary)' } : {}) }}>
+    <Card style={{
+      textAlign: 'left',
+      borderColor: accent ? 'var(--accent-mid)' : 'var(--border)',
+      background: accent ? 'linear-gradient(135deg, var(--accent-soft), var(--surface))' : 'var(--surface)',
+    }}>
       <div style={{
-        width: 40, height: 40, borderRadius: 10,
-        background: accent ? 'var(--primary-soft)' : 'var(--paper2)',
+        width: 36, height: 36, borderRadius: 10,
+        background: accent ? 'var(--accent-soft)' : 'var(--paper-2)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: accent ? 'var(--primary)' : 'var(--muted-ink)',
-        margin: '0 auto 14px',
-        border: accent ? '1.25px solid var(--primary)' : '1.25px solid var(--ink-border, var(--border))',
+        color: accent ? 'var(--accent)' : 'var(--ink-muted)',
+        marginBottom: 14,
       }}>
         {icon}
       </div>
-      <div className="font-sketch-num" style={{ fontSize: '2.2rem', fontWeight: 700, color: 'var(--ink)', lineHeight: 1 }}>
+      <div className="font-display" style={{ fontSize: '1.75rem', fontWeight: 600, color: 'var(--ink)', lineHeight: 1, letterSpacing: '-0.02em' }}>
         {value}
       </div>
-      <p className="font-sketch" style={{ fontSize: '0.95rem', color: 'var(--muted-ink)', marginTop: 8 }}>
+      <p style={{ fontSize: '0.82rem', color: 'var(--ink-muted)', marginTop: 6 }}>
         {label}
       </p>
     </Card>

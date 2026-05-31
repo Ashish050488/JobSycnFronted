@@ -1,319 +1,184 @@
-import { useEffect, useMemo, useState, useCallback } from 'react';
-import { Link, Navigate } from 'react-router-dom';
-import { ArrowLeft, Pencil, Check, X } from 'lucide-react';
-
-import { Button, Container, PageHeader } from '../components/ui';
+// FILE: src/pages/Progress.tsx
+import { useState, useEffect, useMemo } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Flame, Briefcase, Target } from 'lucide-react';
 import { useUser } from '../context/UserContext';
+import { Container, PageHeader, Button, EmptyState } from '../components/ui';
 import { COPY } from '../theme/brand';
-import type { AppliedJobDetail } from '../types';
-
+import ProgressRing from '../components/ProgressRing';
+import ActivityChart from '../components/ActivityChart';
 import HeatmapCalendar from '../components/HeatmapCalendar';
 import FunnelChart from '../components/FunnelChart';
-import PipelineView from '../components/PipelineView';
-import type { PipelineJob } from '../components/PipelineView';
+import PipelineView, { type PipelineJob } from '../components/PipelineView';
+import type { AppliedJobDetail } from '../types';
 
-function useIsMobile(breakpoint = 768) {
-  const [mobile, setMobile] = useState(typeof window !== 'undefined' ? window.innerWidth < breakpoint : false);
+export default function Progress() {
+  const navigate = useNavigate();
+  const { currentUser, appliedJobs, todayCount, streak, dailyGoal, saveDailyGoal, updateStage } = useUser();
+  const [appliedDetails, setAppliedDetails] = useState<AppliedJobDetail[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => { document.title = COPY.site.documentTitleProgress; }, []);
+
   useEffect(() => {
-    const handler = () => setMobile(window.innerWidth < breakpoint);
-    window.addEventListener('resize', handler);
-    return () => window.removeEventListener('resize', handler);
-  }, [breakpoint]);
-  return mobile;
-}
+    if (!currentUser) { navigate('/jobs'); return; }
+    let cancelled = false;
+    fetch('/api/me/applied/details', { credentials: 'include' })
+      .then(r => r.ok ? r.json() : [])
+      .then((d: AppliedJobDetail[]) => { if (!cancelled) setAppliedDetails(Array.isArray(d) ? d : []); })
+      .catch(() => { })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [currentUser, navigate]);
 
-/* ─── SVG Progress Ring ──────────────────────────────────── */
-function ProgressRing({ size, progress, color }: { size: number; progress: number; color: string }) {
-  const stroke = 5;
-  const radius = (size - stroke) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference - Math.min(progress, 1) * circumference;
+  const stageCounts = useMemo(() => {
+    const c: Record<string, number> = {};
+    for (const j of appliedDetails) {
+      const s = j.stage || 'applied';
+      c[s] = (c[s] || 0) + 1;
+    }
+    return c;
+  }, [appliedDetails]);
+
+  const pipelineJobs: PipelineJob[] = useMemo(() => appliedDetails.map(d => ({
+    jobId: d.jobId,
+    jobTitle: d.jobTitle,
+    company: d.company,
+    location: d.location,
+    department: d.department,
+    applicationURL: d.applicationURL,
+    stage: d.stage || 'applied',
+    stageUpdatedAt: d.stageUpdatedAt || d.appliedAt,
+    appliedAt: d.appliedAt,
+    isListingActive: d.isListingActive,
+  })), [appliedDetails]);
+
+  if (!currentUser) return null;
 
   return (
-    <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-      <circle
-        cx={size / 2} cy={size / 2} r={radius}
-        fill="none" stroke="var(--border)" strokeWidth={stroke}
+    <Container size="lg" style={{ paddingTop: 'clamp(24px, 5vw, 40px)', paddingBottom: 60 }}>
+      <Link
+        to="/jobs"
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: 5,
+          fontSize: '0.82rem', color: 'var(--ink-muted)',
+          textDecoration: 'none', marginBottom: 14, fontWeight: 500,
+        }}
+      >
+        <ArrowLeft size={13} /> {COPY.progress.backToJobs}
+      </Link>
+
+      <PageHeader
+        label={COPY.progress.pageLabel}
+        title={COPY.progress.pageTitle}
       />
-      <circle
-        cx={size / 2} cy={size / 2} r={radius}
-        fill="none" stroke={color} strokeWidth={stroke}
-        strokeDasharray={circumference}
-        strokeDashoffset={offset}
-        strokeLinecap="round"
-        style={{ transition: 'stroke-dashoffset 0.8s cubic-bezier(0.16, 1, 0.3, 1)' }}
-      />
-    </svg>
+
+      {appliedJobs.length === 0 && !loading ? (
+        <EmptyState
+          icon={<Briefcase size={28} />}
+          title={COPY.progress.emptyTitle}
+          body={COPY.progress.emptyBody}
+          action={<Button as="a" href="/jobs" variant="primary" size="md">Browse jobs</Button>}
+        />
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {/* Top: progress ring + quick stats */}
+          <div style={{
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: 14,
+            padding: 'clamp(16px, 3vw, 22px)',
+          }}>
+            <ProgressRing
+              todayCount={todayCount}
+              dailyGoal={dailyGoal}
+              onGoalChange={saveDailyGoal}
+            />
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+              gap: 10,
+              marginTop: 18,
+              paddingTop: 16,
+              borderTop: '1px solid var(--border)',
+            }}>
+              <Stat icon={<Flame size={14} />} value={streak} label={streak === 1 ? 'Day streak' : 'Day streak'} />
+              <Stat icon={<Briefcase size={14} />} value={appliedJobs.length} label="Total applied" />
+              <Stat icon={<Target size={14} />} value={`${dailyGoal}/day`} label="Goal" />
+            </div>
+          </div>
+
+          {/* Activity bars */}
+          <Section title="Last 7 days">
+            <ActivityChart appliedJobs={appliedJobs} dailyGoal={dailyGoal} />
+          </Section>
+
+          {/* Heatmap */}
+          <Section title="Activity heatmap">
+            <HeatmapCalendar appliedJobs={appliedJobs} dailyGoal={dailyGoal} />
+          </Section>
+
+          {/* Funnel */}
+          <Section title="Application funnel">
+            <FunnelChart stageCounts={stageCounts} totalApplied={appliedDetails.length} />
+          </Section>
+
+          {/* Pipeline view */}
+          <Section title={COPY.progress.historyLabel} subtitle={COPY.progress.historySubtitle}>
+            {loading ? (
+              <div style={{ display: 'grid', gap: 8 }}>
+                {Array(4).fill(0).map((_, i) => <div key={i} className="skeleton" style={{ height: 64, borderRadius: 11 }} />)}
+              </div>
+            ) : (
+              <PipelineView jobs={pipelineJobs} onStageChange={updateStage} />
+            )}
+          </Section>
+        </div>
+      )}
+    </Container>
   );
 }
 
-/* ─── Page ───────────────────────────────────────────────── */
-export default function Progress() {
-  const isMobile = useIsMobile();
-  const { currentUser, appliedJobs, todayCount, streak, dailyGoal, saveDailyGoal, updateStage } = useUser();
-  const [recentApplied, setRecentApplied] = useState<AppliedJobDetail[]>([]);
-  const [loadingRecent, setLoadingRecent] = useState(true);
-
-  // Goal editor
-  const [goalEditorOpen, setGoalEditorOpen] = useState(false);
-  const [goalDraft, setGoalDraft] = useState(dailyGoal);
-
-  useEffect(() => {
-    document.title = COPY.site.documentTitleProgress;
-  }, []);
-
-  useEffect(() => { setGoalDraft(dailyGoal); }, [dailyGoal]);
-
-  const handleSaveGoal = useCallback(async () => {
-    await saveDailyGoal(goalDraft);
-    setGoalEditorOpen(false);
-  }, [goalDraft, saveDailyGoal]);
-
-  // Fetch enriched applied job details
-  useEffect(() => {
-    if (!currentUser) {
-      setRecentApplied([]);
-      setLoadingRecent(false);
-      return;
-    }
-
-    let cancelled = false;
-    setLoadingRecent(true);
-
-    fetch('/api/me/applied/details', { credentials: 'include' })
-      .then(response => response.ok ? response.json() : [])
-      .then((data: AppliedJobDetail[]) => {
-        if (!cancelled) setRecentApplied(Array.isArray(data) ? data : []);
-      })
-      .catch(() => {
-        if (!cancelled) setRecentApplied([]);
-      })
-      .finally(() => {
-        if (!cancelled) setLoadingRecent(false);
-      });
-
-    return () => { cancelled = true; };
-  }, [currentUser?.email, appliedJobs]);
-
-  const stageCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    for (const job of recentApplied) {
-      const s = job.stage || 'applied';
-      counts[s] = (counts[s] || 0) + 1;
-    }
-    return counts;
-  }, [recentApplied]);
-
-  const pipelineJobs: PipelineJob[] = useMemo(() => {
-    return recentApplied.map(job => ({
-      jobId: job.jobId,
-      jobTitle: job.jobTitle,
-      company: job.company,
-      applicationURL: job.applicationURL,
-      appliedAt: job.appliedAt,
-      location: job.location ?? null,
-      department: job.department ?? null,
-      stage: job.stage || 'applied',
-      stageUpdatedAt: job.stageUpdatedAt || job.appliedAt,
-      isListingActive: job.isListingActive ?? true,
-    }));
-  }, [recentApplied]);
-
-  const handleStageChange = async (jobId: string, newStage: string) => {
-    await updateStage(jobId, newStage);
-  };
-
-  if (!currentUser) {
-    return <Navigate to="/jobs" replace />;
-  }
-
-  const goalProgress = dailyGoal > 0 ? todayCount / dailyGoal : 0;
-  const ringColor = todayCount > 0 ? (goalProgress >= 1 ? 'var(--success)' : 'var(--primary)') : 'var(--border)';
-  const goalPct = dailyGoal > 0 ? Math.min(Math.round(goalProgress * 100), 100) : 0;
-
-  /* card style shared across sections */
-  const sectionCard = (extra?: React.CSSProperties): React.CSSProperties => ({
-    background: 'var(--surface-solid)',
-    border: '1.25px solid var(--border)',
-    borderRadius: 18,
-    padding: isMobile ? '18px 14px' : '22px 24px',
-    ...extra,
-  });
-
+function Section({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
   return (
-    <div style={{ background: 'var(--paper)', minHeight: '100vh' }}>
-      <Container style={{ paddingTop: isMobile ? 24 : 32, paddingBottom: isMobile ? 40 : 48 }}>
+    <section style={{
+      background: 'var(--surface)',
+      border: '1px solid var(--border)',
+      borderRadius: 14,
+      padding: 'clamp(16px, 3vw, 22px)',
+    }}>
+      <h2 className="font-display" style={{
+        fontSize: '1.1rem',
+        fontWeight: 600, color: 'var(--ink)',
+        letterSpacing: '-0.02em', marginBottom: subtitle ? 4 : 14,
+      }}>{title}</h2>
+      {subtitle && <p style={{ fontSize: '0.82rem', color: 'var(--ink-muted)', marginBottom: 14 }}>{subtitle}</p>}
+      {children}
+    </section>
+  );
+}
 
-        <PageHeader
-          label={COPY.progress.pageLabel}
-          title={COPY.progress.pageTitle}
-          subtitle={`Hey, ${currentUser.name} 👋`}
-          actions={
-            <Link to="/jobs" style={{ textDecoration: 'none' }}>
-              <Button variant="ghost" size="sm"><ArrowLeft size={14} />{COPY.progress.backToJobs}</Button>
-            </Link>
-          }
-        />
-
-        <div style={{ display: 'grid', gap: 20 }}>
-
-          {/* ── Section 0: Today's Snapshot ──────────── */}
-          <section style={{
-            background: 'linear-gradient(135deg, var(--primary-soft), transparent 60%), var(--surface-solid)',
-            border: '1.25px solid var(--border)',
-            borderRadius: 18,
-            padding: isMobile ? '20px 16px' : '24px',
-            display: 'flex',
-            flexDirection: isMobile ? 'column' : 'row',
-            alignItems: 'center',
-            gap: isMobile ? 16 : 24,
-            textAlign: isMobile ? 'center' : 'left',
-          }}>
-            {/* Progress ring */}
-            <div style={{ position: 'relative', width: 72, height: 72, flexShrink: 0 }}>
-              <ProgressRing size={72} progress={goalProgress} color={ringColor} />
-              <div style={{
-                position: 'absolute', inset: 0,
-                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <span style={{ fontSize: '1.35rem', fontWeight: 700, color: 'var(--ink)', lineHeight: 1 }}>
-                  {todayCount}
-                </span>
-                <span style={{ fontSize: '0.62rem', color: 'var(--muted-ink)', marginTop: 1 }}>
-                  {goalPct}%
-                </span>
-              </div>
-            </div>
-
-            {/* Today's stats text */}
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{
-                fontSize: isMobile ? '1.2rem' : '1.5rem', fontWeight: 700,
-                color: 'var(--ink)', lineHeight: 1.2,
-              }}>
-                {todayCount} applied today
-              </div>
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: 8, marginTop: 6,
-                justifyContent: isMobile ? 'center' : 'flex-start',
-                flexWrap: 'wrap',
-              }}>
-                {goalEditorOpen ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <input
-                      type="number"
-                      min={1} max={50}
-                      value={goalDraft}
-                      onChange={e => setGoalDraft(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))}
-                      style={{
-                        width: 52, height: 28, borderRadius: 8,
-                        border: '1.25px solid var(--primary)', background: 'var(--surface-solid)',
-                        color: 'var(--ink)', textAlign: 'center', fontSize: '0.85rem',
-                        fontFamily: 'inherit', outline: 'none',
-                      }}
-                      autoFocus
-                      onKeyDown={e => { if (e.key === 'Enter') handleSaveGoal(); if (e.key === 'Escape') setGoalEditorOpen(false); }}
-                    />
-                    <span style={{ fontSize: '0.82rem', color: 'var(--muted-ink)' }}>/day</span>
-                    <button onClick={handleSaveGoal} style={{
-                      background: 'var(--primary)', color: '#fff', border: 'none',
-                      borderRadius: 6, width: 24, height: 24, cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>
-                      <Check size={13} />
-                    </button>
-                    <button onClick={() => { setGoalEditorOpen(false); setGoalDraft(dailyGoal); }} style={{
-                      background: 'var(--paper2)', color: 'var(--muted-ink)', border: 'none',
-                      borderRadius: 6, width: 24, height: 24, cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>
-                      <X size={13} />
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    <span style={{ fontSize: '0.88rem', color: 'var(--muted-ink)' }}>
-                      Goal: {dailyGoal}/day
-                    </span>
-                    <button
-                      onClick={() => setGoalEditorOpen(true)}
-                      style={{
-                        background: 'none', border: 'none', cursor: 'pointer',
-                        color: 'var(--primary)', fontSize: '0.78rem', fontFamily: 'inherit',
-                        textDecoration: 'underline', display: 'flex', alignItems: 'center', gap: 3,
-                        padding: 0,
-                      }}
-                    >
-                      <Pencil size={11} /> Edit
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* Streak badge */}
-            <div style={{ flexShrink: 0 }}>
-              {streak > 0 ? (
-                <span style={{
-                  background: 'var(--warning-soft)', color: 'var(--warning)',
-                  borderRadius: 999, padding: '8px 16px', fontSize: '0.88rem', fontWeight: 600,
-                  whiteSpace: 'nowrap',
-                }}>
-                  🔥 {streak}-day streak
-                </span>
-              ) : (
-                <span style={{
-                  background: 'var(--paper2)', color: 'var(--muted-ink)',
-                  borderRadius: 999, padding: '8px 16px', fontSize: '0.88rem', fontWeight: 600,
-                  whiteSpace: 'nowrap',
-                }}>
-                  {COPY.progress.noStreak}
-                </span>
-              )}
-            </div>
-          </section>
-
-          {/* ── Section 1: Heatmap Calendar ──────────── */}
-          <section style={sectionCard()}>
-            <HeatmapCalendar appliedJobs={appliedJobs} dailyGoal={dailyGoal} />
-          </section>
-
-          {/* ── Section 2: Funnel Chart ──────────────── */}
-          <section style={sectionCard()}>
-            <div className="font-sketch" style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--primary)', marginBottom: 4 }}>
-              Pipeline overview
-            </div>
-            <div style={{ fontSize: '0.82rem', color: 'var(--muted-ink)', marginBottom: 18 }}>
-              How your applications are progressing through stages
-            </div>
-            {loadingRecent ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {[1, 2, 3].map(i => <div key={i} className="skeleton" style={{ height: 36, borderRadius: 8 }} />)}
-              </div>
-            ) : (
-              <FunnelChart stageCounts={stageCounts} totalApplied={recentApplied.length} />
-            )}
-          </section>
-
-          {/* ── Section 3: Pipeline View ─────────────── */}
-          <section style={sectionCard()}>
-            <div className="font-sketch" style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--primary)', marginBottom: 4 }}>
-              My applications
-            </div>
-            <div style={{ fontSize: '0.82rem', color: 'var(--muted-ink)', marginBottom: 18 }}>
-              Track and update your application stages
-            </div>
-            {loadingRecent ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {[1, 2, 3, 4].map(i => <div key={i} className="skeleton" style={{ height: 80, borderRadius: 14 }} />)}
-              </div>
-            ) : (
-              <PipelineView jobs={pipelineJobs} onStageChange={handleStageChange} />
-            )}
-          </section>
-
-        </div>
-      </Container>
+function Stat({ icon, value, label }: { icon: React.ReactNode; value: React.ReactNode; label: string }) {
+  return (
+    <div style={{
+      padding: '10px 12px',
+      background: 'var(--paper-2)',
+      borderRadius: 10,
+      border: '1px solid var(--border)',
+    }}>
+      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+        <span style={{
+          width: 22, height: 22, borderRadius: 6,
+          background: 'var(--surface)', color: 'var(--ink-muted)',
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          border: '1px solid var(--border)',
+        }}>{icon}</span>
+        <span style={{
+          fontSize: '1.05rem', fontWeight: 600, color: 'var(--ink)',
+          letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums',
+        }}>{value}</span>
+      </div>
+      <p style={{ fontSize: '0.72rem', color: 'var(--ink-muted)', marginTop: 3 }}>{label}</p>
     </div>
   );
 }

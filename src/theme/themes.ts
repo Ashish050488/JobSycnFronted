@@ -1,139 +1,135 @@
-// ─── CSS Variable Definitions for Light + Dark Themes ────────────────────────
-// Applied to :root via ThemeProvider. Uses Paper + Ink palette.
+// FILE: src/theme/themes.ts
+// Notion-paper palette + Apple-grade neutrals. All runtime styling reads from CSS vars.
 
 export const lightVars: Record<string, string> = {
-  // Paper surfaces
-  '--paper': '#FAF7F1',
-  '--paper2': '#F4EFE5',
-  '--ink': '#141414',
-  '--ink2': '#2B2B2B',
-  '--muted-ink': '#525252',
-  '--subtle-ink': '#6F6F6F',
+  /* Paper surfaces (warm, slightly off-white like Notion) */
+  '--paper': '#FBFAF7',
+  '--paper-2': '#F4F2EC',
+  '--paper-3': '#EDEAE1',
 
-  // Borders
-  '--border': 'rgba(20,20,20,0.16)',
-  '--border-strong': 'rgba(20,20,20,0.26)',
+  /* Ink (text) */
+  '--ink': '#191918',
+  '--ink-2': '#37352F',
+  '--ink-muted': '#6F6E69',
+  '--ink-faint': '#9B9990',
 
-  // Surfaces
-  '--surface': 'rgba(255,255,255,0.72)',
+  /* Borders */
+  '--border': 'rgba(55, 53, 47, 0.09)',
+  '--border-strong': 'rgba(55, 53, 47, 0.16)',
+  '--border-mid': 'rgba(55, 53, 47, 0.12)',
+
+  /* Surfaces (cards, popovers) */
+  '--surface': '#FFFFFF',
   '--surface-solid': '#FFFFFF',
-  '--surface-alt': 'rgba(250,247,241,0.75)',
+  '--surface-2': '#FAFAF7',
+  '--surface-alt': 'rgba(255,255,255,0.78)',
 
-  // Brand
+  /* Brand accent (refined deep green for JobMesh) */
+  '--accent': '#2D6A4F',
+  '--accent-hover': '#214F3B',
+  '--accent-soft': 'rgba(45, 106, 79, 0.10)',
+  '--accent-mid': 'rgba(45, 106, 79, 0.32)',
+
+  /* Legacy aliases (kept so old code references still work) */
   '--primary': '#2D6A4F',
-  '--primary-hover': '#1B4D38',
-  '--primary-soft': 'rgba(45,106,79,0.12)',
+  '--primary-hover': '#214F3B',
+  '--primary-soft': 'rgba(45, 106, 79, 0.10)',
+  '--text-primary': '#191918',
+  '--text-secondary': '#6F6E69',
+  '--muted-ink': '#6F6E69',
+  '--subtle-ink': '#9B9990',
+  '--acid': '#2D6A4F',
+  '--acid-dim': 'rgba(45, 106, 79, 0.10)',
+  '--acid-mid': 'rgba(45, 106, 79, 0.32)',
+  '--acid-soft': 'rgba(45, 106, 79, 0.10)',
+  '--ink-border': 'rgba(55, 53, 47, 0.12)',
+  '--ink-border-strong': 'rgba(55, 53, 47, 0.20)',
+  '--paper2': '#F4F2EC',
 
-  // Semantic
-  '--success': '#059669',
-  '--success-soft': 'rgba(5,150,105,0.10)',
-  '--warning': '#D97706',
-  '--warning-soft': 'rgba(217,119,6,0.10)',
-  '--danger': '#EA580C',
-  '--danger-soft': 'rgba(234,88,12,0.10)',
-  '--info': '#2563EB',
-  '--info-soft': 'rgba(37,99,235,0.10)',
+  /* Semantic */
+  '--success': '#0F7B5A',
+  '--success-soft': 'rgba(15, 123, 90, 0.10)',
+  '--warning': '#B66B0A',
+  '--warning-soft': 'rgba(182, 107, 10, 0.10)',
+  '--danger': '#C5380F',
+  '--danger-soft': 'rgba(197, 56, 15, 0.10)',
+  '--info': '#0A6CC7',
+  '--info-soft': 'rgba(10, 108, 199, 0.10)',
 
-  // Focus
-  '--focus-ring': '0 0 0 3px rgba(45,106,79,0.30)',
+  /* Focus + link */
+  '--focus-ring': '0 0 0 3px rgba(45, 106, 79, 0.22)',
   '--link': '#2D6A4F',
 
-  // Shadows (stacked-paper feel: soft shadow + highlight edge)
-  '--shadow-sm': '0 1px 0 rgba(0,0,0,0.06), 0 6px 16px rgba(0,0,0,0.06)',
-  '--shadow-md': '0 1px 0 rgba(0,0,0,0.08), 0 10px 24px rgba(0,0,0,0.08)',
-  '--shadow-lg': '0 1px 0 rgba(0,0,0,0.10), 0 18px 40px rgba(0,0,0,0.10)',
-  '--highlight-edge': 'inset 0 1px 0 rgba(255,255,255,0.70)',
+  /* Shadows — tight, paper-like (Notion never uses heavy shadows) */
+  '--shadow-xs': '0 1px 2px rgba(15, 15, 14, 0.04)',
+  '--shadow-sm': '0 1px 2px rgba(15, 15, 14, 0.04), 0 2px 6px rgba(15, 15, 14, 0.03)',
+  '--shadow-md': '0 4px 8px rgba(15, 15, 14, 0.06), 0 10px 24px rgba(15, 15, 14, 0.04)',
+  '--shadow-lg': '0 8px 16px rgba(15, 15, 14, 0.08), 0 24px 48px rgba(15, 15, 14, 0.06)',
+  '--highlight-edge': 'inset 0 1px 0 rgba(255,255,255,0.5)',
 
-  // Sketch effects
-  '--sketch-outline-opacity': '0.22',
-  '--paper-grain-opacity': '0.11',
-  '--paper-fiber-opacity': '0.06',
-  '--paper-contrast': '1.0',
-  '--paper-noise-scale': '200',
-  '--paper-drift-distance': '12px',
-  '--paper-drift-duration': '14s',
-
-  // Ink borders
-  '--ink-border': 'rgba(20,20,20,0.22)',
-  '--ink-border-strong': 'rgba(20,20,20,0.38)',
-  '--sketch-wobble': '0.6px',
-  '--sketch-rotate': '-0.15deg',
-
-  // Marker highlight
-  '--marker-color': 'rgba(45,106,79,0.10)',
-  '--marker-blend': 'multiply',
-  '--marker-opacity': '0.55',
-
-  // Alias vars used in Layout + components
-  '--text-primary': '#141414',
-  '--text-secondary': '#525252',
-  '--border-mid': 'rgba(20,20,20,0.20)',
-  // Acid accent (highlight color for active states)
-  '--acid': '#2D6A4F',
-  '--acid-dim': 'rgba(45,106,79,0.10)',
-  '--acid-mid': 'rgba(45,106,79,0.40)',
+  /* Nav glass */
+  '--glass-bg': 'rgba(255, 255, 255, 0.72)',
+  '--glass-stroke': 'rgba(55, 53, 47, 0.10)',
 };
 
 export const darkVars: Record<string, string> = {
-  '--paper': '#0E0F12',
-  '--paper2': '#12141A',
-  '--ink': '#F5F5F5',
-  '--ink2': '#E9E9E9',
-  '--muted-ink': '#BDBDBD',
-  '--subtle-ink': '#9B9B9B',
+  /* Notion's dark grays */
+  '--paper': '#191918',
+  '--paper-2': '#202020',
+  '--paper-3': '#2A2A28',
 
-  '--border': 'rgba(245,245,245,0.14)',
-  '--border-strong': 'rgba(245,245,245,0.22)',
+  '--ink': '#E8E8E7',
+  '--ink-2': '#D1D0CC',
+  '--ink-muted': '#9B9890',
+  '--ink-faint': '#6F6D67',
 
-  '--surface': 'rgba(18,20,26,0.72)',
-  '--surface-solid': '#12141A',
-  '--surface-alt': 'rgba(14,15,18,0.75)',
+  '--border': 'rgba(255, 255, 255, 0.09)',
+  '--border-strong': 'rgba(255, 255, 255, 0.18)',
+  '--border-mid': 'rgba(255, 255, 255, 0.13)',
 
-  '--primary': '#74C69D',
-  '--primary-hover': '#95D5B2',
-  '--primary-soft': 'rgba(116,198,157,0.14)',
+  '--surface': '#202020',
+  '--surface-solid': '#202020',
+  '--surface-2': '#262624',
+  '--surface-alt': 'rgba(32, 32, 32, 0.78)',
 
-  '--success': '#34D399',
-  '--success-soft': 'rgba(52,211,153,0.12)',
-  '--warning': '#FBBF24',
-  '--warning-soft': 'rgba(251,191,36,0.10)',
-  '--danger': '#FB923C',
-  '--danger-soft': 'rgba(251,146,60,0.12)',
-  '--info': '#60A5FA',
-  '--info-soft': 'rgba(96,165,250,0.14)',
+  '--accent': '#5FB58D',
+  '--accent-hover': '#74C29B',
+  '--accent-soft': 'rgba(95, 181, 141, 0.14)',
+  '--accent-mid': 'rgba(95, 181, 141, 0.35)',
 
-  '--focus-ring': '0 0 0 3px rgba(116,198,157,0.30)',
-  '--link': '#95D5B2',
+  '--primary': '#5FB58D',
+  '--primary-hover': '#74C29B',
+  '--primary-soft': 'rgba(95, 181, 141, 0.14)',
+  '--text-primary': '#E8E8E7',
+  '--text-secondary': '#9B9890',
+  '--muted-ink': '#9B9890',
+  '--subtle-ink': '#6F6D67',
+  '--acid': '#5FB58D',
+  '--acid-dim': 'rgba(95, 181, 141, 0.14)',
+  '--acid-mid': 'rgba(95, 181, 141, 0.35)',
+  '--acid-soft': 'rgba(95, 181, 141, 0.14)',
+  '--ink-border': 'rgba(255, 255, 255, 0.13)',
+  '--ink-border-strong': 'rgba(255, 255, 255, 0.22)',
+  '--paper2': '#202020',
 
-  '--shadow-sm': '0 1px 0 rgba(0,0,0,0.20), 0 6px 16px rgba(0,0,0,0.25)',
-  '--shadow-md': '0 1px 0 rgba(0,0,0,0.25), 0 10px 24px rgba(0,0,0,0.30)',
-  '--shadow-lg': '0 1px 0 rgba(0,0,0,0.30), 0 18px 40px rgba(0,0,0,0.40)',
-  '--highlight-edge': 'inset 0 1px 0 rgba(255,255,255,0.06)',
+  '--success': '#3DCB89',
+  '--success-soft': 'rgba(61, 203, 137, 0.14)',
+  '--warning': '#E6A33A',
+  '--warning-soft': 'rgba(230, 163, 58, 0.14)',
+  '--danger': '#F26C4F',
+  '--danger-soft': 'rgba(242, 108, 79, 0.14)',
+  '--info': '#5BA2F2',
+  '--info-soft': 'rgba(91, 162, 242, 0.14)',
 
-  '--sketch-outline-opacity': '0.18',
-  '--paper-grain-opacity': '0.16',
-  '--paper-fiber-opacity': '0.08',
-  '--paper-contrast': '1.15',
-  '--paper-noise-scale': '180',
-  '--paper-drift-distance': '10px',
-  '--paper-drift-duration': '16s',
+  '--focus-ring': '0 0 0 3px rgba(95, 181, 141, 0.30)',
+  '--link': '#74C29B',
 
-  '--ink-border': 'rgba(245,245,245,0.16)',
-  '--ink-border-strong': 'rgba(245,245,245,0.28)',
-  '--sketch-wobble': '0.5px',
-  '--sketch-rotate': '0.12deg',
+  '--shadow-xs': '0 1px 2px rgba(0, 0, 0, 0.20)',
+  '--shadow-sm': '0 1px 2px rgba(0, 0, 0, 0.30), 0 2px 6px rgba(0, 0, 0, 0.20)',
+  '--shadow-md': '0 4px 12px rgba(0, 0, 0, 0.32), 0 12px 28px rgba(0, 0, 0, 0.22)',
+  '--shadow-lg': '0 8px 20px rgba(0, 0, 0, 0.40), 0 24px 56px rgba(0, 0, 0, 0.30)',
+  '--highlight-edge': 'inset 0 1px 0 rgba(255,255,255,0.04)',
 
-  // Marker highlight
-  '--marker-color': 'rgba(116,198,157,0.12)',
-  '--marker-blend': 'soft-light',
-  '--marker-opacity': '0.50',
-
-  // Alias vars used in Layout + components
-  '--text-primary': '#F5F5F5',
-  '--text-secondary': '#BDBDBD',
-  '--border-mid': 'rgba(245,245,245,0.18)',
-  // Acid accent — bright mint in dark mode
-  '--acid': '#74C69D',
-  '--acid-dim': 'rgba(116,198,157,0.12)',
-  '--acid-mid': 'rgba(116,198,157,0.40)',
+  '--glass-bg': 'rgba(25, 25, 24, 0.72)',
+  '--glass-stroke': 'rgba(255, 255, 255, 0.08)',
 };

@@ -1,158 +1,140 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { Search, ArrowUpDown } from 'lucide-react';
+// FILE: src/pages/CompanyDirectory.tsx
+import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useCompanies } from '../hooks/useCompanies';
-import type { SortOption } from '../hooks/useCompanies';
-import CompanyCard from '../components/DirectoryCard';
+import { Search, X, Building2 } from 'lucide-react';
+import { useCompanies, type SortOption } from '../hooks/useCompanies';
+import { Container, PageHeader, EmptyState } from '../components/ui';
+import DirectoryCard from '../components/DirectoryCard';
 import SkeletonCompanyCard from '../components/SkeletonCompanyCard';
 import Pagination from '../components/Pagination';
-import { Container, PageHeader, Badge, EmptyState } from '../components/ui';
 import { COPY } from '../theme/brand';
 
-const ITEMS_PER_PAGE = 24;
+const PAGE_SIZE = 24;
 
 export default function CompanyDirectory() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [viewportWidth, setViewportWidth] = useState(() => typeof window !== 'undefined' ? window.innerWidth : 1280);
+  const [sp, setSp] = useSearchParams();
+  const page = Math.max(1, parseInt(sp.get('page') || '1', 10));
+  const search = sp.get('q') || '';
+  const sort = (sp.get('sort') || 'most-hiring') as SortOption;
+  const [searchInput, setSearchInput] = useState(search);
 
-  // URL-driven state
-  const pageParam = parseInt(searchParams.get('page') || '1', 10);
-  const qParam = searchParams.get('q') || '';
-  const sortParam = (searchParams.get('sort') || 'a-z') as SortOption;
+  useEffect(() => { document.title = COPY.directory.documentTitle; }, []);
 
-  const [searchInput, setSearchInput] = useState(qParam);
-  const [sort, setSort] = useState<SortOption>(sortParam);
-  const [page, setPage] = useState(pageParam);
-
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const [debouncedSearch, setDebouncedSearch] = useState(qParam);
-
-  // Debounced search
-  const handleSearchChange = useCallback((value: string) => {
-    setSearchInput(value);
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      setDebouncedSearch(value);
-      setPage(1); // Reset to page 1 on search change
+  // Debounce search
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setSp(p => {
+        const n = new URLSearchParams(p);
+        if (searchInput) n.set('q', searchInput); else n.delete('q');
+        n.delete('page');
+        return n;
+      }, { replace: true });
     }, 300);
-  }, []);
+    return () => clearTimeout(t);
+  }, [searchInput, setSp]);
 
-  // Cleanup debounce on unmount
-  useEffect(() => () => { if (debounceRef.current) clearTimeout(debounceRef.current); }, []);
+  const { companies, total, totalPages, loading, error } = useCompanies({ page, limit: PAGE_SIZE, search, sort });
 
-  useEffect(() => {
-    const onResize = () => setViewportWidth(window.innerWidth);
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, []);
-
-  const isMobile = viewportWidth < 640;
-
-  const { companies, total, totalPages, loading } = useCompanies({
-    page,
-    limit: ITEMS_PER_PAGE,
-    search: debouncedSearch,
-    sort,
-  });
-
-  // Sync URL params
-  useEffect(() => {
-    const params: Record<string, string> = {};
-    if (page > 1) params.page = String(page);
-    if (debouncedSearch) params.q = debouncedSearch;
-    if (sort !== 'a-z') params.sort = sort;
-    setSearchParams(params, { replace: true });
-  }, [page, debouncedSearch, sort, setSearchParams]);
-
-  useEffect(() => {
-    document.title = COPY.directory.documentTitle;
-  }, []);
-
-  const handlePageChange = (newPage: number) => {
-    setPage(newPage);
+  const goToPage = (p: number) => {
+    setSp(prev => { const n = new URLSearchParams(prev); n.set('page', String(p)); return n; });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleSortChange = (newSort: SortOption) => {
-    setSort(newSort);
-    setPage(1);
+  const setSort = (s: SortOption) => {
+    setSp(prev => { const n = new URLSearchParams(prev); n.set('sort', s); n.delete('page'); return n; });
   };
 
   return (
-    <div style={{ background: 'var(--paper)', minHeight: '100vh' }}>
-      {/* ── Header ─────────────────────────────────────── */}
-      <div style={{ background: 'var(--surface-solid)', borderBottom: '1.25px solid var(--border)', padding: '14px 0 10px' }}>
-        <Container size="md" style={{ textAlign: 'center' }}>
-          <PageHeader label={COPY.directory.pageLabel} title={<>{COPY.directory.pageTitle1}<br /><span style={{ color: 'var(--primary)' }}>{COPY.directory.pageTitle2}</span></>} subtitle={COPY.directory.subtitle} />
-        </Container>
+    <Container size="xl" style={{ paddingTop: 'clamp(24px, 5vw, 40px)', paddingBottom: 60 }}>
+      <PageHeader
+        label={COPY.directory.pageLabel}
+        title={<>{COPY.directory.pageTitle1} <span style={{ color: 'var(--accent)' }}>{COPY.directory.pageTitle2}</span></>}
+        subtitle={loading ? 'Loading…' : `${total.toLocaleString()} companies actively hiring`}
+      />
+
+      {/* Search + sort */}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
+        <div style={{ position: 'relative', flex: '1 1 240px' }}>
+          <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--ink-faint)' }} />
+          <input
+            type="text"
+            value={searchInput}
+            onChange={e => setSearchInput(e.target.value)}
+            placeholder={COPY.directory.searchPlaceholder}
+            aria-label={COPY.directory.searchAriaLabel}
+            style={{
+              width: '100%', padding: '10px 12px 10px 34px',
+              fontFamily: 'inherit', fontSize: '0.9rem',
+              background: 'var(--surface)', color: 'var(--ink)',
+              border: '1px solid var(--border-strong)',
+              borderRadius: 10, outline: 'none',
+            }}
+            onFocus={e => { e.currentTarget.style.borderColor = 'var(--accent)'; }}
+            onBlur={e => { e.currentTarget.style.borderColor = 'var(--border-strong)'; }}
+          />
+          {searchInput && (
+            <button
+              onClick={() => setSearchInput('')}
+              style={{
+                position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
+                background: 'transparent', border: 'none', padding: 4, cursor: 'pointer',
+                color: 'var(--ink-faint)',
+              }}
+              aria-label="Clear"
+            >
+              <X size={12} />
+            </button>
+          )}
+        </div>
+        <select
+          value={sort}
+          onChange={e => setSort(e.target.value as SortOption)}
+          aria-label={COPY.directory.sortAriaLabel}
+          style={{
+            padding: '10px 32px 10px 12px',
+            fontFamily: 'inherit', fontSize: '0.85rem',
+            background: 'var(--surface)', color: 'var(--ink)',
+            border: '1px solid var(--border-strong)',
+            borderRadius: 10, cursor: 'pointer', outline: 'none',
+            appearance: 'none',
+            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%236F6E69' stroke-width='2'%3E%3Cpath d='M3 5l3 3 3-3'/%3E%3C/svg%3E")`,
+            backgroundRepeat: 'no-repeat', backgroundPosition: 'right 10px center',
+          }}
+        >
+          <option value="most-hiring">{COPY.directory.sortMostHiring}</option>
+          <option value="a-z">{COPY.directory.sortAZ}</option>
+          <option value="z-a">{COPY.directory.sortZA}</option>
+        </select>
       </div>
 
-      {/* ── Content ────────────────────────────────────── */}
-      <Container style={{ padding: isMobile ? '20px 0 36px' : '32px 0 48px' }}>
-        {/* Sticky filter bar */}
-        <div className="sticky-filter-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'stretch' : 'center', flexWrap: 'wrap', gap: 12, flexDirection: isMobile ? 'column' : 'row' }}>
-          <div style={{ display: 'flex', alignItems: isMobile ? 'stretch' : 'center', gap: 12, flex: 1, minWidth: 0, flexDirection: isMobile ? 'column' : 'row', width: isMobile ? '100%' : 'auto' }}>
-            {/* Search */}
-            <div style={{ position: 'relative', flex: 1, maxWidth: isMobile ? '100%' : 360, minWidth: isMobile ? '100%' : 180, width: isMobile ? '100%' : 'auto' }}>
-              <Search size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--subtle-ink)', pointerEvents: 'none' }} />
-              <input
-                type="text"
-                placeholder={COPY.directory.searchPlaceholder}
-                aria-label={COPY.directory.searchAriaLabel}
-                value={searchInput}
-                onChange={e => handleSearchChange(e.target.value)}
-                style={{
-                  width: '100%', padding: '10px 14px 10px 38px', fontFamily: 'inherit', fontSize: '0.875rem',
-                  background: 'var(--paper2)', color: 'var(--ink)', border: '1.25px solid var(--border)',
-                  borderRadius: 10, outline: 'none',
-                }}
-                onFocus={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.boxShadow = 'var(--focus-ring)'; }}
-                onBlur={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = 'none'; }}
-              />
-            </div>
-            <Badge variant="neutral" style={{ alignSelf: isMobile ? 'flex-start' : 'center' }}>{total} compan{total === 1 ? 'y' : 'ies'}</Badge>
-          </div>
-
-          {/* Sort */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: isMobile ? '100%' : 'auto' }}>
-            <ArrowUpDown size={14} style={{ color: 'var(--subtle-ink)' }} />
-            <select
-              value={sort}
-              onChange={e => handleSortChange(e.target.value as SortOption)}
-              aria-label={COPY.directory.sortAriaLabel}
-              style={{
-                flex: isMobile ? 1 : undefined,
-                padding: '8px 32px 8px 10px', fontFamily: 'inherit', fontSize: '0.85rem',
-                background: 'var(--paper2)', color: 'var(--ink)', border: '1.25px solid var(--border)',
-                borderRadius: 10, outline: 'none', cursor: 'pointer',
-                appearance: 'none',
-                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236F6F6F' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
-                backgroundRepeat: 'no-repeat', backgroundPosition: 'right 10px center',
-              }}
-            >
-              <option value="a-z">{COPY.directory.sortAZ}</option>
-              <option value="z-a">{COPY.directory.sortZA}</option>
-              <option value="most-hiring">{COPY.directory.sortMostHiring}</option>
-            </select>
-          </div>
+      {/* Grid */}
+      {loading ? (
+        <div className="companies-grid">
+          {Array(8).fill(0).map((_, i) => <SkeletonCompanyCard key={i} />)}
         </div>
-
-        {/* ── Grid ──────────────────────────────────── */}
-        {loading ? (
-          <div className="companies-grid">
-            {Array.from({ length: 8 }).map((_, i) => <SkeletonCompanyCard key={i} />)}
+      ) : error ? (
+        <EmptyState icon={<Building2 size={28} />} title="Couldn't load companies" body={error} />
+      ) : companies.length === 0 ? (
+        <EmptyState
+          icon={<Building2 size={28} />}
+          title={COPY.directory.noCompaniesTitle}
+          body={COPY.directory.noCompaniesBody}
+        />
+      ) : (
+        <>
+          <div className="companies-grid stagger">
+            {companies.map(c => (
+              <DirectoryCard key={c._id || c.companyName} company={c} />
+            ))}
           </div>
-        ) : companies.length === 0 ? (
-          <EmptyState title={COPY.directory.noCompaniesTitle} body={COPY.directory.noCompaniesBody} />
-        ) : (
-          <>
-            <div className="companies-grid stagger">
-              {companies.map(c => <CompanyCard key={c.companyName} company={c} />)}
+
+          {totalPages > 1 && (
+            <div style={{ marginTop: 32 }}>
+              <Pagination page={page} totalPages={totalPages} onPageChange={goToPage} />
             </div>
-            <Pagination page={page} totalPages={totalPages} onPageChange={handlePageChange} siblingCount={isMobile ? 0 : 1} />
-          </>
-        )}
-      </Container>
-    </div>
+          )}
+        </>
+      )}
+    </Container>
   );
 }

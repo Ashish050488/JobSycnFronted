@@ -1,163 +1,205 @@
+// FILE: src/components/DashboardFilterSheet.tsx
+import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
-import type { ICompany } from '../types';
+import { Button } from './ui';
 
-interface FilterOption {
-  label: string;
-  value: string | null;
-}
+interface Option { value: string; label: string; }
 
-interface DashboardFilterSheetProps {
-  // Filter state
-  roleCategoryFilter: string | null;
-  experienceBandFilter: string | null;
-  workplaceFilter: string | null;
-  dateFilter: string | null;
-  platformFilter: string | null;
-  sel: string;
+interface Props {
+  isOpen: boolean;
+  onClose: () => void;
   activeFilterCount: number;
   visibleJobsCount: number;
-  cos: ICompany[];
-  roleOptions: readonly FilterOption[];
-  experienceOptions: readonly FilterOption[];
-  // Handlers
-  setRoleCategoryFilter: (v: string | null) => void;
-  setExperienceBandFilter: (v: string | null) => void;
-  setWorkplaceFilter: (v: string | null) => void;
-  setDateFilter: (v: string | null) => void;
-  setPlatformFilter: (v: string | null) => void;
-  setSp: (params: Record<string, string>) => void;
   clearAllFilters: () => void;
-  onClose: () => void;
-  pillStyle: (active: boolean) => React.CSSProperties;
+  roleCategoryFilter: string;
+  experienceBandFilter: string;
+  workplaceFilter: string;
+  dateFilter: string;
+  platformFilter: string;
+  roleOptions: Option[];
+  experienceOptions: Option[];
+  setRoleCategoryFilter: (v: string) => void;
+  setExperienceBandFilter: (v: string) => void;
+  setWorkplaceFilter: (v: string) => void;
+  setDateFilter: (v: string) => void;
+  setPlatformFilter: (v: string) => void;
+  setSp: (fn: (sp: URLSearchParams) => void) => void;
 }
 
-export function DashboardFilterSheet({
+export default function DashboardFilterSheet({
+  isOpen, onClose, activeFilterCount, visibleJobsCount, clearAllFilters,
   roleCategoryFilter, experienceBandFilter, workplaceFilter, dateFilter, platformFilter,
-  sel, activeFilterCount, visibleJobsCount, cos, roleOptions, experienceOptions,
-  setRoleCategoryFilter, setExperienceBandFilter, setWorkplaceFilter, setDateFilter,
-  setPlatformFilter, setSp, clearAllFilters, onClose, pillStyle,
-}: DashboardFilterSheetProps) {
+  roleOptions, experienceOptions,
+  setRoleCategoryFilter, setExperienceBandFilter, setWorkplaceFilter,
+  setDateFilter, setPlatformFilter, setSp,
+}: Props) {
+  const [mounted, setMounted] = useState(isOpen);
+  const [closing, setClosing] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) { setMounted(true); setClosing(false); }
+    else if (mounted) {
+      setClosing(true);
+      const t = setTimeout(() => setMounted(false), 220);
+      return () => clearTimeout(t);
+    }
+  }, [isOpen, mounted]);
+
+  if (!mounted) return null;
+
   return (
-    <>
-      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 220, animation: 'sheetFadeIn 0.2s ease' }} />
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 200,
+        background: 'rgba(15,15,14,0.45)',
+        animation: `${closing ? 'sheetFadeIn' : 'sheetFadeIn'} 0.22s ease ${closing ? 'reverse' : 'normal'}`,
+      }}
+    >
       <div
-        className="thin-scroll"
+        onClick={e => e.stopPropagation()}
         style={{
-          position: 'fixed', left: 0, right: 0, bottom: 0,
-          maxHeight: '85dvh', overflowY: 'auto', overflowX: 'hidden',
-          borderRadius: '24px 24px 0 0',
-          border: '1.25px solid var(--border)', borderBottom: 'none',
-          background: 'var(--surface-solid)',
-          padding: '0 0 max(16px, env(safe-area-inset-bottom))',
-          zIndex: 221,
-          animation: 'sheetSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1)',
+          position: 'absolute', bottom: 0, left: 0, right: 0,
+          background: 'var(--surface)',
+          borderTopLeftRadius: 18, borderTopRightRadius: 18,
+          maxHeight: '85vh',
+          display: 'flex', flexDirection: 'column',
+          animation: `${closing ? 'sheetSlideDown' : 'sheetSlideUp'} 0.28s cubic-bezier(0.16, 1, 0.3, 1)`,
+          paddingBottom: 'env(safe-area-inset-bottom)',
         }}
       >
-        {/* Handle + header */}
-        <div style={{ position: 'sticky', top: 0, background: 'var(--surface-solid)', zIndex: 2, padding: '10px 20px 12px', borderBottom: '1px solid var(--border)' }}>
-          <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--border-strong)', margin: '0 auto 12px' }} />
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--ink)' }}>Filters</span>
-            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-              {activeFilterCount > 0 && <button onClick={clearAllFilters} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600, fontFamily: 'inherit' }}>Clear all</button>}
-              <button onClick={onClose} style={{ width: 36, height: 36, borderRadius: '50%', border: '1px solid var(--border)', background: 'var(--paper2)', color: 'var(--muted-ink)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={16} /></button>
-            </div>
-          </div>
-        </div>
+        {/* Drag handle */}
+        <div style={{
+          width: 36, height: 4, borderRadius: 999,
+          background: 'var(--border-strong)',
+          margin: '8px auto 0',
+        }} />
 
-        {/* Filter sections */}
-        <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {/* Role Category */}
-          <div>
-            <p style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--muted-ink)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Role</p>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              <button onClick={() => setRoleCategoryFilter(null)} style={pillStyle(!roleCategoryFilter)}>All</button>
-              {roleOptions.filter(o => o.value).map(opt => (
-                <button key={opt.label} onClick={() => setRoleCategoryFilter(roleCategoryFilter === opt.value ? null : (opt.value ?? null))} style={pillStyle(roleCategoryFilter === opt.value)}>{opt.label}</button>
-              ))}
-            </div>
-          </div>
-          {/* Experience */}
-          <div>
-            <p style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--muted-ink)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Experience</p>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              <button onClick={() => setExperienceBandFilter(null)} style={pillStyle(!experienceBandFilter)}>All</button>
-              {experienceOptions.filter(o => o.value).map(opt => (
-                <button key={opt.label} onClick={() => setExperienceBandFilter(experienceBandFilter === opt.value ? null : (opt.value ?? null))} style={pillStyle(experienceBandFilter === opt.value)}>{opt.label}</button>
-              ))}
-            </div>
-          </div>
-          {/* Workplace */}
-          <div>
-            <p style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--muted-ink)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Workplace</p>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {[{ l: 'All', v: null }, { l: 'Remote', v: 'remote' }, { l: 'Hybrid', v: 'hybrid' }, { l: 'On-site', v: 'on-site' }].map(o => (
-                <button key={o.l} onClick={() => setWorkplaceFilter(workplaceFilter === o.v ? null : o.v)} style={pillStyle(workplaceFilter === o.v)}>{o.l}</button>
-              ))}
-            </div>
-          </div>
-          {/* Date */}
-          <div>
-            <p style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--muted-ink)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Posted</p>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {[{ l: 'Any time', v: null }, { l: 'Past 24h', v: '1d' }, { l: 'Past 3 days', v: '3d' }, { l: 'Past week', v: '7d' }].map(o => (
-                <button key={o.l} onClick={() => setDateFilter(dateFilter === o.v ? null : o.v)} style={pillStyle(dateFilter === o.v)}>{o.l}</button>
-              ))}
-            </div>
-          </div>
-          {/* Platform */}
-          <div>
-            <p style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--muted-ink)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Job Board</p>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {[{ l: 'All', v: null }, { l: 'Lever', v: 'lever' }, { l: 'Greenhouse', v: 'greenhouse' }, { l: 'Ashby', v: 'ashby' }, { l: 'Workable', v: 'workable' }, { l: 'Recruitee', v: 'recruitee' }, { l: 'Workday', v: 'workday' }].map(o => (
-                <button key={o.l} onClick={() => setPlatformFilter(platformFilter === o.v ? null : o.v)} style={pillStyle(platformFilter === o.v)}>{o.l}</button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <p style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--muted-ink)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Company</p>
-            <select
-              value={sel}
-              onChange={e => {
-                const company = e.target.value;
-                if (!company) {
-                  setSp({});
-                } else {
-                  setSp({ company });
-                }
-              }}
-              style={{
-                width: '100%',
-                padding: '12px 14px',
-                borderRadius: 14,
-                border: '1px solid var(--border)',
-                background: 'var(--surface-solid)',
-                color: sel ? 'var(--ink)' : 'var(--muted-ink)',
-                fontFamily: 'inherit',
-                fontSize: '0.88rem',
-              }}
-            >
-              <option value="">All companies</option>
-              {cos.map(c => <option key={c.companyName} value={c.companyName}>{c.companyName}</option>)}
-            </select>
-          </div>
-        </div>
-
-        {/* Sticky apply button */}
-        <div style={{ position: 'sticky', bottom: 0, padding: '12px 20px', paddingBottom: 'max(12px, env(safe-area-inset-bottom))', background: 'var(--surface-solid)', borderTop: '1px solid var(--border)' }}>
-          <button
-            onClick={onClose}
-            style={{
-              width: '100%', padding: '14px 0', borderRadius: 12,
-              background: 'var(--primary)', color: '#fff', border: 'none',
-              fontSize: '0.92rem', fontWeight: 700, cursor: 'pointer',
-              fontFamily: 'inherit', transition: 'opacity 0.15s',
-            }}
-          >
-            Show {visibleJobsCount} jobs
+        <div style={{
+          padding: '14px 20px',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          borderBottom: '1px solid var(--border)',
+        }}>
+          <h2 className="font-display" style={{ fontSize: '1.1rem', fontWeight: 600 }}>
+            Filters {activeFilterCount > 0 && <span style={{ color: 'var(--ink-muted)', fontWeight: 500, fontSize: '0.85rem' }}>· {activeFilterCount}</span>}
+          </h2>
+          <button onClick={onClose} aria-label="Close" style={{
+            width: 30, height: 30, borderRadius: 8,
+            background: 'var(--paper-2)', border: '1px solid var(--border)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: 'var(--ink-muted)', cursor: 'pointer',
+          }}>
+            <X size={14} />
           </button>
         </div>
+
+        <div className="thin-scroll" style={{ overflowY: 'auto', flex: 1, padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <Group label="Role">
+            <Chips
+              value={roleCategoryFilter}
+              options={roleOptions}
+              onChange={v => { setRoleCategoryFilter(v); setSp(sp => { sp.set('role', v); sp.delete('page'); }); }}
+            />
+          </Group>
+          <Group label="Experience">
+            <Chips
+              value={experienceBandFilter}
+              options={experienceOptions}
+              onChange={v => { setExperienceBandFilter(v); setSp(sp => { sp.set('exp', v); sp.delete('page'); }); }}
+            />
+          </Group>
+          <Group label="Workplace">
+            <Chips
+              value={workplaceFilter}
+              options={[
+                { value: 'all', label: 'All' },
+                { value: 'remote', label: 'Remote' },
+                { value: 'hybrid', label: 'Hybrid' },
+                { value: 'on-site', label: 'On-site' },
+              ]}
+              onChange={v => { setWorkplaceFilter(v); setSp(sp => { sp.set('wp', v); sp.delete('page'); }); }}
+            />
+          </Group>
+          <Group label="Posted">
+            <Chips
+              value={dateFilter}
+              options={[
+                { value: 'all', label: 'Any time' },
+                { value: 'today', label: 'Today' },
+                { value: '3d', label: '3 days' },
+                { value: '7d', label: '1 week' },
+                { value: '30d', label: '1 month' },
+              ]}
+              onChange={v => { setDateFilter(v); setSp(sp => { sp.set('date', v); sp.delete('page'); }); }}
+            />
+          </Group>
+          <Group label="Source">
+            <Chips
+              value={platformFilter}
+              options={[
+                { value: 'all', label: 'All' },
+                { value: 'lever', label: 'Lever' },
+                { value: 'greenhouse', label: 'Greenhouse' },
+                { value: 'ashby', label: 'Ashby' },
+                { value: 'workable', label: 'Workable' },
+                { value: 'recruitee', label: 'Recruitee' },
+                { value: 'workday', label: 'Workday' },
+              ]}
+              onChange={v => { setPlatformFilter(v); setSp(sp => { sp.set('platform', v); sp.delete('page'); }); }}
+            />
+          </Group>
+        </div>
+
+        <div style={{
+          padding: '12px 20px',
+          borderTop: '1px solid var(--border)',
+          background: 'var(--paper-2)',
+          display: 'flex', gap: 8,
+        }}>
+          <Button variant="ghost" size="md" onClick={clearAllFilters} style={{ flex: 1 }}>Clear all</Button>
+          <Button variant="primary" size="md" onClick={onClose} style={{ flex: 2 }}>
+            Show {visibleJobsCount} results
+          </Button>
+        </div>
       </div>
-    </>
+    </div>
+  );
+}
+
+function Group({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <p style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--ink-muted)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 8 }}>
+        {label}
+      </p>
+      {children}
+    </div>
+  );
+}
+
+function Chips({ value, options, onChange }: { value: string; options: { value: string; label: string }[]; onChange: (v: string) => void }) {
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+      {options.map(o => (
+        <button
+          key={o.value}
+          onClick={() => onChange(o.value)}
+          style={{
+            padding: '6px 12px',
+            borderRadius: 999,
+            fontFamily: 'inherit',
+            fontSize: '0.82rem',
+            fontWeight: 500,
+            background: value === o.value ? 'var(--accent-soft)' : 'transparent',
+            color: value === o.value ? 'var(--accent)' : 'var(--ink-2)',
+            border: '1px solid',
+            borderColor: value === o.value ? 'var(--accent-mid)' : 'var(--border-strong)',
+            cursor: 'pointer',
+          }}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
   );
 }

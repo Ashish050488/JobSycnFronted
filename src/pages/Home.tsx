@@ -1,157 +1,247 @@
 // FILE: src/pages/Home.tsx
-import { useState, useEffect, useRef } from 'react';
+// Guest landing page. Notion-paper hero. Apple-grade spacing.
+
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Briefcase, ChevronLeft, ChevronRight } from 'lucide-react';
-import JobCard from '../components/JobCard';
-import CompanyCard from '../components/DirectoryCard';
-import MarketPulse from '../components/MarketPulse';
+import { ArrowRight, Briefcase, Building2, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import { COPY, BRAND } from '../theme/brand';
+import { Container, Button } from '../components/ui';
 import type { IJob, ICompany } from '../types';
-import { Button, Badge, Container } from '../components/ui';
-import { BRAND, COPY } from '../theme/brand';
-import { useUser } from '../context/UserContext';
+import JobCard from '../components/JobCard';
+import CompanyLogo from '../components/CompanyLogo';
 
 export default function Home() {
-  const { currentUser } = useUser();
   const [jobs, setJobs] = useState<IJob[]>([]);
   const [companies, setCompanies] = useState<ICompany[]>([]);
   const [loading, setLoading] = useState(true);
-  const [viewportWidth, setViewportWidth] = useState(() => typeof window !== 'undefined' ? window.innerWidth : 1280);
   const carouselRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    document.title = `${BRAND.fullName} | ${BRAND.tagline}`;
-    (async () => {
-      try {
-        const [jr, dr] = await Promise.all([fetch('/api/jobs?limit=9'), fetch('/api/jobs/directory')]);
-        const jd: { jobs?: IJob[] } = await jr.json();
-        setJobs(jd.jobs ?? []);
-        const dd: unknown = await dr.json();
-        if (Array.isArray(dd)) setCompanies(dd.slice(0, 8) as ICompany[]);
-      } catch (e) { console.error(e); } finally { setLoading(false); }
-    })();
+    document.title = `${BRAND.appName} — ${BRAND.tagline}`;
   }, []);
 
   useEffect(() => {
-    const onResize = () => setViewportWidth(window.innerWidth);
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
+    let cancelled = false;
+    Promise.all([
+      fetch('/api/jobs?limit=8').then(r => r.ok ? r.json() : { jobs: [] }),
+      fetch('/api/jobs/directory').then(r => r.ok ? r.json() : []),
+    ]).then(([j, c]) => {
+      if (cancelled) return;
+      setJobs((j?.jobs || j || []).slice(0, 8));
+      setCompanies((Array.isArray(c) ? c : []).slice(0, 10));
+    }).finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, []);
 
-  const isMobile = viewportWidth < 640;
-  const isTablet = viewportWidth < 1024;
-
-  const scrollCarousel = (dir: 'left' | 'right') => {
-    if (!carouselRef.current) return;
-    const scrollStep = isMobile ? Math.max(viewportWidth - 72, 220) : 300;
-    carouselRef.current.scrollBy({ left: dir === 'left' ? -scrollStep : scrollStep, behavior: 'smooth' });
+  const scroll = (dir: 'left' | 'right') => {
+    const el = carouselRef.current;
+    if (!el) return;
+    el.scrollBy({ left: dir === 'left' ? -280 : 280, behavior: 'smooth' });
   };
 
   return (
-    <div>
-      {/* ── HERO ─────────────────────────────────────── */}
-      <section style={{ position: 'relative', overflow: 'hidden' }}>
-        <div className="grid-bg" style={{ position: 'absolute', inset: 0, opacity: 0.5 }} />
-        <div className="orb" style={{ width: 500, height: 500, top: -200, left: '50%', transform: 'translateX(-50%)', background: 'var(--primary-soft)' }} />
-        <Container style={{ position: 'relative', zIndex: 1, paddingTop: isMobile ? 72 : 96, paddingBottom: isMobile ? 56 : 80, textAlign: 'center' }}>
-          <div className="anim-up" style={{ marginBottom: 20 }}><Badge variant="primary"><Briefcase size={10} />{COPY.home.heroLabel}</Badge></div>
-          <h1 className="anim-up" style={{ animationDelay: '0.07s', fontSize: 'clamp(2.4rem,6.5vw,4.5rem)', fontWeight: 700, color: 'var(--ink)', lineHeight: 1.1, letterSpacing: '-0.03em', marginBottom: 24 }}>
-            {COPY.home.heroTitle1}<br /><span className="font-sketch" style={{ color: 'var(--primary)', fontSize: '1.1em' }}>{COPY.home.heroTitle2}</span>
+    <>
+      {/* ── HERO ─────────────────────────────────────────────── */}
+      <section style={{
+        position: 'relative',
+        padding: 'clamp(56px, 10vw, 100px) 0 clamp(40px, 8vw, 72px)',
+        overflow: 'hidden',
+      }}>
+        <div className="grid-bg" style={{ position: 'absolute', inset: 0, opacity: 0.35, pointerEvents: 'none' }} />
+        <div className="orb" style={{ width: 400, height: 400, top: -100, left: -100, background: 'var(--accent-soft)' }} />
+        <div className="orb" style={{ width: 360, height: 360, top: -50, right: -120, background: 'var(--info-soft)' }} />
+
+        <Container size="lg" style={{ position: 'relative' }}>
+          <div className="anim-up" style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '5px 12px',
+            borderRadius: 999,
+            background: 'var(--accent-soft)',
+            color: 'var(--accent)',
+            fontSize: '0.78rem',
+            fontWeight: 500,
+            marginBottom: 18,
+          }}>
+            <Sparkles size={12} /> {COPY.home.heroLabel}
+          </div>
+
+          <h1 className="font-display anim-up" style={{
+            fontSize: 'clamp(2.2rem, 7vw, 4rem)',
+            fontWeight: 600,
+            lineHeight: 1.05,
+            letterSpacing: '-0.035em',
+            color: 'var(--ink)',
+            marginBottom: 14,
+            maxWidth: 820,
+          }}>
+            {COPY.home.heroTitle1}{' '}
+            <span style={{ color: 'var(--accent)' }}>{COPY.home.heroTitle2}</span>
           </h1>
-          <p className="anim-up" style={{ animationDelay: '0.14s', fontSize: isMobile ? '0.95rem' : '1.05rem', color: 'var(--muted-ink)', lineHeight: 1.75, maxWidth: 500, margin: '0 auto 36px' }}>
+          <p className="anim-up" style={{
+            fontSize: 'clamp(1rem, 2vw, 1.15rem)',
+            color: 'var(--ink-muted)',
+            maxWidth: 640,
+            lineHeight: 1.55,
+            marginBottom: 28,
+          }}>
             {COPY.home.heroSubtitle}
           </p>
-          <div className="anim-up hero-cta-row" style={{ animationDelay: '0.2s', display: 'flex', justifyContent: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <div className="w-full sm:w-auto"><Link to="/jobs" className="block w-full"><Button size="lg" className="w-full">{COPY.home.heroCTA} <ArrowRight size={15} /></Button></Link></div>
-            <div className="w-full sm:w-auto"><Link to="/directory" className="block w-full"><Button variant="ghost" size="lg" className="w-full">{COPY.home.heroSecondaryCTA}</Button></Link></div>
-          </div>
-          <div className="anim-up hero-stats-row" style={{ animationDelay: '0.28s', display: 'flex', justifyContent: 'center', gap: 'clamp(24px, 8vw, 48px)', marginTop: 'clamp(30px, 8vw, 60px)', flexWrap: 'wrap', paddingTop: 'clamp(20px, 6vw, 40px)', borderTop: '1.25px solid var(--border)' }}>
-            {[[COPY.home.stat1Value, COPY.home.stat1Label], [COPY.home.stat2Value, COPY.home.stat2Label]].map(([v, l]) => (
-              <div key={l} style={{ textAlign: 'center', minWidth: 120 }}>
-                <div className="font-sketch" style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', fontWeight: 700, color: 'var(--primary)' }}>{v}</div>
-                <div style={{ fontSize: '0.78rem', letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--subtle-ink)', marginTop: 4 }}>{l}</div>
-              </div>
-            ))}
-          </div>
-        </Container>
-      </section>
 
-      {/* ── COMPANIES ────────────────────────────────── */}
-      <section style={{ padding: isMobile ? '56px 0' : '80px 0', background: 'var(--surface-solid)', borderTop: '1.25px solid var(--border)' }}>
-        <Container>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'stretch' : 'flex-end', marginBottom: isMobile ? 24 : 36, flexWrap: 'wrap', gap: 14 }}>
-            <div>
-              <p className="font-sketch" style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--primary)', marginBottom: 8 }}>{COPY.home.companiesSectionLabel}</p>
-              <h2 style={{ fontSize: 'clamp(1.5rem,3vw,2.2rem)', fontWeight: 700, color: 'var(--ink)' }}>{COPY.home.companiesSectionTitle1} <span style={{ color: 'var(--primary)' }}>{COPY.home.companiesSectionTitle2}</span></h2>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: isMobile ? '100%' : 'auto', justifyContent: isMobile ? 'space-between' : 'flex-end', flexWrap: 'wrap' }}>
-              {isMobile ? (
-                <span style={{ fontSize: '0.76rem', color: 'var(--muted-ink)' }}>Swipe to explore companies</span>
-              ) : (
-                <>
-                  <button onClick={() => scrollCarousel('left')} aria-label={COPY.home.scrollLeft}
-                    style={{ background: 'var(--surface-solid)', border: '1.25px solid var(--border)', borderRadius: 10, width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--ink)', transition: 'all 0.22s' }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--primary)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--primary)'; }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--ink)'; }}>
-                    <ChevronLeft size={18} />
-                  </button>
-                  <button onClick={() => scrollCarousel('right')} aria-label={COPY.home.scrollRight}
-                    style={{ background: 'var(--surface-solid)', border: '1.25px solid var(--border)', borderRadius: 10, width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--ink)', transition: 'all 0.22s' }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--primary)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--primary)'; }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--ink)'; }}>
-                    <ChevronRight size={18} />
-                  </button>
-                </>
-              )}
-              <Link to="/directory" style={{ width: isMobile ? '100%' : 'auto' }}><Button variant="ghost" style={{ width: isMobile ? '100%' : undefined }}>{COPY.home.fullDirectory} <ArrowRight size={13} /></Button></Link>
-            </div>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <Button as="a" href="/jobs" variant="primary" size="lg">
+              {COPY.home.heroCTA} <ArrowRight size={16} />
+            </Button>
+            <Button as="a" href="/directory" variant="ghost" size="lg">
+              <Building2 size={14} /> {COPY.home.heroSecondaryCTA}
+            </Button>
           </div>
 
-          <div ref={carouselRef} className="snap-carousel stagger" style={{ scrollPaddingLeft: 4 }}>
-            {companies.map(c => (
-              <div key={c.companyName} style={{ minWidth: isMobile ? '82vw' : isTablet ? '42vw' : '280px', maxWidth: isMobile ? 340 : 300, flex: '0 0 auto' }}>
-                <CompanyCard company={c} />
-              </div>
-            ))}
+          {/* Stats inline */}
+          <div style={{
+            display: 'flex',
+            gap: 28,
+            marginTop: 40,
+            flexWrap: 'wrap',
+          }}>
+            <Stat value={COPY.home.stat1Value} label={COPY.home.stat1Label} />
+            <Stat value={COPY.home.stat2Value} label={COPY.home.stat2Label} />
+            <Stat value="6 ATS" label="Sources scraped" />
           </div>
         </Container>
       </section>
 
-      {/* ── MARKET PULSE ─────────────────────────────── */}
-      {currentUser && <MarketPulse />}
-      {!currentUser && (
-        <section style={{ padding: isMobile ? '56px 0' : '80px 0', background: 'var(--paper)', borderTop: '1.25px solid var(--border)' }}>
-          <Container>
-            <div style={{ textAlign: 'center', maxWidth: 500, margin: '0 auto' }}>
-              <p className="font-sketch" style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--primary)', marginBottom: 12 }}>Market Insights</p>
-              <h2 style={{ fontSize: 'clamp(1.5rem,3vw,2.2rem)', fontWeight: 700, color: 'var(--ink)', marginBottom: 16 }}>
-                Track Hiring Trends
-              </h2>
-              <p style={{ fontSize: '0.95rem', color: 'var(--muted-ink)', marginBottom: 24 }}>
-                Sign in to access real-time market pulse data — see which roles are hot, trending skills, and salary insights.
-              </p>
-              <Link to="/login" style={{ display: 'inline-block', width: isMobile ? '100%' : 'auto' }}><Button size="lg" style={{ width: isMobile ? '100%' : undefined }}>Sign In to View Market Insights</Button></Link>
-            </div>
-          </Container>
-        </section>
-      )}
-
-      {/* ── LATEST JOBS ──────────────────────────────── */}
-      <section style={{ padding: isMobile ? '56px 0' : '80px 0', background: 'var(--paper)', borderTop: '1.25px solid var(--border)' }}>
+      {/* ── COMPANIES CAROUSEL ───────────────────────────────── */}
+      <section style={{ padding: '40px 0', borderTop: '1px solid var(--border)' }}>
         <Container size="lg">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'stretch' : 'flex-end', marginBottom: isMobile ? 24 : 32, flexWrap: 'wrap', gap: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 18, flexWrap: 'wrap', gap: 10 }}>
             <div>
-              <p className="font-sketch" style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--primary)', marginBottom: 8 }}>{COPY.home.jobsSectionLabel}</p>
-              <h2 style={{ fontSize: 'clamp(1.5rem,3vw,2.2rem)', fontWeight: 700, color: 'var(--ink)' }}>{COPY.home.jobsSectionTitle}</h2>
+              <p style={sectionLabel}>{COPY.home.companiesSectionLabel}</p>
+              <h2 className="font-display" style={sectionTitle}>
+                {COPY.home.companiesSectionTitle1} <span style={{ color: 'var(--accent)' }}>{COPY.home.companiesSectionTitle2}</span>
+              </h2>
             </div>
-            <Link to="/jobs" style={{ width: isMobile ? '100%' : 'auto' }}><Button variant="ghost" style={{ width: isMobile ? '100%' : undefined }}>{COPY.home.viewAll} <ArrowRight size={13} /></Button></Link>
+            <Link to="/directory" style={linkStyle}>
+              {COPY.home.fullDirectory} <ArrowRight size={13} />
+            </Link>
           </div>
-          {loading ? <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>{[1, 2, 3].map(i => <div key={i} className="skeleton" style={{ height: 140 }} />)}</div>
-            : <div className="stagger" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>{jobs.map(j => <JobCard key={j._id} job={j} />)}</div>}
-          <div style={{ textAlign: 'center', marginTop: 36 }}><Link to="/jobs" style={{ display: 'inline-block', width: isMobile ? '100%' : 'auto' }}><Button variant="outline" style={{ width: isMobile ? '100%' : undefined }}>{COPY.home.loadMore} <ArrowRight size={13} /></Button></Link></div>
+
+          <div style={{ position: 'relative' }}>
+            <div className="snap-carousel" ref={carouselRef} style={{ gap: 12 }}>
+              {(loading ? Array(6).fill(0) : companies).map((c, i) => (
+                loading ? (
+                  <div key={i} className="skeleton" style={{ minWidth: 200, height: 130, borderRadius: 12, flexShrink: 0 }} />
+                ) : (
+                  <Link
+                    key={c._id || c.companyName}
+                    to="/directory"
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 10,
+                      minWidth: 200, maxWidth: 230,
+                      padding: 14,
+                      background: 'var(--surface)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 12,
+                      textDecoration: 'none',
+                      transition: 'all 180ms ease',
+                      flexShrink: 0,
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--border-strong)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                  >
+                    <CompanyLogo name={c.companyName} domain={c.domain} size={36} borderRadius={10} />
+                    <div>
+                      <p style={{ fontSize: '0.92rem', fontWeight: 600, color: 'var(--ink)', letterSpacing: '-0.01em', lineHeight: 1.3 }}>{c.companyName}</p>
+                      <p style={{ fontSize: '0.78rem', color: 'var(--ink-muted)', marginTop: 3 }}>
+                        {c.openRoles} open role{c.openRoles === 1 ? '' : 's'}
+                      </p>
+                    </div>
+                  </Link>
+                )
+              ))}
+            </div>
+            {/* Scroll buttons (desktop) */}
+            <div style={{ display: 'flex', gap: 6, marginTop: 12, justifyContent: 'flex-end' }}>
+              <button onClick={() => scroll('left')} aria-label={COPY.home.scrollLeft} style={scrollBtn}>
+                <ChevronLeft size={14} />
+              </button>
+              <button onClick={() => scroll('right')} aria-label={COPY.home.scrollRight} style={scrollBtn}>
+                <ChevronRight size={14} />
+              </button>
+            </div>
+          </div>
         </Container>
       </section>
 
-      {/* ── Privacy & Terms link (required for Google verification) ── */}
+      {/* ── JOBS LIST ────────────────────────────────────────── */}
+      <section style={{ padding: '40px 0 64px', borderTop: '1px solid var(--border)' }}>
+        <Container size="lg">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 18, flexWrap: 'wrap', gap: 10 }}>
+            <div>
+              <p style={sectionLabel}>{COPY.home.jobsSectionLabel}</p>
+              <h2 className="font-display" style={sectionTitle}>
+                {COPY.home.jobsSectionTitle}
+              </h2>
+            </div>
+            <Link to="/jobs" style={linkStyle}>
+              {COPY.home.viewAll} <ArrowRight size={13} />
+            </Link>
+          </div>
+
+          <div className="stagger" style={{ display: 'grid', gap: 10 }}>
+            {loading ? (
+              Array(6).fill(0).map((_, i) => (
+                <div key={i} className="skeleton" style={{ height: 84, borderRadius: 12 }} />
+              ))
+            ) : jobs.map(j => (
+              <JobCard key={j._id} job={j} />
+            ))}
+          </div>
+
+          <div style={{ marginTop: 24, textAlign: 'center' }}>
+            <Button as="a" href="/jobs" variant="ghost" size="md">
+              <Briefcase size={14} /> {COPY.home.loadMore}
+            </Button>
+          </div>
+        </Container>
+      </section>
+    </>
+  );
+}
+
+function Stat({ value, label }: { value: string; label: string }) {
+  return (
+    <div>
+      <div className="font-display" style={{
+        fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 600,
+        color: 'var(--ink)', letterSpacing: '-0.025em', lineHeight: 1,
+      }}>{value}</div>
+      <div style={{ fontSize: '0.8rem', color: 'var(--ink-muted)', marginTop: 4 }}>{label}</div>
     </div>
   );
 }
+
+const sectionLabel: React.CSSProperties = {
+  fontSize: '0.75rem', color: 'var(--ink-muted)',
+  letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 6,
+};
+const sectionTitle: React.CSSProperties = {
+  fontSize: 'clamp(1.4rem, 3vw, 1.85rem)', fontWeight: 600,
+  color: 'var(--ink)', letterSpacing: '-0.025em', lineHeight: 1.1,
+};
+const linkStyle: React.CSSProperties = {
+  display: 'inline-flex', alignItems: 'center', gap: 4,
+  fontSize: '0.85rem', color: 'var(--ink-muted)',
+  textDecoration: 'none', fontWeight: 500,
+};
+const scrollBtn: React.CSSProperties = {
+  width: 32, height: 32, borderRadius: 8,
+  border: '1px solid var(--border)',
+  background: 'transparent',
+  color: 'var(--ink-muted)',
+  cursor: 'pointer',
+  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+};

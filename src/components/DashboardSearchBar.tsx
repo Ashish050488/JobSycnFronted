@@ -1,80 +1,65 @@
-import { Search, X } from 'lucide-react';
+// FILE: src/components/DashboardSearchBar.tsx
+import { Search, X, Sparkles } from 'lucide-react';
 
-interface DashboardSearchBarProps {
-  searchQuery: string;
-  setSearchQuery: (q: string) => void;
-  sortBy: 'default' | 'match';
-  setSortBy: (v: 'default' | 'match') => void;
-  isXsSm: boolean;
-  currentUser: unknown;
-  userSkills: string[];
+interface Props {
+  search: string;
+  onSearchChange: (s: string) => void;
+  sortByMatch: boolean;
+  onToggleSortByMatch: () => void;
+  hasSkills: boolean;
 }
 
-export function DashboardSearchBar({
-  searchQuery, setSearchQuery, sortBy, setSortBy,
-  isXsSm, currentUser, userSkills,
-}: DashboardSearchBarProps) {
+export default function DashboardSearchBar({ search, onSearchChange, sortByMatch, onToggleSortByMatch, hasSkills }: Props) {
   return (
-    <>
-      {/* Search bar */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 14, alignItems: 'center' }}>
-        <div style={{ position: 'relative', flex: 1 }}>
-          <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--muted-ink)', pointerEvents: 'none' }} />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            placeholder="Search by title, company, location, or tech stack..."
-            style={{
-              width: '100%', height: 48, padding: '10px 36px 10px 38px', borderRadius: 12,
-              border: '1.25px solid var(--border)', background: 'var(--surface-solid)',
-              color: 'var(--ink)', fontSize: isXsSm ? 16 : '0.92rem', fontFamily: 'inherit',
-              outline: 'none', transition: 'border-color 0.18s',
-              boxSizing: 'border-box',
-            }}
-            onFocus={e => { (e.target as HTMLInputElement).style.borderColor = 'var(--primary)'; }}
-            onBlur={e => { (e.target as HTMLInputElement).style.borderColor = 'var(--border)'; }}
-          />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery('')}
-              style={{
-                position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
-                background: 'none', border: 'none', cursor: 'pointer',
-                color: 'var(--muted-ink)', display: 'flex', alignItems: 'center', padding: 2,
-              }}
-            >
-              <X size={15} />
-            </button>
-          )}
-        </div>
-      </div>
-      {/* Sort by skills row — only when user has skills and is logged in */}
-      {currentUser && userSkills.length > 0 && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-          <span style={{ fontSize: '0.75rem', color: 'var(--muted-ink)' }}>Sort by:</span>
+    <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+      <div style={{ position: 'relative', flex: '1 1 240px', minWidth: 200 }}>
+        <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--ink-faint)' }} />
+        <input
+          type="text"
+          value={search}
+          onChange={e => onSearchChange(e.target.value)}
+          placeholder="Search role, company, skill…"
+          style={{
+            width: '100%', padding: '9px 32px 9px 34px',
+            fontFamily: 'inherit', fontSize: '0.875rem',
+            background: 'var(--surface)', color: 'var(--ink)',
+            border: '1px solid var(--border-strong)',
+            borderRadius: 10, outline: 'none',
+          }}
+          onFocus={e => { e.currentTarget.style.borderColor = 'var(--accent)'; }}
+          onBlur={e => { e.currentTarget.style.borderColor = 'var(--border-strong)'; }}
+        />
+        {search && (
           <button
-            onClick={() => setSortBy(sortBy === 'match' ? 'default' : 'match')}
+            onClick={() => onSearchChange('')}
             style={{
-              padding: '3px 10px', borderRadius: 999, fontSize: '0.75rem', fontFamily: 'inherit',
-              border: sortBy === 'match' ? '1.5px solid var(--primary)' : '1.25px solid var(--border)',
-              background: sortBy === 'match' ? 'var(--primary)' : 'transparent',
-              color: sortBy === 'match' ? '#fff' : 'var(--muted-ink)',
-              cursor: 'pointer', fontWeight: sortBy === 'match' ? 600 : 400, transition: 'all 0.18s',
+              position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
+              background: 'transparent', border: 'none', padding: 4, cursor: 'pointer',
+              color: 'var(--ink-faint)',
             }}
+            aria-label="Clear search"
           >
-            ✶ Best match
+            <X size={12} />
           </button>
-          {sortBy === 'match' && (
-            <button
-              onClick={() => setSortBy('default')}
-              style={{ padding: '3px 10px', borderRadius: 999, fontSize: '0.75rem', fontFamily: 'inherit', border: '1.25px solid var(--border)', background: 'transparent', color: 'var(--muted-ink)', cursor: 'pointer', transition: 'all 0.18s' }}
-            >
-              Default
-            </button>
-          )}
-        </div>
+        )}
+      </div>
+      {hasSkills && (
+        <button
+          onClick={onToggleSortByMatch}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            padding: '8px 12px', borderRadius: 10,
+            border: '1px solid',
+            borderColor: sortByMatch ? 'var(--accent)' : 'var(--border-strong)',
+            background: sortByMatch ? 'var(--accent-soft)' : 'transparent',
+            color: sortByMatch ? 'var(--accent)' : 'var(--ink-muted)',
+            fontFamily: 'inherit', fontSize: '0.82rem', fontWeight: 500,
+            cursor: 'pointer',
+          }}
+        >
+          <Sparkles size={12} /> Best match
+        </button>
       )}
-    </>
+    </div>
   );
 }

@@ -1,101 +1,82 @@
-import { useEffect, useState } from 'react';
+// FILE: src/components/Pagination.tsx
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
-interface PaginationProps {
-    page: number;
-    totalPages: number;
-    onPageChange: (page: number) => void;
-    siblingCount?: number;
+interface Props {
+  page: number;
+  totalPages: number;
+  onPageChange: (p: number) => void;
+  siblingCount?: number;
 }
 
-function getPageNumbers(page: number, totalPages: number, siblings: number): (number | '...')[] {
-    const pages: (number | '...')[] = [];
-    const left = Math.max(2, page - siblings);
-    const right = Math.min(totalPages - 1, page + siblings);
-
-    pages.push(1);
-    if (left > 2) pages.push('...');
-    for (let i = left; i <= right; i++) pages.push(i);
-    if (right < totalPages - 1) pages.push('...');
-    if (totalPages > 1) pages.push(totalPages);
-
-    return pages;
+function range(start: number, end: number) {
+  return Array.from({ length: end - start + 1 }, (_, i) => start + i);
 }
 
-const btnBase: React.CSSProperties = {
-    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-    minWidth: 36, height: 36, borderRadius: 10,
-    border: '1.25px solid var(--border)', background: 'var(--surface-solid)',
-    color: 'var(--ink)', fontSize: '0.875rem', fontWeight: 600,
-    cursor: 'pointer', transition: 'all 0.22s cubic-bezier(0.2,0.8,0.2,1)',
-    fontFamily: 'inherit', padding: '0 8px',
-};
-const btnActive: React.CSSProperties = {
-    ...btnBase, background: 'var(--primary)', color: '#fff', borderColor: 'var(--primary)',
-};
-const btnDisabled: React.CSSProperties = {
-    ...btnBase, opacity: 0.4, cursor: 'not-allowed', pointerEvents: 'none' as const,
-};
+export default function Pagination({ page, totalPages, onPageChange, siblingCount = 1 }: Props) {
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 640 : false);
+  useEffect(() => {
+    const fn = () => setIsMobile(window.innerWidth < 640);
+    window.addEventListener('resize', fn);
+    return () => window.removeEventListener('resize', fn);
+  }, []);
 
-export default function Pagination({ page, totalPages, onPageChange, siblingCount = 1 }: PaginationProps) {
-    const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 480 : false);
+  if (totalPages <= 1) return null;
 
-    useEffect(() => {
-        const onResize = () => setIsMobile(window.innerWidth < 480);
-        window.addEventListener('resize', onResize);
-        return () => window.removeEventListener('resize', onResize);
-    }, []);
+  const sib = isMobile ? 0 : siblingCount;
+  const totalNums = 5 + sib * 2;
+  const items: (number | 'dots')[] = [];
+  if (totalPages <= totalNums) items.push(...range(1, totalPages));
+  else {
+    const leftBound = Math.max(2, page - sib);
+    const rightBound = Math.min(totalPages - 1, page + sib);
+    items.push(1);
+    if (leftBound > 2) items.push('dots');
+    items.push(...range(leftBound, rightBound));
+    if (rightBound < totalPages - 1) items.push('dots');
+    items.push(totalPages);
+  }
 
-    if (totalPages <= 1) return null;
+  const btn = (active = false, disabled = false): React.CSSProperties => ({
+    minWidth: 36, height: 36, padding: '0 10px',
+    borderRadius: 9,
+    border: '1px solid',
+    borderColor: active ? 'var(--accent)' : 'var(--border)',
+    background: active ? 'var(--accent)' : 'transparent',
+    color: active ? '#fff' : disabled ? 'var(--ink-faint)' : 'var(--ink-2)',
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    fontFamily: 'inherit',
+    fontSize: '0.85rem',
+    fontWeight: active ? 600 : 500,
+    display: 'inline-flex',
+    alignItems: 'center', justifyContent: 'center',
+    transition: 'all 160ms ease',
+    opacity: disabled ? 0.5 : 1,
+  });
 
-    const pages = getPageNumbers(page, totalPages, siblingCount);
-    const showEdgeButtons = !isMobile;
-
-    return (
-        <nav aria-label="Pagination" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: isMobile ? 4 : 6, flexWrap: 'wrap', padding: isMobile ? '20px 0' : '24px 0' }}>
-            {/* First */}
-            {showEdgeButtons && (
-                <button onClick={() => onPageChange(1)} disabled={page === 1} aria-label="First page"
-                    style={page === 1 ? btnDisabled : btnBase}
-                    onMouseEnter={e => { if (page !== 1) { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--primary)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--primary)'; } }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--ink)'; }}>
-                    <ChevronsLeft size={15} />
-                </button>
-            )}
-            {/* Prev */}
-            <button onClick={() => onPageChange(page - 1)} disabled={page === 1} aria-label="Previous page"
-                style={page === 1 ? btnDisabled : btnBase}
-                onMouseEnter={e => { if (page !== 1) { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--primary)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--primary)'; } }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--ink)'; }}>
-                <ChevronLeft size={15} />
-            </button>
-            {/* Pages */}
-            {pages.map((p, i) =>
-                p === '...'
-                    ? <span key={`e${i}`} style={{ padding: '0 4px', color: 'var(--subtle-ink)', fontSize: '0.875rem', userSelect: 'none' }}>…</span>
-                    : <button key={p} onClick={() => onPageChange(p)} aria-label={`Page ${p}`} aria-current={p === page ? 'page' : undefined}
-                        style={p === page ? btnActive : btnBase}
-                        onMouseEnter={e => { if (p !== page) { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--primary)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--primary)'; } }}
-                        onMouseLeave={e => { if (p !== page) { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--ink)'; } }}>
-                        {p}
-                    </button>
-            )}
-            {/* Next */}
-            <button onClick={() => onPageChange(page + 1)} disabled={page === totalPages} aria-label="Next page"
-                style={page === totalPages ? btnDisabled : btnBase}
-                onMouseEnter={e => { if (page !== totalPages) { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--primary)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--primary)'; } }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--ink)'; }}>
-                <ChevronRight size={15} />
-            </button>
-            {/* Last */}
-            {showEdgeButtons && (
-                <button onClick={() => onPageChange(totalPages)} disabled={page === totalPages} aria-label="Last page"
-                    style={page === totalPages ? btnDisabled : btnBase}
-                    onMouseEnter={e => { if (page !== totalPages) { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--primary)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--primary)'; } }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--ink)'; }}>
-                    <ChevronsRight size={15} />
-                </button>
-            )}
-        </nav>
-    );
+  return (
+    <nav aria-label="Pagination" style={{ display: 'flex', gap: 5, justifyContent: 'center', flexWrap: 'wrap' }}>
+      {!isMobile && (
+        <button onClick={() => onPageChange(1)} disabled={page === 1} style={btn(false, page === 1)} aria-label="First page">
+          <ChevronsLeft size={14} />
+        </button>
+      )}
+      <button onClick={() => onPageChange(Math.max(1, page - 1))} disabled={page === 1} style={btn(false, page === 1)} aria-label="Previous page">
+        <ChevronLeft size={14} />
+      </button>
+      {items.map((it, i) => it === 'dots' ? (
+        <span key={`d${i}`} style={{ ...btn(false, true), border: 'none', minWidth: 24 }}>…</span>
+      ) : (
+        <button key={it} onClick={() => onPageChange(it as number)} style={btn(it === page)}>{it}</button>
+      ))}
+      <button onClick={() => onPageChange(Math.min(totalPages, page + 1))} disabled={page === totalPages} style={btn(false, page === totalPages)} aria-label="Next page">
+        <ChevronRight size={14} />
+      </button>
+      {!isMobile && (
+        <button onClick={() => onPageChange(totalPages)} disabled={page === totalPages} style={btn(false, page === totalPages)} aria-label="Last page">
+          <ChevronsRight size={14} />
+        </button>
+      )}
+    </nav>
+  );
 }

@@ -1,188 +1,130 @@
-import { useMemo, useState, type ReactNode } from 'react';
-import { MapPin, ArrowUpRight, Sparkles } from 'lucide-react';
-import { Badge } from './ui';
+// FILE: src/components/DirectoryCardModern.tsx
+import { useState } from 'react';
+import { MapPin, ArrowUpRight, ExternalLink } from 'lucide-react';
 import type { ICompany } from '../types';
 import CompanyLogo from './CompanyLogo';
 
 interface Props {
   company: ICompany;
-  adminActions?: ReactNode;
-}
-
-function normalizeDomain(domain: string | undefined) {
-  const raw = (domain || '').trim();
-  if (!raw) return '';
-  return raw.replace(/^https?:\/\//i, '').replace(/\/$/, '');
+  adminActions?: React.ReactNode;
 }
 
 export default function DirectoryCardModern({ company, adminActions }: Props) {
   const [hovered, setHovered] = useState(false);
-  const safeDomain = useMemo(() => normalizeDomain(company.domain), [company.domain]);
-  const cityText = company.cities.length > 0 ? company.cities.slice(0, 3).join(', ') : 'India (Multiple locations)';
-  const extraCities = Math.max(company.cities.length - 3, 0);
 
-  const visit = () => {
-    if (adminActions || !safeDomain) return;
-    window.open(`https://${safeDomain}`, '_blank');
-  };
+  const careerHref = company.careersUrl || (company.domain ? `https://${company.domain}/careers` : '#');
+  const cityList = (company.cities || []).slice(0, 3);
+  const extraCities = (company.cities?.length || 0) - cityList.length;
 
   return (
-    <div
-      className="sketch-card"
-      onClick={visit}
+    <a
+      href={careerHref}
+      target="_blank"
+      rel="noopener noreferrer"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      role={adminActions || !safeDomain ? undefined : 'link'}
-      tabIndex={safeDomain && !adminActions ? 0 : -1}
-      onKeyDown={e => {
-        if (!adminActions && safeDomain && (e.key === 'Enter' || e.key === ' ')) {
-          e.preventDefault();
-          visit();
-        }
-      }}
       style={{
-        background: hovered ? 'color-mix(in srgb, var(--primary-soft) 28%, var(--surface-solid))' : 'var(--surface-solid)',
-        borderColor: hovered ? 'var(--border-strong)' : undefined,
-        padding: '18px',
-        cursor: adminActions || !safeDomain ? 'default' : 'pointer',
         display: 'flex',
         flexDirection: 'column',
         gap: 14,
-        transition: 'all 0.22s ease',
-        transform: hovered && !adminActions ? 'translateY(-4px)' : 'none',
-        boxShadow: hovered ? '0 18px 34px rgba(15, 23, 42, 0.08)' : 'none',
-        minHeight: 184,
+        padding: 16,
+        textDecoration: 'none',
+        background: 'var(--surface)',
+        border: '1px solid',
+        borderColor: hovered ? 'var(--border-strong)' : 'var(--border)',
+        borderRadius: 12,
+        transition: 'all 180ms cubic-bezier(0.2, 0.8, 0.2, 1)',
+        transform: hovered ? 'translateY(-2px)' : 'translateY(0)',
+        boxShadow: hovered ? 'var(--shadow-sm)' : 'none',
         position: 'relative',
-        overflow: 'hidden',
       }}
     >
-      {!adminActions && hovered && (
-        <div
-          style={{
-            position: 'absolute',
-            inset: 'auto -18px -24px auto',
-            width: 88,
-            height: 88,
-            borderRadius: '50%',
-            background: 'var(--primary-soft)',
-            filter: 'blur(22px)',
-            pointerEvents: 'none',
-          }}
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+        <CompanyLogo
+          name={company.companyName}
+          domain={company.domain}
+          size={42}
+          borderRadius={11}
+          style={{ flexShrink: 0 }}
         />
-      )}
-
-      {adminActions ? (
-        <div style={{ position: 'absolute', top: 14, right: 14 }}>{adminActions}</div>
-      ) : (
-        <div
-          style={{
-            position: 'absolute',
-            top: 14,
-            right: 14,
-            width: 34,
-            height: 34,
-            borderRadius: 12,
-            border: '1px solid var(--border)',
-            background: hovered ? 'rgba(255,255,255,0.75)' : 'color-mix(in srgb, var(--paper2) 80%, transparent)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: hovered ? 'var(--primary)' : 'var(--subtle-ink)',
-            transition: 'all 0.18s ease',
-          }}
-        >
-          <ArrowUpRight size={15} />
-        </div>
-      )}
-
-      <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', minWidth: 0 }}>
-        <div
-          style={{
-            width: 52,
-            height: 52,
-            borderRadius: 14,
-            border: '1px solid var(--border)',
-            background: 'var(--paper2)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 7,
-            flexShrink: 0,
-          }}
-        >
-          <CompanyLogo name={company.companyName} url={company.domain} size={52} borderRadius={12} />
-        </div>
-
-        <div style={{ minWidth: 0, flex: 1, paddingRight: adminActions ? 40 : 48 }}>
-          <h3
-            style={{
-              fontWeight: 800,
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+            <h3 style={{
+              fontSize: '0.97rem',
+              fontWeight: 600,
               color: 'var(--ink)',
-              fontSize: '1rem',
-              lineHeight: 1.25,
+              letterSpacing: '-0.012em',
+              lineHeight: 1.3,
+              flex: 1,
+              minWidth: 0,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
               display: '-webkit-box',
               WebkitLineClamp: 2,
               WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-            }}
-          >
-            {company.companyName}
-          </h3>
-          {safeDomain && (
-            <p style={{ fontSize: '0.78rem', color: 'var(--subtle-ink)', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {safeDomain}
-            </p>
-          )}
+            }}>
+              {company.companyName}
+            </h3>
+            <ArrowUpRight size={14} style={{
+              color: hovered ? 'var(--accent)' : 'var(--ink-faint)',
+              flexShrink: 0,
+              marginTop: 2,
+              transition: 'color 160ms ease',
+            }} />
+          </div>
+          <p style={{ fontSize: '0.78rem', color: 'var(--ink-muted)', marginTop: 3 }}>
+            {company.industry || (company.domain && company.domain.replace(/^https?:\/\//, ''))}
+          </p>
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        {company.openRoles > 0 && (
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '6px 10px',
-              borderRadius: 999,
-              background: 'var(--primary-soft)',
-              color: 'var(--primary)',
-              fontSize: '0.76rem',
-              fontWeight: 800,
-              border: '1px solid color-mix(in srgb, var(--primary) 35%, var(--border))',
-            }}
-          >
-            <Sparkles size={12} />
-            {company.openRoles} open role{company.openRoles > 1 ? 's' : ''}
-          </span>
-        )}
-        {company.cities.length > 0 && <Badge variant="neutral">{company.cities.length} cities</Badge>}
-        {adminActions && <Badge variant={company.source === 'scraped' ? 'primary' : 'neutral'}>{company.source}</Badge>}
+      {/* Open roles count */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '8px 12px',
+        background: 'var(--paper-2)',
+        borderRadius: 9,
+        fontSize: '0.82rem',
+      }}>
+        <span style={{ color: 'var(--ink-muted)' }}>Open roles</span>
+        <span style={{
+          fontWeight: 600,
+          color: company.openRoles > 0 ? 'var(--accent)' : 'var(--ink-faint)',
+        }}>
+          {company.openRoles}
+        </span>
       </div>
 
-      <div
-        style={{
-          marginTop: 'auto',
-          paddingTop: 12,
-          borderTop: '1px solid var(--border)',
-          display: 'grid',
-          gap: 8,
-          minWidth: 0,
-        }}
-      >
-        <p style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: '0.84rem', color: 'var(--muted-ink)', lineHeight: 1.55, minWidth: 0 }}>
-          <MapPin size={14} style={{ flexShrink: 0, marginTop: 2 }} />
-          <span style={{ overflowWrap: 'anywhere' }}>
-            {cityText}
-            {extraCities > 0 ? ` +${extraCities} more` : ''}
+      {/* Locations */}
+      {cityList.length > 0 && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 5,
+          fontSize: '0.78rem',
+          color: 'var(--ink-muted)',
+          flexWrap: 'wrap',
+        }}>
+          <MapPin size={12} style={{ flexShrink: 0 }} />
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {cityList.join(' · ')}
+            {extraCities > 0 ? ` +${extraCities}` : ''}
           </span>
-        </p>
-        {!adminActions && (
-          <p style={{ fontSize: '0.75rem', color: hovered ? 'var(--primary)' : 'var(--subtle-ink)', transition: 'color 0.18s ease' }}>
-            Open company site and inspect active hiring signals
-          </p>
-        )}
-      </div>
-    </div>
+        </div>
+      )}
+
+      {adminActions && (
+        <div style={{ display: 'flex', gap: 6, paddingTop: 6, borderTop: '1px solid var(--border)' }}>
+          {adminActions}
+        </div>
+      )}
+
+      {/* Suppress unused */}
+      
+    </a>
   );
 }
+
+

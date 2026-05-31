@@ -1,45 +1,61 @@
-import { TrendingUp, TrendingDown } from 'lucide-react';
+// FILE: src/components/LeaderboardSummaryCard.tsx
+interface Props {
+  label: string;
+  value: number | string;
+  delta?: string;
+  icon?: React.ReactNode;
+  accent?: 'success' | 'warning' | 'info' | 'neutral';
+}
 
-// Compact inline stat — used in the horizontal stat strip
-export function LeaderboardSummaryCard({ value, label, delta, accent, icon }: {
-  value: number; label: string; delta?: number; accent?: boolean; icon?: React.ReactNode;
-}) {
+export default function LeaderboardSummaryCard({ label, value, delta, icon, accent = 'neutral' }: Props) {
+  const accentColor = {
+    success: 'var(--success)',
+    warning: 'var(--warning)',
+    info: 'var(--info)',
+    neutral: 'var(--ink-muted)',
+  }[accent];
+
+  const accentBg = {
+    success: 'var(--success-soft)',
+    warning: 'var(--warning-soft)',
+    info: 'var(--info-soft)',
+    neutral: 'var(--paper-2)',
+  }[accent];
+
   return (
     <div style={{
-      display: 'flex', alignItems: 'center', gap: 10,
-      padding: '10px 16px',
-      borderRight: '1px solid var(--border)',
-      flex: 1,
-      minWidth: 0,
+      background: 'var(--surface)',
+      border: '1px solid var(--border)',
+      borderRadius: 12,
+      padding: '14px 16px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 14,
     }}>
-      {icon && <div style={{ flexShrink: 0 }}>{icon}</div>}
-      <div style={{ minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 5 }}>
-          <span className="font-sketch-num" style={{
-            fontSize: accent ? '1.6rem' : '1.3rem',
-            fontWeight: 700,
-            color: accent ? 'var(--primary)' : 'var(--ink)',
-            lineHeight: 1,
-          }}>
-            {value.toLocaleString('en-IN')}
-          </span>
-          {delta !== undefined && delta !== 0 && (
-            <span style={{
-              display: 'inline-flex', alignItems: 'center', gap: 2,
-              fontSize: '0.68rem', fontWeight: 700,
-              color: delta > 0 ? 'var(--success)' : 'var(--danger)',
-            }}>
-              {delta > 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
-              {delta > 0 ? '+' : ''}{delta}
-            </span>
-          )}
-        </div>
+      {icon && (
         <div style={{
-          fontSize: '0.68rem', color: 'var(--subtle-ink)',
-          marginTop: 2, whiteSpace: 'nowrap',
-          textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600,
-        }}>
+          width: 34, height: 34, borderRadius: 9,
+          background: accentBg,
+          color: accentColor,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          flexShrink: 0,
+        }}>{icon}</div>
+      )}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: '0.7rem', color: 'var(--ink-muted)', letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 600 }}>
           {label}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+          <span className="font-display" style={{
+            fontSize: '1.35rem',
+            fontWeight: 600,
+            color: 'var(--ink)',
+            letterSpacing: '-0.02em',
+            lineHeight: 1,
+            fontVariantNumeric: 'tabular-nums',
+            marginTop: 4,
+          }}>{value}</span>
+          {delta && <span style={{ fontSize: '0.72rem', color: accentColor, fontWeight: 600 }}>{delta}</span>}
         </div>
       </div>
     </div>

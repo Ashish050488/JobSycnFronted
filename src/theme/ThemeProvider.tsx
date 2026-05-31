@@ -18,7 +18,7 @@ function applyVars(vars: Record<string, string>) {
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [mode, setMode] = useState<Mode>(() => {
-    const saved = localStorage.getItem('ej-theme') as Mode | null;
+    const saved = localStorage.getItem('jm-theme') as Mode | null;
     if (saved) return saved;
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   });
@@ -26,7 +26,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     applyVars(mode === 'dark' ? darkVars : lightVars);
     document.documentElement.setAttribute('data-theme', mode);
-    localStorage.setItem('ej-theme', mode);
+    localStorage.setItem('jm-theme', mode);
   }, [mode]);
 
   const toggle = () => setMode(m => m === 'dark' ? 'light' : 'dark');

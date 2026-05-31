@@ -1,139 +1,89 @@
-import { ArrowLeft, ExternalLink, CheckCircle2 } from 'lucide-react';
-import { Button } from './ui';
-import { COPY } from '../theme/brand';
-import JobDetailPanel from './JobDetailPanel';
-import type { AppUser } from '../context/UserContext';
+// FILE: src/components/DashboardJobSheet.tsx
+import { useEffect, useState } from 'react';
+import { X } from 'lucide-react';
 import type { IJob } from '../types';
+import JobDetailPanel from './JobDetailPanel';
 
-interface SheetActionsProps {
-  job: IJob;
-  isXsSm: boolean;
-  appliedJobIds: Set<string>;
-  currentUser: AppUser | null;
-  onToggleApplied: (jobId: string) => Promise<void>;
-}
-
-function SheetActions({ job, isXsSm, appliedJobIds, currentUser, onToggleApplied }: SheetActionsProps) {
-  const applied = appliedJobIds.has(job._id);
-  return (
-    <div className="mobile-sticky-actions" style={{
-      display: 'flex',
-      flexDirection: isXsSm ? 'column' : 'row',
-      gap: 10,
-    }}>
-      <a href={job.DirectApplyURL || job.ApplicationURL} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', flex: 1 }}>
-        <Button size="lg" style={{ width: '100%', minHeight: 44 }}>{COPY.jobs.applyNow} <ExternalLink size={14} /></Button>
-      </a>
-      {currentUser && (
-        <button
-          onClick={() => onToggleApplied(job._id)}
-          style={{
-            minHeight: 44,
-            display: 'inline-flex', alignItems: 'center', gap: 6,
-            padding: '10px 16px', borderRadius: 10, cursor: 'pointer',
-            fontSize: '0.88rem', fontWeight: 600, fontFamily: 'inherit',
-            transition: 'all 0.18s', flexShrink: 0,
-            background: applied ? 'var(--primary)' : 'transparent',
-            color: applied ? '#fff' : 'var(--primary)',
-            border: '1.5px solid var(--primary)',
-            width: isXsSm ? '100%' : 'auto',
-            justifyContent: 'center',
-          }}
-        >
-          <CheckCircle2 size={15} />
-          {applied ? 'Applied' : 'Mark Applied'}
-        </button>
-      )}
-    </div>
-  );
-}
-
-interface DashboardJobSheetProps {
-  selectedJob: IJob;
-  isXsSm: boolean;
-  isShortLandscape: boolean;
-  is3xl: boolean;
-  appliedJobIds: Set<string>;
-  comeBackMap: Map<string, { note: string; addedAt: string }>;
-  currentUser: AppUser | null;
+interface Props {
+  job: IJob | null;
+  isOpen: boolean;
   onClose: () => void;
-  onToggleApplied: (jobId: string) => Promise<void>;
-  onToggleComeBack: (jobId: string, note: string) => void;
-  onRemoveComeBack: (jobId: string) => void;
-  onSelectJob: (id: string) => void;
+  domain?: string;
+  appliedJobIds: Set<string>;
+  comeBackMap: Record<string, string>;
+  onToggleApplied: (jobId: string) => void;
+  onToggleComeBack: (jobId: string, note?: string) => void;
+  onRemoveComeBack?: (jobId: string) => void;
+  onSelectJob?: (job: IJob) => void;
 }
 
-export function DashboardJobSheet({
-  selectedJob, isXsSm, isShortLandscape, is3xl,
-  appliedJobIds, comeBackMap, currentUser,
-  onClose, onToggleApplied, onToggleComeBack, onRemoveComeBack, onSelectJob,
-}: DashboardJobSheetProps) {
+export default function DashboardJobSheet({
+  job, isOpen, onClose, domain, appliedJobIds, comeBackMap,
+  onToggleApplied, onToggleComeBack, onRemoveComeBack, onSelectJob,
+}: Props) {
+  const [mounted, setMounted] = useState(isOpen);
+  const [closing, setClosing] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) { setMounted(true); setClosing(false); }
+    else if (mounted) {
+      setClosing(true);
+      const t = setTimeout(() => setMounted(false), 240);
+      return () => clearTimeout(t);
+    }
+  }, [isOpen, mounted]);
+
+  if (!mounted || !job) return null;
+
   return (
-    <>
-      {/* Backdrop */}
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 250,
+        background: 'rgba(15,15,14,0.45)',
+        animation: `sheetFadeIn 0.22s ease ${closing ? 'reverse' : 'normal'}`,
+      }}
+    >
       <div
-        onClick={onClose}
+        onClick={e => e.stopPropagation()}
         style={{
-          position: 'fixed', inset: 0, zIndex: 200,
-          background: 'rgba(0,0,0,0.45)',
-          animation: 'sheetFadeIn 0.2s ease',
-        }}
-      />
-      {/* Sheet */}
-      <div
-        onTouchStart={e => {
-          const touch = e.touches[0];
-          (e.currentTarget as HTMLDivElement).dataset.touchStartY = String(touch.clientY);
-        }}
-        onTouchEnd={e => {
-          const startY = Number((e.currentTarget as HTMLDivElement).dataset.touchStartY || '0');
-          const endY = e.changedTouches[0]?.clientY ?? startY;
-          if (endY - startY > 50) onClose();
-        }}
-        style={{
-          position: 'fixed',
-          left: 0, right: 0, bottom: 0,
-          height: isShortLandscape ? '100dvh' : (isXsSm ? '92dvh' : '84dvh'),
-          maxHeight: '100dvh',
-          zIndex: 201,
-          background: 'var(--surface-solid)',
-          borderRadius: '20px 20px 0 0',
+          position: 'absolute', bottom: 0, left: 0, right: 0,
+          background: 'var(--surface)',
+          borderTopLeftRadius: 18, borderTopRightRadius: 18,
+          height: '92vh',
           display: 'flex', flexDirection: 'column',
-          animation: 'sheetSlideUp 0.28s ease',
+          animation: `${closing ? 'sheetSlideDown' : 'sheetSlideUp'} 0.3s cubic-bezier(0.16, 1, 0.3, 1)`,
+          overflow: 'hidden',
         }}
       >
-        {/* Sticky header */}
         <div style={{
-          padding: '18px 16px 10px',
-          borderBottom: '1px solid var(--border)',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          flexShrink: 0,
+          padding: '8px 14px 0',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         }}>
-          <button
-            onClick={onClose}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              background: 'none', border: 'none', cursor: 'pointer',
-              color: 'var(--primary)', fontSize: '0.85rem', fontWeight: 600,
-              fontFamily: 'inherit',
-            }}
-          >
-            <ArrowLeft size={16} /> Back
-          </button>
-          {/* Drag handle (decorative) */}
           <div style={{
-            width: 36, height: 4, borderRadius: 2,
+            width: 36, height: 4, borderRadius: 999,
             background: 'var(--border-strong)',
-            position: 'absolute', left: '50%', transform: 'translateX(-50%)', top: 8,
+            margin: '0 auto',
+            position: 'absolute', left: '50%', transform: 'translateX(-50%)', top: 6,
           }} />
-          <div style={{ width: 60 }} />{/* spacer for centering */}
+          <div style={{ width: 30 }} />
+          <button onClick={onClose} aria-label="Close" style={{
+            width: 30, height: 30, borderRadius: 8,
+            background: 'var(--paper-2)', border: '1px solid var(--border)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: 'var(--ink-muted)', cursor: 'pointer',
+            marginTop: 8,
+            position: 'relative', zIndex: 2,
+          }}>
+            <X size={14} />
+          </button>
         </div>
-        {/* Scrollable content */}
-        <div className="thin-scroll" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: isXsSm ? '16px 14px 8px' : '20px 18px 16px', WebkitOverflowScrolling: 'touch' }}>
+
+        <div style={{ flex: 1, overflow: 'hidden' }}>
           <JobDetailPanel
-            job={selectedJob}
+            job={job}
+            domain={domain}
             mobileMode
-            is3xl={is3xl}
             appliedJobIds={appliedJobIds}
             comeBackMap={comeBackMap}
             onToggleApplied={onToggleApplied}
@@ -142,14 +92,7 @@ export function DashboardJobSheet({
             onSelectJob={onSelectJob}
           />
         </div>
-        <SheetActions
-          job={selectedJob}
-          isXsSm={isXsSm}
-          appliedJobIds={appliedJobIds}
-          currentUser={currentUser}
-          onToggleApplied={onToggleApplied}
-        />
       </div>
-    </>
+    </div>
   );
 }

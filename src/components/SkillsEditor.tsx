@@ -1,18 +1,17 @@
 // FILE: src/components/SkillsEditor.tsx
-import { useState, useRef, useEffect, useCallback } from 'react';
-import { X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { X, Plus, Sparkles } from 'lucide-react';
 import { useUser } from '../context/UserContext';
+import { Button } from './ui';
+
+interface Props { onClose: () => void; }
 
 const SUGGESTIONS = [
-  'React', 'Node.js', 'TypeScript', 'JavaScript', 'Python', 'Java', 'Go',
-  'Rust', 'AWS', 'Docker', 'Kubernetes', 'MongoDB', 'PostgreSQL', 'GraphQL',
-  'Next.js', 'Vue', 'Angular', 'Django', 'Spring Boot', 'Flutter',
-  'React Native', 'Figma', 'System Design', 'DSA', 'Machine Learning',
+  'React', 'TypeScript', 'Node.js', 'Python', 'AWS', 'Docker',
+  'Kubernetes', 'PostgreSQL', 'MongoDB', 'GraphQL', 'REST API',
+  'Next.js', 'Tailwind CSS', 'Git', 'Figma', 'Jira', 'Java',
+  'Go', 'Rust', 'Redis', 'CI/CD', 'Linux',
 ];
-
-interface Props {
-  onClose: () => void;
-}
 
 export default function SkillsEditor({ onClose }: Props) {
   const { userSkills, saveSkills } = useUser();
@@ -21,226 +20,174 @@ export default function SkillsEditor({ onClose }: Props) {
   const [saving, setSaving] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    // Focus input when modal opens
-    const t = setTimeout(() => inputRef.current?.focus(), 60);
-    return () => clearTimeout(t);
-  }, []);
+  useEffect(() => { inputRef.current?.focus(); }, []);
 
-  // Close on Escape
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, [onClose]);
-
-  const addSkill = useCallback((raw: string) => {
-    const trimmed = raw.trim();
-    if (!trimmed || trimmed.length > 50) return;
-    setSkills(prev => {
-      if (prev.some(s => s.toLowerCase() === trimmed.toLowerCase())) return prev;
-      if (prev.length >= 30) return prev;
-      return [...prev, trimmed];
-    });
+  const add = (s: string) => {
+    const trim = s.trim();
+    if (!trim || skills.includes(trim)) return;
+    setSkills(prev => [...prev, trim]);
     setInput('');
-  }, []);
-
-  const removeSkill = (skill: string) => {
-    setSkills(prev => prev.filter(s => s !== skill));
   };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' || e.key === ',') {
-      e.preventDefault();
-      addSkill(input);
-    } else if (e.key === 'Backspace' && !input && skills.length > 0) {
-      setSkills(prev => prev.slice(0, -1));
-    }
-  };
+  const remove = (s: string) => setSkills(prev => prev.filter(x => x !== s));
 
   const handleSave = async () => {
-    // Commit any pending input before saving
-    const finalSkills = input.trim()
-      ? [...skills, ...(skills.some(s => s.toLowerCase() === input.trim().toLowerCase()) ? [] : [input.trim()])]
-      : skills;
     setSaving(true);
-    await saveSkills(finalSkills.slice(0, 30));
-    setSaving(false);
-    onClose();
+    try { await saveSkills(skills); onClose(); }
+    finally { setSaving(false); }
   };
 
+  const sugg = SUGGESTIONS.filter(s => !skills.includes(s)).slice(0, 12);
+
   return (
-    <>
-      {/* Backdrop */}
+    <div
+      role="dialog"
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 1000,
+        background: 'rgba(15,15,14,0.45)',
+        backdropFilter: 'blur(6px)',
+        WebkitBackdropFilter: 'blur(6px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: 16,
+        animation: 'sheetFadeIn 0.25s ease',
+      }}
+    >
       <div
-        onClick={onClose}
+        onClick={e => e.stopPropagation()}
+        className="anim-scale"
         style={{
-          position: 'fixed', inset: 0, zIndex: 500,
-          background: 'rgba(0,0,0,0.5)',
-          animation: 'sheetFadeIn 0.18s ease',
-        }}
-      />
-      {/* Modal */}
-      <div
-        style={{
-          position: 'fixed',
-          zIndex: 501,
-          left: '50%',
-          top: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: 'min(560px, calc(100vw - 24px))',
-          maxHeight: 'calc(100vh - 40px)',
-          background: 'var(--surface-solid)',
-          borderRadius: 16,
+          width: '100%', maxWidth: 520,
+          background: 'var(--surface)',
           border: '1px solid var(--border)',
-          boxShadow: '0 24px 80px rgba(0,0,0,0.25)',
-          display: 'flex',
-          flexDirection: 'column',
+          borderRadius: 16,
+          boxShadow: 'var(--shadow-lg)',
+          maxHeight: '88vh',
+          display: 'flex', flexDirection: 'column',
           overflow: 'hidden',
         }}
       >
-        {/* Header */}
         <div style={{
-          padding: '18px 20px 14px',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          padding: '18px 22px',
           borderBottom: '1px solid var(--border)',
-          display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
-          flexShrink: 0,
         }}>
-          <div>
-            <h3 style={{ fontFamily: "'Playfair Display',serif", fontSize: '1.1rem', fontWeight: 700, color: 'var(--ink)', margin: 0, letterSpacing: '-0.02em' }}>
-              My Skills
-            </h3>
-            <p style={{ fontSize: '0.78rem', color: 'var(--muted-ink)', marginTop: 3, marginBottom: 0 }}>
-              We'll highlight these in every job description you view
-            </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+            <Sparkles size={16} style={{ color: 'var(--accent)' }} />
+            <h2 className="font-display" style={{ fontSize: '1.15rem', fontWeight: 600, color: 'var(--ink)' }}>
+              Your skills
+            </h2>
           </div>
-          <button
-            onClick={onClose}
-            style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--muted-ink)', padding: 4, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginLeft: 12 }}
-          >
-            <X size={18} />
+          <button onClick={onClose} aria-label="Close" style={{
+            width: 30, height: 30, borderRadius: 8,
+            background: 'var(--paper-2)', border: '1px solid var(--border)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: 'var(--ink-muted)', cursor: 'pointer',
+          }}>
+            <X size={14} />
           </button>
         </div>
 
-        {/* Body */}
-        <div className="thin-scroll" style={{ overflow: 'auto', flex: 1, padding: '16px 20px 4px' }}>
-          {/* Skills input area */}
-          <div
-            onClick={() => inputRef.current?.focus()}
-            style={{
-              border: '1.25px solid var(--border)', borderRadius: 10,
-              padding: '8px 10px', background: 'var(--paper)',
-              display: 'flex', flexWrap: 'wrap', gap: 6, cursor: 'text',
-              marginBottom: 6, minHeight: 42,
-              transition: 'border-color 0.18s',
-            }}
-            onFocus={() => {}}
-          >
-            {skills.map(skill => (
-              <span
-                key={skill}
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 5,
-                  background: 'var(--primary)', color: '#fff',
-                  borderRadius: 999, padding: '3px 10px 3px 12px',
-                  fontSize: '0.82rem', fontWeight: 600,
-                }}
-              >
-                {skill}
-                <button
-                  onClick={e => { e.stopPropagation(); removeSkill(skill); }}
-                  style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#ffffffcc', padding: 0, display: 'flex', alignItems: 'center', lineHeight: 1 }}
-                >
-                  <X size={11} />
-                </button>
-              </span>
-            ))}
+        <div className="thin-scroll" style={{ padding: 22, overflowY: 'auto', flex: 1 }}>
+          <p style={{ fontSize: '0.875rem', color: 'var(--ink-muted)', lineHeight: 1.55, marginBottom: 16 }}>
+            Add the skills you have or want to work with. We use these to highlight matching roles in the feed.
+          </p>
+
+          {/* Input */}
+          <form onSubmit={e => { e.preventDefault(); add(input); }} style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
             <input
               ref={inputRef}
               value={input}
               onChange={e => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={skills.length === 0 ? 'Type a skill, press Enter to add…' : ''}
+              placeholder="Type a skill and press enter…"
               style={{
-                border: 'none', outline: 'none', background: 'transparent',
-                fontSize: '0.88rem', color: 'var(--ink)', fontFamily: 'inherit',
-                minWidth: 160, flex: 1, padding: '2px 4px',
+                flex: 1, padding: '10px 12px',
+                fontFamily: 'inherit', fontSize: '0.9rem',
+                background: 'var(--surface)',
+                color: 'var(--ink)',
+                border: '1px solid var(--border-strong)',
+                borderRadius: 10, outline: 'none',
               }}
+              onFocus={e => { e.currentTarget.style.borderColor = 'var(--accent)'; }}
+              onBlur={e => { e.currentTarget.style.borderColor = 'var(--border-strong)'; }}
             />
-          </div>
-          <p style={{ fontSize: '0.72rem', color: 'var(--muted-ink)', marginBottom: 18 }}>
-            Press Enter or comma to add · Backspace to remove last · Max 30 skills
-          </p>
+            <Button type="submit" variant="primary" size="md">
+              <Plus size={14} /> Add
+            </Button>
+          </form>
+
+          {/* Selected chips */}
+          {skills.length > 0 && (
+            <div style={{ marginBottom: 20 }}>
+              <p style={sectionLabel}>Selected ({skills.length})</p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {skills.map(s => (
+                  <span key={s} style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 5,
+                    padding: '5px 6px 5px 11px',
+                    borderRadius: 999,
+                    background: 'var(--accent-soft)',
+                    color: 'var(--accent)',
+                    fontSize: '0.82rem', fontWeight: 500,
+                  }}>
+                    {s}
+                    <button onClick={() => remove(s)} style={{
+                      width: 18, height: 18, borderRadius: 999,
+                      border: 'none', background: 'rgba(0,0,0,0.08)',
+                      cursor: 'pointer', display: 'flex',
+                      alignItems: 'center', justifyContent: 'center',
+                      color: 'inherit',
+                    }} aria-label={`Remove ${s}`}>
+                      <X size={10} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Suggestions */}
-          <p style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--subtle-ink)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Suggestions
-          </p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, paddingBottom: 20 }}>
-            {SUGGESTIONS.map(s => {
-              const added = skills.some(x => x.toLowerCase() === s.toLowerCase());
-              const actualSkill = added ? skills.find(x => x.toLowerCase() === s.toLowerCase())! : s;
-              return (
-                <button
-                  key={s}
-                  onClick={() => added ? removeSkill(actualSkill) : addSkill(s)}
-                  style={{
-                    padding: '4px 12px', borderRadius: 999,
-                    border: added
-                      ? '1.5px solid var(--primary)'
-                      : '1.25px solid var(--border)',
-                    background: added ? 'var(--primary-soft)' : 'transparent',
-                    color: added ? 'var(--primary)' : 'var(--muted-ink)',
-                    cursor: 'pointer', fontSize: '0.82rem', fontFamily: 'inherit',
-                    transition: 'all 0.15s', fontWeight: added ? 600 : 400,
-                  }}
-                >
-                  {added ? '✓ ' : ''}{s}
-                </button>
-              );
-            })}
-          </div>
+          {sugg.length > 0 && (
+            <div>
+              <p style={sectionLabel}>Common skills</p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {sugg.map(s => (
+                  <button key={s} onClick={() => add(s)} style={{
+                    padding: '5px 11px', borderRadius: 999,
+                    fontSize: '0.82rem', fontWeight: 500,
+                    background: 'transparent',
+                    color: 'var(--ink-muted)',
+                    border: '1px dashed var(--border-strong)',
+                    cursor: 'pointer', fontFamily: 'inherit',
+                  }}>
+                    + {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Footer */}
         <div style={{
-          padding: '12px 20px',
+          padding: '14px 22px',
           borderTop: '1px solid var(--border)',
-          display: 'flex', gap: 10, alignItems: 'center', justifyContent: 'space-between',
-          flexShrink: 0, background: 'var(--paper2)',
+          display: 'flex', justifyContent: 'flex-end', gap: 8,
+          background: 'var(--paper-2)',
         }}>
-          <span style={{ fontSize: '0.78rem', color: 'var(--muted-ink)' }}>
-            {skills.length} / 30 skills
-          </span>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button
-              onClick={onClose}
-              style={{
-                padding: '8px 18px', borderRadius: 9,
-                border: '1.25px solid var(--border)', background: 'transparent',
-                color: 'var(--muted-ink)', cursor: 'pointer',
-                fontSize: '0.88rem', fontFamily: 'inherit', transition: 'all 0.15s',
-              }}
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              style={{
-                padding: '8px 22px', borderRadius: 9, border: 'none',
-                background: saving ? 'var(--primary-soft)' : 'var(--primary)',
-                color: saving ? 'var(--primary)' : '#fff',
-                cursor: saving ? 'default' : 'pointer',
-                fontSize: '0.88rem', fontFamily: 'inherit', fontWeight: 600,
-                transition: 'all 0.15s',
-              }}
-            >
-              {saving ? 'Saving…' : 'Save Skills'}
-            </button>
-          </div>
+          <Button variant="ghost" size="md" onClick={onClose}>Cancel</Button>
+          <Button variant="primary" size="md" loading={saving} onClick={handleSave}>
+            Save skills
+          </Button>
         </div>
       </div>
-    </>
+    </div>
   );
 }
+
+const sectionLabel: React.CSSProperties = {
+  fontSize: '0.7rem',
+  fontWeight: 600,
+  color: 'var(--ink-faint)',
+  letterSpacing: '0.05em',
+  textTransform: 'uppercase',
+  marginBottom: 8,
+};

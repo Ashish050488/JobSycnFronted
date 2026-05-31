@@ -1,16 +1,15 @@
-import { useEffect, useState } from 'react';
-import { ExternalLink, MapPin, Building2 } from 'lucide-react';
-import CompanyLogo from './CompanyLogo';
+// FILE: src/components/PipelineCard.tsx
+import { useState, useEffect } from 'react';
+import { ExternalLink, Clock, MoreHorizontal } from 'lucide-react';
 
-// Stage configuration — labels and colors
 const STAGES = {
-  applied: { label: 'Applied', bg: 'var(--primary-soft)', color: 'var(--primary)' },
+  applied: { label: 'Applied', bg: 'var(--accent-soft)', color: 'var(--accent)' },
   screening: { label: 'Screening', bg: 'var(--info-soft)', color: 'var(--info)' },
   interview: { label: 'Interview', bg: '#EEEDFE', color: '#534AB7' },
   offer: { label: 'Offer', bg: 'var(--warning-soft)', color: 'var(--warning)' },
   accepted: { label: 'Accepted', bg: 'var(--success-soft)', color: 'var(--success)' },
   rejected: { label: 'Rejected', bg: 'var(--danger-soft)', color: 'var(--danger)' },
-  ghosted: { label: 'Ghosted', bg: 'var(--paper2)', color: 'var(--subtle-ink)' },
+  ghosted: { label: 'Ghosted', bg: 'var(--paper-2)', color: 'var(--ink-faint)' },
 } as const;
 
 const STAGE_ORDER = ['applied', 'screening', 'interview', 'offer', 'accepted', 'rejected', 'ghosted'] as const;
@@ -36,8 +35,7 @@ interface PipelineCardProps {
 function relativeTime(dateStr: string): string {
   const d = new Date(dateStr);
   if (isNaN(d.getTime())) return '';
-  const diffMs = Date.now() - d.getTime();
-  const days = Math.floor(diffMs / 86400000);
+  const days = Math.floor((Date.now() - d.getTime()) / 86400000);
   if (days <= 0) return 'today';
   if (days === 1) return '1d ago';
   if (days < 7) return days + 'd ago';
@@ -50,155 +48,153 @@ export default function PipelineCard({
   jobId, jobTitle, company, location, department,
   applicationURL, stage, stageUpdatedAt, appliedAt, isListingActive, onStageChange,
 }: PipelineCardProps) {
-  const [hovered, setHovered] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 640 : false);
   const stageKey = (STAGES[stage as StageName] ? stage : 'applied') as StageName;
-  const stageConfig = STAGES[stageKey];
+  const cfg = STAGES[stageKey];
 
   useEffect(() => {
-    const onResize = () => setIsMobile(window.innerWidth < 640);
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
+    const fn = () => setIsMobile(window.innerWidth < 640);
+    window.addEventListener('resize', fn);
+    return () => window.removeEventListener('resize', fn);
   }, []);
 
-  // Inline SVG chevron for select dropdown, colored by stage text color
-  const chevronSvg = encodeURIComponent(
-    `<svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 8L10 12L14 8" stroke="${stageConfig.color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`
-  );
-
   return (
-    <div
-      style={{
-        background: 'var(--surface-solid)',
-        border: `1.25px solid ${hovered ? 'var(--primary)' : 'var(--border)'}`,
-        borderRadius: 14,
-        padding: '16px 18px',
-        transition: 'all 0.22s',
-        boxShadow: hovered ? 'var(--shadow-sm, 0 2px 8px rgba(80,60,180,0.06))' : 'none',
-        transform: hovered ? 'translateY(-1px)' : 'none',
-        cursor: 'pointer',
-        marginBottom: 10,
-        userSelect: 'none',
-        opacity: isListingActive ? 1 : 0.72,
-      }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      {/* Row 1: Logo + Info + Stage selector */}
-      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', flexDirection: isMobile ? 'column' : 'row' }}>
-        {/* Company logo */}
+    <div style={{
+      padding: '12px 14px',
+      background: 'var(--surface)',
+      border: '1px solid var(--border)',
+      borderRadius: 11,
+      display: 'flex',
+      flexDirection: isMobile ? 'column' : 'row',
+      alignItems: isMobile ? 'flex-start' : 'center',
+      gap: isMobile ? 10 : 14,
+      position: 'relative',
+    }}>
+      <div style={{ flex: 1, minWidth: 0, width: isMobile ? '100%' : 'auto' }}>
         <div style={{
-          width: 40, height: 40, flexShrink: 0, borderRadius: 10,
-          background: 'var(--paper2)', border: '1px solid var(--border)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          overflow: 'hidden', padding: 4,
+          fontSize: '0.875rem',
+          fontWeight: 600,
+          color: 'var(--ink)',
+          lineHeight: 1.35,
+          letterSpacing: '-0.01em',
+        }}>{jobTitle}</div>
+        <div style={{
+          fontSize: '0.76rem',
+          color: 'var(--ink-muted)',
+          marginTop: 2,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          flexWrap: 'wrap',
         }}>
-          <CompanyLogo name={company} url={applicationURL} size={40} borderRadius={10} />
+          <span>{company}</span>
+          {location && <><span style={{ color: 'var(--ink-faint)' }}>·</span><span>{location}</span></>}
+          {department && <><span style={{ color: 'var(--ink-faint)' }}>·</span><span>{department}</span></>}
         </div>
-
-        {/* Job info */}
-        <div style={{ flex: 1, minWidth: 0, width: isMobile ? '100%' : 'auto' }}>
-          {/* Title — link only when listing is still active */}
-          {applicationURL && isListingActive ? (
-            <a href={applicationURL} target="_blank" rel="noopener noreferrer"
-              style={{
-                textDecoration: 'none', color: 'var(--ink)', fontWeight: 600, fontSize: '0.92rem',
-                display: 'flex', alignItems: 'center', gap: 6, lineHeight: 1.3
-              }}>
-              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {jobTitle}
-              </span>
-              <ExternalLink size={12} style={{ flexShrink: 0, color: 'var(--muted-ink)' }} />
-            </a>
-          ) : (
-            <div style={{
-              fontWeight: 600, fontSize: '0.92rem', color: 'var(--ink)', lineHeight: 1.3,
-              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
-            }}>
-              {jobTitle}
-            </div>
-          )}
-          {/* Listing closed badge */}
-          {!isListingActive && (
-            <span style={{
-              display: 'inline-flex', alignItems: 'center',
-              marginTop: 4,
-              background: 'var(--danger-soft)', color: 'var(--danger)',
-              fontSize: '0.68rem', fontWeight: 700,
-              borderRadius: 999, padding: '2px 8px',
-              letterSpacing: '0.02em',
-            }}>
-              Listing closed
-            </span>
-          )}
-
-          {/* Company + Location + Department */}
-          <div style={{
-            display: 'flex', gap: 8, alignItems: 'center', marginTop: 4,
-            fontSize: '0.78rem', color: 'var(--muted-ink)', flexWrap: 'wrap'
-          }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <Building2 size={11} /> {company}
-            </span>
-            {location && (
-              <>
-                <span style={{ opacity: 0.4 }}>·</span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <MapPin size={11} /> {location}
-                </span>
-              </>
-            )}
-            {department && department !== 'N/A' && (
-              <>
-                <span style={{ opacity: 0.4 }}>·</span>
-                <span>{department}</span>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* Stage selector */}
-        <select
-          value={stageKey}
-          onChange={e => onStageChange(jobId, e.target.value)}
-          style={{
-            appearance: 'none',
-            padding: '5px 28px 5px 12px',
-            borderRadius: 999,
-            border: '1.5px solid transparent',
-            background: stageConfig.bg,
-            color: stageConfig.color,
-            fontSize: '0.75rem',
-            fontWeight: 700,
-            fontFamily: 'inherit',
-            cursor: 'pointer',
-            flexShrink: 0,
-            backgroundImage: `url("data:image/svg+xml,${chevronSvg}")`,
-            backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'right 8px center',
-            outline: 'none',
-            minWidth: isMobile ? '100%' : 95,
-            marginLeft: isMobile ? 0 : 8,
-            transition: 'background-color 0.3s, color 0.3s, box-shadow 0.18s',
-            width: isMobile ? '100%' : 'auto',
-          }}
-          onFocus={e => (e.currentTarget.style.boxShadow = 'var(--shadow-sm, 0 1px 4px rgba(0,0,0,0.1))')}
-          onBlur={e => (e.currentTarget.style.boxShadow = 'none')}
-        >
-          {STAGE_ORDER.map(s => (
-            <option key={s} value={s}>{STAGES[s].label}</option>
-          ))}
-        </select>
       </div>
 
-      {/* Row 2: Applied time + Stage updated time */}
       <div style={{
-        display: 'flex', gap: 12, marginTop: 10, flexWrap: 'wrap',
-        fontSize: '0.72rem', color: 'var(--subtle-ink)'
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        width: isMobile ? '100%' : 'auto',
+        justifyContent: isMobile ? 'space-between' : 'flex-end',
       }}>
-        <span>Applied {relativeTime(appliedAt)}</span>
-        {stage !== 'applied' && (
-          <span>· Stage updated {relativeTime(stageUpdatedAt)}</span>
+        <div style={{ position: 'relative' }}>
+          <button
+            onClick={() => setMenuOpen(v => !v)}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 5,
+              padding: '5px 10px',
+              borderRadius: 999,
+              border: '1px solid transparent',
+              fontFamily: 'inherit',
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              background: cfg.bg,
+              color: cfg.color,
+              cursor: 'pointer',
+            }}
+          >
+            {cfg.label}
+            <MoreHorizontal size={11} />
+          </button>
+          {menuOpen && (
+            <div
+              onMouseLeave={() => setMenuOpen(false)}
+              style={{
+                position: 'absolute',
+                top: 'calc(100% + 5px)',
+                right: 0,
+                minWidth: 130,
+                background: 'var(--surface)',
+                border: '1px solid var(--border)',
+                borderRadius: 10,
+                boxShadow: 'var(--shadow-md)',
+                padding: 4,
+                zIndex: 10,
+              }}
+            >
+              {STAGE_ORDER.map(s => (
+                <button
+                  key={s}
+                  onClick={() => { onStageChange(jobId, s); setMenuOpen(false); }}
+                  style={{
+                    width: '100%',
+                    textAlign: 'left',
+                    padding: '6px 9px',
+                    borderRadius: 7,
+                    border: 'none',
+                    background: s === stageKey ? 'var(--paper-2)' : 'transparent',
+                    color: STAGES[s].color,
+                    fontFamily: 'inherit',
+                    fontSize: '0.8rem',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 7,
+                  }}
+                >
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: STAGES[s].color }} />
+                  {STAGES[s].label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <span style={{
+          fontSize: '0.7rem',
+          color: 'var(--ink-faint)',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 3,
+        }}>
+          <Clock size={10} /> {relativeTime(stageUpdatedAt || appliedAt)}
+        </span>
+
+        {applicationURL && (
+          <a
+            href={applicationURL}
+            target="_blank"
+            rel="noopener noreferrer"
+            title={isListingActive ? 'Open posting' : 'Posting may be closed'}
+            style={{
+              width: 26, height: 26, borderRadius: 7,
+              border: '1px solid var(--border)',
+              background: 'transparent',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'var(--ink-muted)',
+              flexShrink: 0,
+              opacity: isListingActive ? 1 : 0.5,
+            }}
+          >
+            <ExternalLink size={11} />
+          </a>
         )}
       </div>
     </div>

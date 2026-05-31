@@ -31,7 +31,6 @@ export interface IJob {
   Status?: string;
   scrapedAt?: string;
 
-  // --- ATS source data ---
   DirectApplyURL?: string | null;
   Team?: string | null;
   AllLocations?: string[];
@@ -39,26 +38,20 @@ export interface IJob {
   WorkplaceType?: string | null;
   IsRemote?: boolean | null;
 
-  // --- Description variants ---
   DescriptionPlain?: string | null;
   DescriptionLists?: Array<{ text: string; content: string }>;
   DescriptionCleaned?: string | null;
   AdditionalInfo?: string | null;
 
-  // --- Salary ---
   SalaryMin?: number | null;
   SalaryMax?: number | null;
   SalaryCurrency?: string | null;
   SalaryInterval?: string | null;
   SalaryInfo?: string | null;
 
-  // --- Office/Location detail ---
   Office?: string | null;
-
-  // --- ATS platform ---
   ATSPlatform?: string | null;
 
-  // --- Entry-level tagging ---
   isEntryLevel?: boolean | null;
   autoTags?: IJobAutoTags | null;
 }

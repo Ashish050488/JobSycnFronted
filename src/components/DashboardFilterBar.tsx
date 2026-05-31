@@ -1,43 +1,91 @@
-import type { ICompany } from '../types';
+// FILE: src/components/DashboardFilterBar.tsx
+import type { CSSProperties } from 'react';
 
-interface FilterOption {
-  label: string;
-  value: string | null;
-}
+interface Option { value: string; label: string; }
 
-interface DashboardFilterBarProps {
-  roleCategoryFilter: string | null;
-  experienceBandFilter: string | null;
-  workplaceFilter: string | null;
-  dateFilter: string | null;
-  platformFilter: string | null;
+interface Props {
+  roleCategoryFilter: string;
+  experienceBandFilter: string;
+  workplaceFilter: string;
+  dateFilter: string;
+  platformFilter: string;
   sel: string;
-  cos: ICompany[];
-  roleOptions: readonly FilterOption[];
-  experienceOptions: readonly FilterOption[];
-  desktopSelectStyle: (active: boolean) => React.CSSProperties;
-  setRoleCategoryFilter: (v: string | null) => void;
-  setExperienceBandFilter: (v: string | null) => void;
-  setWorkplaceFilter: (v: string | null) => void;
-  setDateFilter: (v: string | null) => void;
-  setPlatformFilter: (v: string | null) => void;
-  setSp: (params: Record<string, string>) => void;
+  cos: string;
+  roleOptions: Option[];
+  experienceOptions: Option[];
+  desktopSelectStyle: CSSProperties;
+  setRoleCategoryFilter: (v: string) => void;
+  setExperienceBandFilter: (v: string) => void;
+  setWorkplaceFilter: (v: string) => void;
+  setDateFilter: (v: string) => void;
+  setPlatformFilter: (v: string) => void;
+  setSel: (v: string) => void;
+  setCos: (v: string) => void;
+  setSp: (fn: (sp: URLSearchParams) => void) => void;
 }
 
-export function DashboardFilterBar({
+export default function DashboardFilterBar({
   roleCategoryFilter, experienceBandFilter, workplaceFilter, dateFilter, platformFilter,
   sel, cos, roleOptions, experienceOptions, desktopSelectStyle,
-  setRoleCategoryFilter, setExperienceBandFilter, setWorkplaceFilter, setDateFilter,
-  setPlatformFilter, setSp,
-}: DashboardFilterBarProps) {
+  setRoleCategoryFilter, setExperienceBandFilter, setWorkplaceFilter,
+  setDateFilter, setPlatformFilter, setSel, setCos, setSp,
+}: Props) {
+  void sel; void cos; void setSel; void setCos;
+
   return (
-    <div style={{ display: 'flex', gap: 10, padding: '12px 0 14px', marginBottom: 12, borderBottom: '1px solid var(--border)', flexWrap: 'wrap' }}>
-      <select value={roleCategoryFilter ?? ''} onChange={e => setRoleCategoryFilter(e.target.value || null)} style={desktopSelectStyle(!!roleCategoryFilter)}><option value="">Role: All</option>{roleOptions.filter(o => o.value).map(opt => <option key={opt.label} value={opt.value!}>{opt.label}</option>)}</select>
-      <select value={experienceBandFilter ?? ''} onChange={e => setExperienceBandFilter(e.target.value || null)} style={desktopSelectStyle(!!experienceBandFilter)}><option value="">Exp: All</option>{experienceOptions.filter(o => o.value).map(opt => <option key={opt.label} value={opt.value!}>{opt.label}</option>)}</select>
-      <select value={workplaceFilter ?? ''} onChange={e => setWorkplaceFilter(e.target.value || null)} style={desktopSelectStyle(!!workplaceFilter)}><option value="">Workplace: All</option><option value="remote">Remote</option><option value="hybrid">Hybrid</option><option value="on-site">On-site</option></select>
-      <select value={dateFilter ?? ''} onChange={e => setDateFilter(e.target.value || null)} style={desktopSelectStyle(!!dateFilter)}><option value="">Date: All</option><option value="1d">Past 24h</option><option value="3d">Past 3d</option><option value="7d">Past 7d</option></select>
-      <select value={platformFilter ?? ''} onChange={e => setPlatformFilter(e.target.value || null)} style={desktopSelectStyle(!!platformFilter)}><option value="">Board: All</option><option value="lever">Lever</option><option value="greenhouse">Greenhouse</option><option value="ashby">Ashby</option><option value="workable">Workable</option><option value="recruitee">Recruitee</option><option value="workday">Workday</option></select>
-      <select value={sel} onChange={e => { const company = e.target.value; if (!company) { setSp({}); } else { setSp({ company }); } }} style={desktopSelectStyle(!!sel)}><option value="">Companies: All</option>{cos.map(c => <option key={c.companyName} value={c.companyName}>{c.companyName}</option>)}</select>
+    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+      <select
+        value={roleCategoryFilter}
+        onChange={e => { setRoleCategoryFilter(e.target.value); setSp(sp => { sp.set('role', e.target.value); sp.delete('page'); }); }}
+        style={desktopSelectStyle}
+      >
+        {roleOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </select>
+
+      <select
+        value={experienceBandFilter}
+        onChange={e => { setExperienceBandFilter(e.target.value); setSp(sp => { sp.set('exp', e.target.value); sp.delete('page'); }); }}
+        style={desktopSelectStyle}
+      >
+        {experienceOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </select>
+
+      <select
+        value={workplaceFilter}
+        onChange={e => { setWorkplaceFilter(e.target.value); setSp(sp => { sp.set('wp', e.target.value); sp.delete('page'); }); }}
+        style={desktopSelectStyle}
+      >
+        <option value="all">All workplaces</option>
+        <option value="remote">Remote</option>
+        <option value="hybrid">Hybrid</option>
+        <option value="on-site">On-site</option>
+      </select>
+
+      <select
+        value={dateFilter}
+        onChange={e => { setDateFilter(e.target.value); setSp(sp => { sp.set('date', e.target.value); sp.delete('page'); }); }}
+        style={desktopSelectStyle}
+      >
+        <option value="all">Any time</option>
+        <option value="today">Today</option>
+        <option value="3d">Last 3 days</option>
+        <option value="7d">Last week</option>
+        <option value="30d">Last month</option>
+      </select>
+
+      <select
+        value={platformFilter}
+        onChange={e => { setPlatformFilter(e.target.value); setSp(sp => { sp.set('platform', e.target.value); sp.delete('page'); }); }}
+        style={desktopSelectStyle}
+      >
+        <option value="all">All sources</option>
+        <option value="lever">Lever</option>
+        <option value="greenhouse">Greenhouse</option>
+        <option value="ashby">Ashby</option>
+        <option value="workable">Workable</option>
+        <option value="recruitee">Recruitee</option>
+        <option value="workday">Workday</option>
+      </select>
     </div>
   );
 }

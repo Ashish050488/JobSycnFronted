@@ -35,18 +35,14 @@ export function useCompanies({ page, limit, search, sort }: UseCompaniesParams):
 
         fetch('/api/jobs/directory', { signal: ctrl.signal })
             .then(r => r.json())
-            .then(d => {
-                setAllCompanies(Array.isArray(d) ? d : []);
-            })
+            .then(d => { setAllCompanies(Array.isArray(d) ? d : []); })
             .catch(e => {
                 if (e.name !== 'AbortError') {
                     console.error(e);
                     setError('Failed to load companies.');
                 }
             })
-            .finally(() => {
-                if (!ctrl.signal.aborted) setLoading(false);
-            });
+            .finally(() => { if (!ctrl.signal.aborted) setLoading(false); });
     }, []);
 
     useEffect(() => {
@@ -54,32 +50,26 @@ export function useCompanies({ page, limit, search, sort }: UseCompaniesParams):
         return () => { abortRef.current?.abort(); };
     }, [fetchCompanies]);
 
-    // Filter, sort, paginate in memory
     const { companies, total, totalPages } = useMemo(() => {
         const q = search.toLowerCase().trim();
         let filtered = allCompanies;
-
         if (q) {
             filtered = allCompanies.filter(c =>
                 c.companyName.toLowerCase().includes(q) ||
                 c.cities.some(city => city.toLowerCase().includes(q))
             );
         }
-
-        // Sort
         const sorted = [...filtered].sort((a, b) => {
             if (sort === 'a-z') return a.companyName.localeCompare(b.companyName);
             if (sort === 'z-a') return b.companyName.localeCompare(a.companyName);
             if (sort === 'most-hiring') return (b.openRoles || 0) - (a.openRoles || 0);
             return 0;
         });
-
         const total = sorted.length;
         const totalPages = Math.max(1, Math.ceil(total / limit));
         const safePage = Math.min(page, totalPages);
         const start = (safePage - 1) * limit;
         const companies = sorted.slice(start, start + limit);
-
         return { companies, total, totalPages };
     }, [allCompanies, search, sort, page, limit]);
 
