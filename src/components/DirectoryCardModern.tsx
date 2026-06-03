@@ -1,6 +1,6 @@
 // FILE: src/components/DirectoryCardModern.tsx
 import { useState } from 'react';
-import { MapPin, ArrowUpRight, ExternalLink } from 'lucide-react';
+import { MapPin, ArrowUpRight } from 'lucide-react';
 import type { ICompany } from '../types';
 import CompanyLogo from './CompanyLogo';
 
