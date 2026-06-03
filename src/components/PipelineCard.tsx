@@ -1,22 +1,11 @@
 // FILE: src/components/PipelineCard.tsx
 import { useState, useEffect } from 'react';
 import { ExternalLink, Clock, MoreHorizontal } from 'lucide-react';
+import { STAGES, STAGE_ORDER, type StageName } from './pipelineStages';
 
-const STAGES = {
-  applied: { label: 'Applied', bg: 'var(--accent-soft)', color: 'var(--accent)' },
-  screening: { label: 'Screening', bg: 'var(--info-soft)', color: 'var(--info)' },
-  interview: { label: 'Interview', bg: '#EEEDFE', color: '#534AB7' },
-  offer: { label: 'Offer', bg: 'var(--warning-soft)', color: 'var(--warning)' },
-  accepted: { label: 'Accepted', bg: 'var(--success-soft)', color: 'var(--success)' },
-  rejected: { label: 'Rejected', bg: 'var(--danger-soft)', color: 'var(--danger)' },
-  ghosted: { label: 'Ghosted', bg: 'var(--paper-2)', color: 'var(--ink-faint)' },
-} as const;
-
-const STAGE_ORDER = ['applied', 'screening', 'interview', 'offer', 'accepted', 'rejected', 'ghosted'] as const;
-type StageName = keyof typeof STAGES;
-
-export type { StageName };
+// Re-export for back-compat (other files import these from PipelineCard)
 export { STAGES, STAGE_ORDER };
+export type { StageName };
 
 interface PipelineCardProps {
   jobId: string;

@@ -19,8 +19,9 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Layout />}>
-        {/* Logged-in users get the personalized Today dashboard; guests get the marketing landing */}
-        <Route index element={currentUser ? <Today /> : <Home />} />
+        {/* Guests see marketing landing at /. Logged-in users get redirected to /jobs. */}
+        <Route index element={currentUser ? <Navigate to="/jobs" replace /> : <Home />} />
+        <Route path="today" element={currentUser ? <Today /> : <LoginScreen />} />
         <Route path="legal" element={<Legal />} />
         <Route path="directory" element={currentUser ? <CompanyDirectory /> : <LoginScreen />} />
         <Route path="hiring" element={<HiringLeaderboard />} />

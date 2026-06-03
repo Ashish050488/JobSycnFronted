@@ -2,11 +2,12 @@
 // Quiet, paper-textured sign-in card. Apple-style focus, no theatre.
 
 import { useState, useEffect } from 'react';
-import { X, Sparkles, Bookmark, Target, BarChart3 } from 'lucide-react';
+import { X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
 import { useUser } from '../context/UserContext';
 import BrandLogo from './BrandLogo';
+import { LOGIN_BENEFITS } from './loginBenefits';
 
 export default function LoginScreen() {
   const { login } = useUser();
@@ -23,12 +24,6 @@ export default function LoginScreen() {
 
   const isMobile = vw < 640;
 
-  const benefits: { icon: React.ReactNode; label: string }[] = [
-    { icon: <Target size={14} />, label: 'Track every application in one place' },
-    { icon: <Sparkles size={14} />, label: 'See which roles match your skills' },
-    { icon: <BarChart3 size={14} />, label: 'Daily streaks and progress tracking' },
-    { icon: <Bookmark size={14} />, label: 'Bookmark roles to come back later' },
-  ];
 
   return (
     <div style={{
@@ -164,7 +159,7 @@ export default function LoginScreen() {
 
           {/* Benefits */}
           <div style={{ display: 'grid', gap: 9 }}>
-            {benefits.map((b, i) => (
+            {LOGIN_BENEFITS.map((b, i) => (
               <div key={i} style={{
                 display: 'flex',
                 alignItems: 'center',

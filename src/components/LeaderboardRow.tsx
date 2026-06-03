@@ -2,13 +2,16 @@
 import { useState } from 'react';
 import { ChevronDown, ExternalLink } from 'lucide-react';
 import CompanyLogo from './CompanyLogo';
+import Stat from './leaderboardStat';
 
 export interface LeaderboardCompany {
   company: string;
   domain?: string;
   newThisWeek: number;
   totalRoles: number;
-  avgAgeDays: number;
+  avgAgeDays: number | null;
+  /** Roles this company has with no real PostedDate (mostly Greenhouse). */
+  unknownDateCount?: number;
   stalePercent: number;
   signal: 'hot' | 'active' | 'steady' | 'stale';
   weekOverWeek?: number;
@@ -124,7 +127,7 @@ export default function LeaderboardRow({ rank, company, signalConfig, maxNew }: 
         <span style={{
           fontSize: '0.72rem', color: 'var(--ink-faint)',
           fontVariantNumeric: 'tabular-nums', minWidth: 56, textAlign: 'right',
-        }}>{company.avgAgeDays}d avg</span>
+        }}>{company.avgAgeDays !== null ? `${company.avgAgeDays}d avg` : '—'}</span>
 
         <ChevronDown
           size={14}
@@ -151,11 +154,15 @@ export default function LeaderboardRow({ rank, company, signalConfig, maxNew }: 
             gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))',
             gap: 8,
           }}>
-            <Stat label="Avg posting age" value={`${company.avgAgeDays} days`} />
+            <Stat label="Avg posting age" value={company.avgAgeDays !== null ? `${company.avgAgeDays} days` : "Unknown"} />
             <Stat label="Stale roles" value={`${company.stalePercent}%`} />
             {typeof company.weekOverWeek === 'number' && (
               <Stat label="Week over week" value={`${company.weekOverWeek > 0 ? '+' : ''}${company.weekOverWeek}`} />
             )}
+            {typeof company.unknownDateCount === 'number' && company.unknownDateCount > 0 && (
+              <Stat label="No post date" value={`${company.unknownDateCount} role${company.unknownDateCount === 1 ? '' : 's'}`} />
+            )}
+            
           </div>
           {company.careersUrl && (
             <a
@@ -185,11 +192,3 @@ export default function LeaderboardRow({ rank, company, signalConfig, maxNew }: 
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div style={{ padding: '8px 10px', background: 'var(--paper-2)', borderRadius: 8 }}>
-      <div style={{ fontSize: '0.66rem', color: 'var(--ink-muted)', letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 600 }}>{label}</div>
-      <div style={{ fontSize: '0.88rem', color: 'var(--ink)', fontWeight: 600, marginTop: 2 }}>{value}</div>
-    </div>
-  );
-}

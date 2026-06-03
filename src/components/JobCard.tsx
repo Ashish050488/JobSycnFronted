@@ -55,7 +55,7 @@ export default function JobCard({ job, domain }: Props) {
     return () => window.removeEventListener('resize', fn);
   }, []);
 
-  const effectiveDate = job.PostedDate || job.scrapedAt || null;
+  const effectiveDate = job.PostedDate || job.createdAt || job.scrapedAt || null;
   const rt = relTime(effectiveDate);
   const wp = workplaceLabel(job);
   const sal = salaryDisplay(job);

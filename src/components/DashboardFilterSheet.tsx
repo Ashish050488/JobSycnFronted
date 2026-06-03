@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { Button } from './ui';
+import { Group, Chips } from './dashboardFilterSheetParts';
 
 interface Option { value: string; label: string; }
 
@@ -162,44 +163,6 @@ export default function DashboardFilterSheet({
           </Button>
         </div>
       </div>
-    </div>
-  );
-}
-
-function Group({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <p style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--ink-muted)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 8 }}>
-        {label}
-      </p>
-      {children}
-    </div>
-  );
-}
-
-function Chips({ value, options, onChange }: { value: string; options: { value: string; label: string }[]; onChange: (v: string) => void }) {
-  return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-      {options.map(o => (
-        <button
-          key={o.value}
-          onClick={() => onChange(o.value)}
-          style={{
-            padding: '6px 12px',
-            borderRadius: 999,
-            fontFamily: 'inherit',
-            fontSize: '0.82rem',
-            fontWeight: 500,
-            background: value === o.value ? 'var(--accent-soft)' : 'transparent',
-            color: value === o.value ? 'var(--accent)' : 'var(--ink-2)',
-            border: '1px solid',
-            borderColor: value === o.value ? 'var(--accent-mid)' : 'var(--border-strong)',
-            cursor: 'pointer',
-          }}
-        >
-          {o.label}
-        </button>
-      ))}
     </div>
   );
 }

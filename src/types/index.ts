@@ -30,6 +30,7 @@ export interface IJob {
   sourceSite?: string;
   Status?: string;
   scrapedAt?: string;
+  createdAt?: string;
 
   DirectApplyURL?: string | null;
   Team?: string | null;
