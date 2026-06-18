@@ -23,6 +23,7 @@ export default function DirectoryCardModern({ company, adminActions }: Props) {
       rel="noopener noreferrer"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      title={company.companyName}
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -37,6 +38,8 @@ export default function DirectoryCardModern({ company, adminActions }: Props) {
         transform: hovered ? 'translateY(-2px)' : 'translateY(0)',
         boxShadow: hovered ? 'var(--shadow-sm)' : 'none',
         position: 'relative',
+        maxWidth: '100%',
+        boxSizing: 'border-box',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
@@ -55,6 +58,10 @@ export default function DirectoryCardModern({ company, adminActions }: Props) {
               color: 'var(--ink)',
               letterSpacing: '-0.012em',
               lineHeight: 1.3,
+              /* Reserve 2 line-heights so short and long names occupy the same
+                 vertical space — keeps cards in a row aligned and stops a wrapped
+                 title from overlapping the rows below it. */
+              minHeight: '2.6em',
               flex: 1,
               minWidth: 0,
               overflow: 'hidden',
@@ -62,6 +69,7 @@ export default function DirectoryCardModern({ company, adminActions }: Props) {
               display: '-webkit-box',
               WebkitLineClamp: 2,
               WebkitBoxOrient: 'vertical',
+              wordBreak: 'break-word',
             }}>
               {company.companyName}
             </h3>
@@ -72,7 +80,10 @@ export default function DirectoryCardModern({ company, adminActions }: Props) {
               transition: 'color 160ms ease',
             }} />
           </div>
-          <p style={{ fontSize: '0.78rem', color: 'var(--ink-muted)', marginTop: 3 }}>
+          <p style={{
+            fontSize: '0.78rem', color: 'var(--ink-muted)', marginTop: 3,
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}>
             {company.industry || (company.domain && company.domain.replace(/^https?:\/\//, ''))}
           </p>
         </div>
@@ -92,6 +103,9 @@ export default function DirectoryCardModern({ company, adminActions }: Props) {
         <span style={{
           fontWeight: 600,
           color: company.openRoles > 0 ? 'var(--accent)' : 'var(--ink-faint)',
+          whiteSpace: 'nowrap',
+          flexShrink: 0,
+          fontVariantNumeric: 'tabular-nums',
         }}>
           {company.openRoles}
         </span>
@@ -108,7 +122,7 @@ export default function DirectoryCardModern({ company, adminActions }: Props) {
           flexWrap: 'wrap',
         }}>
           <MapPin size={12} style={{ flexShrink: 0 }} />
-          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, flex: '1 1 auto' }}>
             {cityList.join(' · ')}
             {extraCities > 0 ? ` +${extraCities}` : ''}
           </span>

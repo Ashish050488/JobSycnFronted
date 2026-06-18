@@ -7,7 +7,10 @@ export function Container({ children, size = 'xl', style, className = '' }: {
 }) {
   const maxW = { sm: '640px', md: '768px', lg: '1024px', xl: '1200px' }[size];
   return (
-    <div className={className} style={{ maxWidth: maxW, margin: '0 auto', padding: '0 clamp(16px, 4vw, 24px)', ...style }}>
+    // width:100% is required because Container is rendered inside flex-column
+    // parents — without it, the auto side-margins collapse the box to its
+    // content width instead of filling out to maxWidth.
+    <div className={className} style={{ width: '100%', maxWidth: maxW, margin: '0 auto', padding: '0 clamp(16px, 4vw, 24px)', ...style }}>
       {children}
     </div>
   );

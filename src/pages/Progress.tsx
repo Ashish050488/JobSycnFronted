@@ -56,7 +56,7 @@ export default function Progress() {
   if (!currentUser) return null;
 
   return (
-    <Container size="lg" style={{ paddingTop: 'clamp(24px, 5vw, 40px)', paddingBottom: 60 }}>
+    <Container size="xl" style={{ paddingTop: 'clamp(24px, 5vw, 40px)', paddingBottom: 60 }}>
       <Link
         to="/jobs"
         style={{
@@ -81,49 +81,53 @@ export default function Progress() {
           action={<Button as="a" href="/jobs" variant="primary" size="md">Browse jobs</Button>}
         />
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {/* Top: progress ring + quick stats */}
-          <div style={{
-            background: 'var(--surface)',
-            border: '1px solid var(--border)',
-            borderRadius: 14,
-            padding: 'clamp(16px, 3vw, 22px)',
-          }}>
-            <ProgressRing
-              todayCount={todayCount}
-              dailyGoal={dailyGoal}
-              onGoalChange={saveDailyGoal}
-            />
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
-              gap: 10,
-              marginTop: 18,
-              paddingTop: 16,
-              borderTop: '1px solid var(--border)',
-            }}>
-              <Stat icon={<Flame size={14} />} value={streak} label={streak === 1 ? 'Day streak' : 'Day streak'} />
-              <Stat icon={<Briefcase size={14} />} value={appliedJobs.length} label="Total applied" />
-              <Stat icon={<Target size={14} />} value={`${dailyGoal}/day`} label="Goal" />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {/* Dense 2-col grid on desktop, single column on mobile.
+              Left: today's progress + last 7 days. Right: heatmap + funnel. */}
+          <div className="progress-grid">
+            <div className="progress-col">
+              {/* Today's progress: ring + quick stats */}
+              <div style={{
+                background: 'var(--surface)',
+                border: '1px solid var(--border)',
+                borderRadius: 14,
+                padding: 'clamp(14px, 2.5vw, 18px)',
+              }}>
+                <ProgressRing
+                  todayCount={todayCount}
+                  dailyGoal={dailyGoal}
+                  onGoalChange={saveDailyGoal}
+                />
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+                  gap: 10,
+                  marginTop: 18,
+                  paddingTop: 16,
+                  borderTop: '1px solid var(--border)',
+                }}>
+                  <Stat icon={<Flame size={14} />} value={streak} label="Day streak" />
+                  <Stat icon={<Briefcase size={14} />} value={appliedJobs.length} label="Total applied" />
+                  <Stat icon={<Target size={14} />} value={`${dailyGoal}/day`} label="Goal" />
+                </div>
+              </div>
+
+              <Section title="Last 7 days">
+                <ActivityChart appliedJobs={appliedJobs} dailyGoal={dailyGoal} />
+              </Section>
+            </div>
+
+            <div className="progress-col">
+              <Section title="Activity heatmap">
+                <HeatmapCalendar appliedJobs={appliedJobs} dailyGoal={dailyGoal} />
+              </Section>
+              <Section title="Application funnel">
+                <FunnelChart stageCounts={stageCounts} totalApplied={appliedDetails.length} />
+              </Section>
             </div>
           </div>
 
-          {/* Activity bars */}
-          <Section title="Last 7 days">
-            <ActivityChart appliedJobs={appliedJobs} dailyGoal={dailyGoal} />
-          </Section>
-
-          {/* Heatmap */}
-          <Section title="Activity heatmap">
-            <HeatmapCalendar appliedJobs={appliedJobs} dailyGoal={dailyGoal} />
-          </Section>
-
-          {/* Funnel */}
-          <Section title="Application funnel">
-            <FunnelChart stageCounts={stageCounts} totalApplied={appliedDetails.length} />
-          </Section>
-
-          {/* Pipeline view */}
+          {/* Pipeline / application history — full width below the grid */}
           <Section title={COPY.progress.historyLabel} subtitle={COPY.progress.historySubtitle}>
             {loading ? (
               <div style={{ display: 'grid', gap: 8 }}>
@@ -145,12 +149,12 @@ function Section({ title, subtitle, children }: { title: string; subtitle?: stri
       background: 'var(--surface)',
       border: '1px solid var(--border)',
       borderRadius: 14,
-      padding: 'clamp(16px, 3vw, 22px)',
+      padding: 'clamp(14px, 2.5vw, 18px)',
     }}>
       <h2 className="font-display" style={{
-        fontSize: '1.1rem',
+        fontSize: '1rem',
         fontWeight: 600, color: 'var(--ink)',
-        letterSpacing: '-0.02em', marginBottom: subtitle ? 4 : 14,
+        letterSpacing: '-0.02em', marginBottom: subtitle ? 4 : 12,
       }}>{title}</h2>
       {subtitle && <p style={{ fontSize: '0.82rem', color: 'var(--ink-muted)', marginBottom: 14 }}>{subtitle}</p>}
       {children}

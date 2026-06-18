@@ -148,13 +148,26 @@ a { color: inherit; }
 /* ── Grid: companies ────────────────────────────────────── */
 .companies-grid {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
+  /* Responsive auto-fill: tracks reflow to new rows instead of overflowing the
+     viewport. min() guards against overflow when the container is < 260px. */
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: 16px;
   margin-top: 16px;
+  width: 100%;
+  max-width: 100%;
 }
-@media (min-width: 640px) { .companies-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; } }
-@media (min-width: 900px) { .companies-grid { grid-template-columns: repeat(3, 1fr); } }
-@media (min-width: 1200px) { .companies-grid { grid-template-columns: repeat(4, 1fr); } }
+.companies-grid > * { min-width: 0; max-width: 100%; }
+@media (max-width: 639px) { .companies-grid { gap: 12px; } }
+
+/* ── Grid: progress (dense 2-col on desktop) ────────────── */
+.progress-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  align-items: start;
+}
+.progress-col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+@media (min-width: 1024px) { .progress-grid { grid-template-columns: 1fr 1fr; } }
 
 /* ── Snap carousel ──────────────────────────────────────── */
 .snap-carousel {

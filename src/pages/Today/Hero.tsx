@@ -1,7 +1,6 @@
 // FILE: src/pages/Today/Hero.tsx
-import { Flame, Briefcase, Target } from 'lucide-react';
 import ProgressRing from '../../components/ProgressRing';
-import { eyebrowStyle, MiniStat } from './shared';
+import { eyebrowStyle } from './shared';
 
 interface Props {
   isDesktop: boolean;
@@ -9,12 +8,10 @@ interface Props {
   firstName: string;
   todayCount: number;
   dailyGoal: number;
-  streak: number;
-  appliedCount: number;
   onGoalChange: (n: number) => void;
 }
 
-export default function Hero({ isDesktop, greeting, firstName, todayCount, dailyGoal, streak, appliedCount, onGoalChange }: Props) {
+export default function Hero({ isDesktop, greeting, firstName, todayCount, dailyGoal, onGoalChange }: Props) {
   return (
     <div
       className="anim-up"
@@ -37,20 +34,14 @@ export default function Hero({ isDesktop, greeting, firstName, todayCount, daily
         </p>
       </div>
 
+      {/* Quick-glance daily goal ring. Detailed stats (streak / totals / funnel)
+          live on the Progress page so they aren't duplicated here. */}
       <div style={{
         background: 'var(--surface)', border: '1px solid var(--border)',
         borderRadius: 14, padding: 'clamp(16px, 3vw, 22px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
         <ProgressRing todayCount={todayCount} dailyGoal={dailyGoal} onGoalChange={onGoalChange} />
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))',
-          gap: 10, marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--border)',
-        }}>
-          <MiniStat icon={<Flame size={14} />} value={streak} label="Day streak" accent={streak > 0 ? 'warning' : 'neutral'} />
-          <MiniStat icon={<Briefcase size={14} />} value={appliedCount} label="Total applied" accent="neutral" />
-          <MiniStat icon={<Target size={14} />} value={`${Math.round((todayCount / Math.max(dailyGoal, 1)) * 100)}%`} label="Daily goal" accent={todayCount >= dailyGoal ? 'success' : 'neutral'} />
-        </div>
       </div>
     </div>
   );

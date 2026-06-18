@@ -77,7 +77,19 @@ export async function resolveDomainViaAutocomplete(name: string): Promise<string
 }
 
 export function logoDevUrl(domain: string): string {
-  return `https://img.logo.dev/${domain}?token=${LOGODEV_TOKEN}&size=128&format=png`;
+  // fallback=404 → logo.dev returns 404 (not a faint/invisible monogram) when it
+  // has no real logo, so our own high-contrast letter fallback renders instead.
+  return `https://img.logo.dev/${domain}?token=${LOGODEV_TOKEN}&size=128&format=png&fallback=404`;
+}
+
+// Resolves a display initial that survives messy data: trims whitespace and
+// leading non-alphanumerics from the name, then falls back to the domain.
+export function companyInitial(name?: string | null, domain?: string | null): string | null {
+  const fromName = (name || '').trim().replace(/^[^\p{L}\p{N}]+/u, '');
+  if (fromName) return fromName.charAt(0).toUpperCase();
+  const fromDomain = (domain || '').replace(/^[^a-z0-9]+/i, '');
+  if (fromDomain) return fromDomain.charAt(0).toUpperCase();
+  return null;
 }
 
 export function preloadImg(src: string): Promise<boolean> {

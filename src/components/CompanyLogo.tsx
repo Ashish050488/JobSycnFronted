@@ -3,9 +3,10 @@
 // API surface preserved; visual shell modernized.
 
 import { useState, useMemo, useEffect, useRef } from 'react';
+import { Building2 } from 'lucide-react';
 import {
   getDomainFromUrl, cleanCompanyName, slugify, slugFromAtsUrl, isAtsHost,
-  resolveDomainViaAutocomplete, logoDevUrl, preloadImg,
+  resolveDomainViaAutocomplete, logoDevUrl, preloadImg, companyInitial,
 } from './companyLogoHelpers';
 
 interface Props {
@@ -97,17 +98,23 @@ export default function CompanyLogo({ name, url, domain, size = 40, borderRadius
     ...style,
   };
 
+  const initial = useMemo(() => companyInitial(name, host), [name, host]);
+
   const letterEl = (opacity = 1) => (
-    <span style={{
-      fontFamily: "'Source Serif 4', Georgia, ui-serif, serif",
-      fontSize: size * 0.5,
-      color: 'var(--accent)',
-      fontWeight: 600,
-      lineHeight: 1,
-      opacity,
-    }}>
-      {(name || '?').charAt(0).toUpperCase()}
-    </span>
+    initial ? (
+      <span style={{
+        fontFamily: "'Source Serif 4', Georgia, ui-serif, serif",
+        fontSize: size * 0.5,
+        color: 'var(--accent)',
+        fontWeight: 600,
+        lineHeight: 1,
+        opacity,
+      }}>
+        {initial}
+      </span>
+    ) : (
+      <Building2 size={size * 0.5} style={{ color: 'var(--ink-faint)', opacity }} />
+    )
   );
 
   return (

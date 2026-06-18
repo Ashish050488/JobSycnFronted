@@ -15,6 +15,7 @@ export default function ActivityChart({ appliedJobs, dailyGoal }: Props) {
   const goalMet = getGoalMetDays(appliedJobs, dailyGoal, 7);
   const streak = getStreak(appliedJobs);
   const max = Math.max(...buckets.map(b => b.count), dailyGoal, 1);
+  const windowTotal = buckets.reduce((sum, b) => sum + b.count, 0);
 
   return (
     <div>
@@ -31,6 +32,7 @@ export default function ActivityChart({ appliedJobs, dailyGoal }: Props) {
 
       {/* Bars */}
       <div style={{
+        position: 'relative',
         display: 'flex',
         alignItems: 'flex-end',
         gap: 8,
@@ -39,9 +41,11 @@ export default function ActivityChart({ appliedJobs, dailyGoal }: Props) {
         borderBottom: '1px dashed var(--border)',
       }}>
         {buckets.map((b, i) => {
-          const h = Math.max(4, (b.count / max) * 130);
           const isMet = b.count >= dailyGoal && b.count > 0;
           const isEmpty = b.count === 0;
+          // Empty days render a short, visible track (not an invisible 4px sliver);
+          // days with activity get a clear minimum height so even 1 application shows.
+          const h = isEmpty ? 6 : Math.max(14, (b.count / max) * 130);
           return (
             <div key={i} style={{
               flex: 1,
@@ -60,14 +64,24 @@ export default function ActivityChart({ appliedJobs, dailyGoal }: Props) {
                 width: '100%', maxWidth: 32,
                 height: h,
                 borderRadius: '8px 8px 4px 4px',
-                background: isEmpty ? 'var(--paper-2)' : isMet ? 'var(--success)' : 'var(--accent)',
-                opacity: b.isToday ? 1 : isEmpty ? 1 : 0.75,
-                border: b.isToday ? '1.5px solid var(--ink)' : 'none',
+                background: isEmpty ? 'var(--border)' : isMet ? 'var(--success)' : 'var(--accent)',
+                opacity: isEmpty ? 0.6 : b.isToday ? 1 : 0.8,
+                border: b.isToday && !isEmpty ? '1.5px solid var(--ink)' : 'none',
                 transition: 'all 240ms cubic-bezier(0.16, 1, 0.3, 1)',
               }} />
             </div>
           );
         })}
+        {windowTotal === 0 && (
+          <div style={{
+            position: 'absolute', inset: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '0.8rem', color: 'var(--ink-muted)', textAlign: 'center',
+            pointerEvents: 'none', padding: '0 12px',
+          }}>
+            No applications in the last 7 days — apply today to start a streak.
+          </div>
+        )}
       </div>
       {/* Day labels */}
       <div style={{

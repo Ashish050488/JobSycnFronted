@@ -45,7 +45,7 @@ export default function Sidebar({ isDesktop, loading, topCompanies, recentApps }
                 }}>#{i + 1}</span>
                 <CompanyLogo name={c.company} domain={c.domain} size={32} borderRadius={9} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--ink)' }}>{c.company}</div>
+                  <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.company}</div>
                   <div style={{ fontSize: '0.72rem', color: 'var(--accent)', marginTop: 2, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                     <TrendingUp size={10} /> +{c.newThisWeek} new this week
                   </div>

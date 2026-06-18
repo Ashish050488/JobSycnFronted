@@ -1,5 +1,5 @@
 // FILE: src/pages/Today/index.tsx
-// Personalized home for logged-in users. Composes Hero + PicksSection + Sidebar.
+// Personalized home for logged-in users. Composes Hero + (Picks + News) + Sidebar.
 
 import { useEffect, useMemo, useState } from 'react';
 import { useUser } from '../../context/UserContext';
@@ -9,11 +9,12 @@ import { buildSkillsRegex } from '../../components/JobDetailPanel';
 import { BRAND } from '../../theme/brand';
 import Hero from './Hero';
 import PicksSection from './PicksSection';
+import NewsSection from './NewsSection';
 import Sidebar from './Sidebar';
 import type { LeaderboardCompany } from './shared';
 
 export default function Today() {
-  const { currentUser, userSkills, todayCount, dailyGoal, streak, openSkillsEditor, saveDailyGoal, appliedCount } = useUser();
+  const { currentUser, userSkills, todayCount, dailyGoal, openSkillsEditor, saveDailyGoal } = useUser();
   const [jobs, setJobs] = useState<IJob[]>([]);
   const [topCompanies, setTopCompanies] = useState<LeaderboardCompany[]>([]);
   const [recentApps, setRecentApps] = useState<AppliedJobDetail[]>([]);
@@ -78,8 +79,6 @@ export default function Today() {
         firstName={firstName}
         todayCount={todayCount}
         dailyGoal={dailyGoal}
-        streak={streak}
-        appliedCount={appliedCount}
         onGoalChange={saveDailyGoal}
       />
       <div style={{
@@ -87,12 +86,17 @@ export default function Today() {
         gridTemplateColumns: isDesktop ? 'minmax(0, 2fr) minmax(0, 1fr)' : '1fr',
         gap: 28, alignItems: 'start',
       }}>
-        <PicksSection
-          picks={picks}
-          loading={loading}
-          userSkillsLength={userSkills.length}
-          onOpenSkillsEditor={openSkillsEditor}
-        />
+        {/* Left column: picks + news widget (news fills the space the removed
+            stat boxes left behind, balancing the column heights). */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 28, minWidth: 0 }}>
+          <PicksSection
+            picks={picks}
+            loading={loading}
+            userSkillsLength={userSkills.length}
+            onOpenSkillsEditor={openSkillsEditor}
+          />
+          <NewsSection />
+        </div>
         <Sidebar isDesktop={isDesktop} loading={loading} topCompanies={topCompanies} recentApps={recentApps} />
       </div>
     </Container>

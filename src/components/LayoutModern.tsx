@@ -1,7 +1,8 @@
 // FILE: src/components/LayoutModern.tsx
 // Top-level layout. Composes TopNav + BottomNav (mobile) + Footer (desktop) around the routed page.
 
-import { Outlet } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
 import {
   Briefcase, Building2, Flame, Home as HomeIcon, BarChart3,
 } from 'lucide-react';
@@ -24,6 +25,10 @@ export default function LayoutModern() {
   const vp = useViewport();
   const isMobile = vp.w < 768;
   const isCompact = vp.w < 1024;
+
+  const location = useLocation();
+  // Reset scroll on route change so a new page never paints mid-scroll over the old one.
+  useEffect(() => { window.scrollTo(0, 0); }, [location.pathname]);
 
   const navItems: NavItem[] = currentUser ? [
     { to: '/jobs', label: 'Jobs', icon: <Briefcase size={18} /> },
@@ -62,7 +67,11 @@ export default function LayoutModern() {
         className={isMobile ? 'has-bottom-nav' : ''}
         style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
       >
-        <Outlet />
+        {/* key by path forces a clean unmount/remount per route — prevents the
+            previous page's nodes from lingering/overlapping during navigation. */}
+        <div key={location.pathname} style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          <Outlet />
+        </div>
       </main>
 
       {!isMobile && <Footer />}
