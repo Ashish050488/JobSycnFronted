@@ -39,7 +39,6 @@ export default function Dashboard() {
     experienceBandFilter: f.experienceBandFilter,
     entryLevelFilter: f.entryLevelFilter,
     workplaceFilter: f.workplaceFilter,
-    platformFilter: f.platformFilter,
     dateFilter: f.dateFilter,
     debouncedSearch,
   });
@@ -135,7 +134,6 @@ export default function Dashboard() {
         experienceBandFilter={f.experienceBandFilter} setExperienceBandFilter={f.setExperienceBandFilter}
         workplaceFilter={f.workplaceFilter} setWorkplaceFilter={f.setWorkplaceFilter}
         dateFilter={f.dateFilter} setDateFilter={f.setDateFilter}
-        platformFilter={f.platformFilter} setPlatformFilter={f.setPlatformFilter}
         entryLevelFilter={f.entryLevelFilter} setEntryLevelFilter={f.setEntryLevelFilter}
         hideApplied={f.hideApplied} setHideApplied={f.setHideApplied}
         showNewOnly={f.showNewOnly} setShowNewOnly={f.setShowNewOnly}
@@ -186,12 +184,10 @@ export default function Dashboard() {
           experienceBandFilter={f.experienceBandFilter}
           workplaceFilter={f.workplaceFilter}
           dateFilter={f.dateFilter}
-          platformFilter={f.platformFilter}
           setRoleCategoryFilter={f.setRoleCategoryFilter}
           setExperienceBandFilter={f.setExperienceBandFilter}
           setWorkplaceFilter={f.setWorkplaceFilter}
           setDateFilter={f.setDateFilter}
-          setPlatformFilter={f.setPlatformFilter}
           setSp={f.setSp}
         />
       )}

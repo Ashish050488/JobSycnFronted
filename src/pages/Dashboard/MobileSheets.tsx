@@ -28,12 +28,10 @@ interface Props {
   experienceBandFilter: string;
   workplaceFilter: string;
   dateFilter: string;
-  platformFilter: string;
   setRoleCategoryFilter: (v: string) => void;
   setExperienceBandFilter: (v: string) => void;
   setWorkplaceFilter: (v: string) => void;
   setDateFilter: (v: string) => void;
-  setPlatformFilter: (v: string) => void;
   setSp: (fn: (sp: URLSearchParams) => void) => void;
 }
 
@@ -62,14 +60,12 @@ export default function MobileSheets(p: Props) {
         experienceBandFilter={p.experienceBandFilter}
         workplaceFilter={p.workplaceFilter}
         dateFilter={p.dateFilter}
-        platformFilter={p.platformFilter}
         roleOptions={ROLE_OPTIONS}
         experienceOptions={EXPERIENCE_OPTIONS}
         setRoleCategoryFilter={p.setRoleCategoryFilter}
         setExperienceBandFilter={p.setExperienceBandFilter}
         setWorkplaceFilter={p.setWorkplaceFilter}
         setDateFilter={p.setDateFilter}
-        setPlatformFilter={p.setPlatformFilter}
         setSp={p.setSp}
       />
     </>

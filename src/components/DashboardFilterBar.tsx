@@ -8,7 +8,6 @@ interface Props {
   experienceBandFilter: string;
   workplaceFilter: string;
   dateFilter: string;
-  platformFilter: string;
   sel: string;
   cos: string;
   roleOptions: Option[];
@@ -18,17 +17,16 @@ interface Props {
   setExperienceBandFilter: (v: string) => void;
   setWorkplaceFilter: (v: string) => void;
   setDateFilter: (v: string) => void;
-  setPlatformFilter: (v: string) => void;
   setSel: (v: string) => void;
   setCos: (v: string) => void;
   setSp: (fn: (sp: URLSearchParams) => void) => void;
 }
 
 export default function DashboardFilterBar({
-  roleCategoryFilter, experienceBandFilter, workplaceFilter, dateFilter, platformFilter,
+  roleCategoryFilter, experienceBandFilter, workplaceFilter, dateFilter,
   sel, cos, roleOptions, experienceOptions, desktopSelectStyle,
   setRoleCategoryFilter, setExperienceBandFilter, setWorkplaceFilter,
-  setDateFilter, setPlatformFilter, setSel, setCos, setSp,
+  setDateFilter, setSel, setCos, setSp,
 }: Props) {
   void sel; void cos; void setSel; void setCos;
 
@@ -71,20 +69,6 @@ export default function DashboardFilterBar({
         <option value="3d">Last 3 days</option>
         <option value="7d">Last week</option>
         <option value="30d">Last month</option>
-      </select>
-
-      <select
-        value={platformFilter}
-        onChange={e => { setPlatformFilter(e.target.value); setSp(sp => { sp.set('platform', e.target.value); sp.delete('page'); }); }}
-        style={desktopSelectStyle}
-      >
-        <option value="all">All sources</option>
-        <option value="lever">Lever</option>
-        <option value="greenhouse">Greenhouse</option>
-        <option value="ashby">Ashby</option>
-        <option value="workable">Workable</option>
-        <option value="recruitee">Recruitee</option>
-        <option value="workday">Workday</option>
       </select>
     </div>
   );

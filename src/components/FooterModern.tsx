@@ -35,7 +35,7 @@ export default function FooterModern() {
             title={COPY.footer.navigateTitle}
             links={[
               ['/jobs', COPY.footer.jobFeedLink],
-              ['/hiring', "Who's hiring"],
+              ['/hiring', 'Hiring trends'],
               ['/directory', COPY.footer.companiesLink],
               ['/progress', COPY.nav.myProgress],
             ]}

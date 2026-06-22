@@ -11,13 +11,18 @@
   },
   "dependencies": {
     "@react-oauth/google": "^0.13.4",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.6.1",
+    "@react-three/postprocessing": "^3.0.4",
     "@tailwindcss/vite": "^4.1.16",
     "dotenv": "^17.2.3",
+    "framer-motion": "^12.40.0",
     "lucide-react": "^0.562.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.12.0",
-    "tailwindcss": "^4.1.16"
+    "tailwindcss": "^4.1.16",
+    "three": "^0.184.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",

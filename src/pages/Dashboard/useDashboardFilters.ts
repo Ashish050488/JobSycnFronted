@@ -17,7 +17,6 @@ export function useDashboardFilters() {
   const [experienceBandFilter, setExperienceBandFilter] = useState(sp.get('exp') || 'all');
   const [workplaceFilter, setWorkplaceFilter] = useState(sp.get('wp') || 'all');
   const [dateFilter, setDateFilter] = useState(sp.get('date') || 'all');
-  const [platformFilter, setPlatformFilter] = useState(sp.get('platform') || 'all');
   const [entryLevelFilter, setEntryLevelFilter] = useState(sp.get('entry') === '1');
   const [hideApplied, setHideApplied] = useState(sp.get('hideApplied') === '1');
   const [showNewOnly, setShowNewOnly] = useState(sp.get('newOnly') === '1');
@@ -30,7 +29,6 @@ export function useDashboardFilters() {
     experienceBandFilter !== 'all' ? { label: experienceBandFilter, clear: () => { setExperienceBandFilter('all'); setSp(p => { p.delete('exp'); }); } } : null,
     workplaceFilter !== 'all' ? { label: workplaceFilter, clear: () => { setWorkplaceFilter('all'); setSp(p => { p.delete('wp'); }); } } : null,
     dateFilter !== 'all' ? { label: dateFilter, clear: () => { setDateFilter('all'); setSp(p => { p.delete('date'); }); } } : null,
-    platformFilter !== 'all' ? { label: platformFilter, clear: () => { setPlatformFilter('all'); setSp(p => { p.delete('platform'); }); } } : null,
   ].filter(Boolean) as { label: string; clear: () => void }[];
 
   const clearAll = () => {
@@ -38,7 +36,6 @@ export function useDashboardFilters() {
     setExperienceBandFilter('all');
     setWorkplaceFilter('all');
     setDateFilter('all');
-    setPlatformFilter('all');
     setEntryLevelFilter(false);
     setHideApplied(false);
     setShowNewOnly(false);
@@ -53,7 +50,6 @@ export function useDashboardFilters() {
     experienceBandFilter, setExperienceBandFilter,
     workplaceFilter, setWorkplaceFilter,
     dateFilter, setDateFilter,
-    platformFilter, setPlatformFilter,
     entryLevelFilter, setEntryLevelFilter,
     hideApplied, setHideApplied,
     showNewOnly, setShowNewOnly,

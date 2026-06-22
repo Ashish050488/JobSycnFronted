@@ -20,8 +20,12 @@ export default function CompanyDirectory() {
 
   useEffect(() => { document.title = COPY.directory.documentTitle; }, []);
 
-  // Debounce search
+  // Debounce search. Only sync when the typed value actually differs from the
+  // URL's current `q` — otherwise this effect would re-run on every navigation
+  // (react-router gives `setSp` a new identity on each URL change) and wipe the
+  // `page` param, bouncing the user back to page 1 when paginating.
   useEffect(() => {
+    if (searchInput === search) return;
     const t = setTimeout(() => {
       setSp(p => {
         const n = new URLSearchParams(p);
@@ -31,7 +35,7 @@ export default function CompanyDirectory() {
       }, { replace: true });
     }, 300);
     return () => clearTimeout(t);
-  }, [searchInput, setSp]);
+  }, [searchInput, search, setSp]);
 
   const { companies, total, totalPages, loading, error } = useCompanies({ page, limit: PAGE_SIZE, search, sort });
 

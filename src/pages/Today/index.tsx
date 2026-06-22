@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useUser } from '../../context/UserContext';
 import { Container } from '../../components/ui';
-import type { IJob, AppliedJobDetail } from '../../types';
+import type { IJob } from '../../types';
 import { buildSkillsRegex } from '../../components/JobDetailPanel';
 import { BRAND } from '../../theme/brand';
 import Hero from './Hero';
@@ -17,7 +17,6 @@ export default function Today() {
   const { currentUser, userSkills, todayCount, dailyGoal, openSkillsEditor, saveDailyGoal } = useUser();
   const [jobs, setJobs] = useState<IJob[]>([]);
   const [topCompanies, setTopCompanies] = useState<LeaderboardCompany[]>([]);
-  const [recentApps, setRecentApps] = useState<AppliedJobDetail[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDesktop, setIsDesktop] = useState(() => typeof window !== 'undefined' ? window.innerWidth >= 900 : true);
 
@@ -34,13 +33,11 @@ export default function Today() {
     Promise.all([
       fetch('/api/jobs?limit=40').then(r => r.ok ? r.json() : { jobs: [] }),
       fetch('/api/jobs/hiring-leaderboard').then(r => r.ok ? r.json() : { companies: [] }),
-      fetch('/api/me/applied/details', { credentials: 'include' }).then(r => r.ok ? r.json() : []),
-    ]).then(([j, lb, ra]) => {
+    ]).then(([j, lb]) => {
       if (cancelled) return;
       setJobs((j?.jobs || j || []).slice(0, 40));
       const cs = lb?.companies || lb?.data || lb || [];
       setTopCompanies(Array.isArray(cs) ? cs.slice(0, 3) : []);
-      setRecentApps((Array.isArray(ra) ? ra : []).slice(0, 5));
     }).finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, []);
@@ -97,7 +94,7 @@ export default function Today() {
           />
           <NewsSection />
         </div>
-        <Sidebar isDesktop={isDesktop} loading={loading} topCompanies={topCompanies} recentApps={recentApps} />
+        <Sidebar isDesktop={isDesktop} loading={loading} topCompanies={topCompanies} />
       </div>
     </Container>
   );

@@ -9,11 +9,11 @@ interface Section { title: string; body: string; }
 const SECTIONS: Section[] = [
   {
     title: 'Terms of use',
-    body: `${BRAND.appName} is a job aggregation platform that scrapes publicly available job listings from company career pages. By using the service, you agree to:
+    body: `${BRAND.appName} is a job aggregation platform that collects publicly available job listings. By using the service, you agree to:
 
 • Use the information for personal job-searching purposes only.
 • Verify all job details directly with the employer before applying.
-• Not scrape, mirror, or redistribute the aggregated data.
+• Not copy, mirror, or redistribute the aggregated data.
 
 We make no guarantees about the accuracy, completeness, or availability of any listing. Job listings may be outdated, modified, or removed by the employer at any time.`,
   },
@@ -34,11 +34,9 @@ You can delete your account and all associated data at any time by emailing us.`
   },
   {
     title: 'Data sources',
-    body: `Listings are scraped from these public ATS platforms:
+    body: `Listings are aggregated from publicly available company job postings.
 
-Greenhouse, Lever, Ashby, Workable, Recruitee, Workday, SmartRecruiters, Personio.
-
-We respect robots.txt and rate-limit our requests. If you're an employer who wants their listings removed, contact us.`,
+We only surface roles that companies have already made public, and we link directly to the original posting. If you're an employer who wants your listings removed, contact us.`,
   },
   {
     title: 'Cookies',
@@ -70,7 +68,7 @@ export default function Legal() {
           TL;DR
         </p>
         <p style={{ fontSize: '0.9rem', color: 'var(--ink)', lineHeight: 1.55 }}>
-          We scrape public job listings. We don't sell your data, we don't email you. Listings can be outdated, so verify with the employer.
+          We aggregate public job listings. We don't sell your data, we don't email you. Listings can be outdated, so verify with the employer.
         </p>
       </div>
 

@@ -50,7 +50,7 @@ export default function Hero() {
         <div style={{ display: 'flex', gap: 28, marginTop: 40, flexWrap: 'wrap' }}>
           <Stat value={COPY.home.stat1Value} label={COPY.home.stat1Label} />
           <Stat value={COPY.home.stat2Value} label={COPY.home.stat2Label} />
-          <Stat value="6 ATS" label="Sources scraped" />
+          <Stat value="Direct" label="Apply links" />
         </div>
       </Container>
     </section>

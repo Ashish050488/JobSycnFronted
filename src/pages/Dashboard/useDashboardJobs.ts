@@ -9,7 +9,6 @@ interface FilterParams {
   experienceBandFilter: string;
   entryLevelFilter: boolean;
   workplaceFilter: string;
-  platformFilter: string;
   dateFilter: string;
   debouncedSearch: string;
 }
@@ -33,7 +32,6 @@ export function useDashboardJobs(filters: FilterParams) {
       if (filters.experienceBandFilter !== 'all') p.set('experienceBand', filters.experienceBandFilter);
       if (filters.entryLevelFilter || filters.experienceBandFilter === 'Fresher (0-1y)') p.set('entryLevel', 'true');
       if (filters.workplaceFilter !== 'all') p.set('workplace', filters.workplaceFilter);
-      if (filters.platformFilter !== 'all') p.set('platform', filters.platformFilter);
       if (filters.dateFilter !== 'all') p.set('date', filters.dateFilter);
       if (filters.debouncedSearch.length >= 2) p.set('search', filters.debouncedSearch);
 
@@ -47,7 +45,7 @@ export function useDashboardJobs(filters: FilterParams) {
     } catch (e) { console.error(e); }
     finally { if (append) setLoadingMore(false); else setLoading(false); }
   }, [filters.sel, filters.roleCategoryFilter, filters.experienceBandFilter, filters.entryLevelFilter,
-      filters.workplaceFilter, filters.platformFilter, filters.dateFilter, filters.debouncedSearch]);
+      filters.workplaceFilter, filters.dateFilter, filters.debouncedSearch]);
 
   useEffect(() => { fetchJobs(1, false); }, [fetchJobs]);
 

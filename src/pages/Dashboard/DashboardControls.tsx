@@ -21,7 +21,6 @@ interface Props {
   experienceBandFilter: string;
   workplaceFilter: string;
   dateFilter: string;
-  platformFilter: string;
   entryLevelFilter: boolean;
   hideApplied: boolean;
   showNewOnly: boolean;
@@ -30,7 +29,6 @@ interface Props {
   setExperienceBandFilter: (v: string) => void;
   setWorkplaceFilter: (v: string) => void;
   setDateFilter: (v: string) => void;
-  setPlatformFilter: (v: string) => void;
   setEntryLevelFilter: (v: boolean) => void;
   setHideApplied: (v: boolean) => void;
   setShowNewOnly: (v: boolean) => void;
@@ -70,14 +68,12 @@ export default function DashboardControls(p: Props) {
           experienceBandFilter={p.experienceBandFilter}
           workplaceFilter={p.workplaceFilter}
           dateFilter={p.dateFilter}
-          platformFilter={p.platformFilter}
           sel={p.sel} cos="" roleOptions={ROLE_OPTIONS} experienceOptions={EXPERIENCE_OPTIONS}
           desktopSelectStyle={desktopSelectStyle}
           setRoleCategoryFilter={p.setRoleCategoryFilter}
           setExperienceBandFilter={p.setExperienceBandFilter}
           setWorkplaceFilter={p.setWorkplaceFilter}
           setDateFilter={p.setDateFilter}
-          setPlatformFilter={p.setPlatformFilter}
           setSel={() => { }} setCos={() => { }}
           setSp={p.setSp}
         />

@@ -2,7 +2,7 @@
 import { MapPin, Clock } from 'lucide-react';
 import type { IJob } from '../../types';
 import CompanyLogo from '../CompanyLogo';
-import { getAutoTags, inferWorkplace, relTime, roleBadgeStyle, metaPill, PLATFORM_LABEL } from './utils';
+import { getAutoTags, inferWorkplace, relTime, roleBadgeStyle, metaPill } from './utils';
 
 interface Props {
   job: IJob;
@@ -43,9 +43,6 @@ export default function Header({ job, domain, mobileMode }: Props) {
         <span style={metaPill}><MapPin size={11} />{job.Location}</span>
         {wp && <span style={{ ...metaPill, background: 'var(--info-soft)', color: 'var(--info)' }}>{wp}</span>}
         {rt && <span style={metaPill}><Clock size={11} />{rt}</span>}
-        {job.ATSPlatform && PLATFORM_LABEL[job.ATSPlatform.toLowerCase()] && (
-          <span style={metaPill}>via {PLATFORM_LABEL[job.ATSPlatform.toLowerCase()]}</span>
-        )}
         {auto.roleCategory && (
           <span style={{ ...metaPill, ...roleBadgeStyle(auto.roleCategory) }}>{auto.roleCategory}</span>
         )}

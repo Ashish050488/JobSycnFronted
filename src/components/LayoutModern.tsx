@@ -4,7 +4,7 @@
 import { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import {
-  Briefcase, Building2, Flame, Home as HomeIcon, BarChart3,
+  Briefcase, Building2, TrendingUp, Home as HomeIcon, BarChart3,
 } from 'lucide-react';
 import { useTheme } from '../theme/ThemeProvider';
 import { useUser } from '../context/UserContext';
@@ -33,13 +33,13 @@ export default function LayoutModern() {
   const navItems: NavItem[] = currentUser ? [
     { to: '/jobs', label: 'Jobs', icon: <Briefcase size={18} /> },
     { to: '/today', label: 'Today', icon: <HomeIcon size={18} /> },
-    { to: '/hiring', label: 'Hiring', icon: <Flame size={18} /> },
+    { to: '/hiring', label: 'Trends', icon: <TrendingUp size={18} /> },
     { to: '/directory', label: 'Companies', icon: <Building2 size={18} /> },
     { to: '/progress', label: 'Progress', icon: <BarChart3 size={18} /> },
   ] : [
     { to: '/', label: 'Home', icon: <HomeIcon size={18} /> },
     { to: '/jobs', label: 'Jobs', icon: <Briefcase size={18} /> },
-    { to: '/hiring', label: 'Hiring', icon: <Flame size={18} /> },
+    { to: '/hiring', label: 'Trends', icon: <TrendingUp size={18} /> },
     { to: '/directory', label: 'Companies', icon: <Building2 size={18} /> },
   ];
 

@@ -16,23 +16,21 @@ interface Props {
   experienceBandFilter: string;
   workplaceFilter: string;
   dateFilter: string;
-  platformFilter: string;
   roleOptions: Option[];
   experienceOptions: Option[];
   setRoleCategoryFilter: (v: string) => void;
   setExperienceBandFilter: (v: string) => void;
   setWorkplaceFilter: (v: string) => void;
   setDateFilter: (v: string) => void;
-  setPlatformFilter: (v: string) => void;
   setSp: (fn: (sp: URLSearchParams) => void) => void;
 }
 
 export default function DashboardFilterSheet({
   isOpen, onClose, activeFilterCount, visibleJobsCount, clearAllFilters,
-  roleCategoryFilter, experienceBandFilter, workplaceFilter, dateFilter, platformFilter,
+  roleCategoryFilter, experienceBandFilter, workplaceFilter, dateFilter,
   roleOptions, experienceOptions,
   setRoleCategoryFilter, setExperienceBandFilter, setWorkplaceFilter,
-  setDateFilter, setPlatformFilter, setSp,
+  setDateFilter, setSp,
 }: Props) {
   const [mounted, setMounted] = useState(isOpen);
   const [closing, setClosing] = useState(false);
@@ -132,21 +130,6 @@ export default function DashboardFilterSheet({
                 { value: '30d', label: '1 month' },
               ]}
               onChange={v => { setDateFilter(v); setSp(sp => { sp.set('date', v); sp.delete('page'); }); }}
-            />
-          </Group>
-          <Group label="Source">
-            <Chips
-              value={platformFilter}
-              options={[
-                { value: 'all', label: 'All' },
-                { value: 'lever', label: 'Lever' },
-                { value: 'greenhouse', label: 'Greenhouse' },
-                { value: 'ashby', label: 'Ashby' },
-                { value: 'workable', label: 'Workable' },
-                { value: 'recruitee', label: 'Recruitee' },
-                { value: 'workday', label: 'Workday' },
-              ]}
-              onChange={v => { setPlatformFilter(v); setSp(sp => { sp.set('platform', v); sp.delete('page'); }); }}
             />
           </Group>
         </div>

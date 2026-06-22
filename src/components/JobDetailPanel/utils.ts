@@ -65,11 +65,6 @@ export function inferWorkplace(job: IJob): string | null {
 // Boilerplate detection — chunks that talk about company benefits / EEO
 export const BOILERPLATE_REGEX = /\b(equal\s+opportunity|EEO|diversity|inclusion|benefits|perks|why\s+work|about\s+(us|the\s+company)|our\s+mission|our\s+values)/i;
 
-export const PLATFORM_LABEL: Record<string, string> = {
-  lever: 'Lever', greenhouse: 'Greenhouse', ashby: 'Ashby',
-  workable: 'Workable', recruitee: 'Recruitee', workday: 'Workday',
-};
-
 export const metaPill: CSSProperties = {
   display: 'inline-flex', alignItems: 'center', gap: 4,
   padding: '3px 9px', borderRadius: 6,
