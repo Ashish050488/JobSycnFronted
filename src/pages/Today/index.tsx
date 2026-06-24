@@ -10,13 +10,10 @@ import { BRAND } from '../../theme/brand';
 import Hero from './Hero';
 import PicksSection from './PicksSection';
 import NewsSection from './NewsSection';
-import Sidebar from './Sidebar';
-import type { LeaderboardCompany } from './shared';
 
 export default function Today() {
   const { currentUser, userSkills, todayCount, dailyGoal, openSkillsEditor, saveDailyGoal } = useUser();
   const [jobs, setJobs] = useState<IJob[]>([]);
-  const [topCompanies, setTopCompanies] = useState<LeaderboardCompany[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDesktop, setIsDesktop] = useState(() => typeof window !== 'undefined' ? window.innerWidth >= 900 : true);
 
@@ -30,15 +27,13 @@ export default function Today() {
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([
-      fetch('/api/jobs?limit=40').then(r => r.ok ? r.json() : { jobs: [] }),
-      fetch('/api/jobs/hiring-leaderboard').then(r => r.ok ? r.json() : { companies: [] }),
-    ]).then(([j, lb]) => {
-      if (cancelled) return;
-      setJobs((j?.jobs || j || []).slice(0, 40));
-      const cs = lb?.companies || lb?.data || lb || [];
-      setTopCompanies(Array.isArray(cs) ? cs.slice(0, 3) : []);
-    }).finally(() => { if (!cancelled) setLoading(false); });
+    fetch('/api/jobs?limit=40')
+      .then(r => r.ok ? r.json() : { jobs: [] })
+      .then(j => {
+        if (cancelled) return;
+        setJobs((j?.jobs || j || []).slice(0, 40));
+      })
+      .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, []);
 
@@ -78,23 +73,14 @@ export default function Today() {
         dailyGoal={dailyGoal}
         onGoalChange={saveDailyGoal}
       />
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: isDesktop ? 'minmax(0, 2fr) minmax(0, 1fr)' : '1fr',
-        gap: 28, alignItems: 'start',
-      }}>
-        {/* Left column: picks + news widget (news fills the space the removed
-            stat boxes left behind, balancing the column heights). */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 28, minWidth: 0 }}>
-          <PicksSection
-            picks={picks}
-            loading={loading}
-            userSkillsLength={userSkills.length}
-            onOpenSkillsEditor={openSkillsEditor}
-          />
-          <NewsSection />
-        </div>
-        <Sidebar isDesktop={isDesktop} loading={loading} topCompanies={topCompanies} />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 28, minWidth: 0 }}>
+        <PicksSection
+          picks={picks}
+          loading={loading}
+          userSkillsLength={userSkills.length}
+          onOpenSkillsEditor={openSkillsEditor}
+        />
+        <NewsSection />
       </div>
     </Container>
   );

@@ -5,14 +5,6 @@ import type { CSSProperties, ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 
-export interface LeaderboardCompany {
-  company: string;
-  domain?: string;
-  newThisWeek: number;
-  totalRoles: number;
-  signal: 'hot' | 'active' | 'steady' | 'stale';
-}
-
 export const eyebrowStyle: CSSProperties = {
   fontSize: '0.75rem', color: 'var(--ink-muted)',
   letterSpacing: '0.05em', textTransform: 'uppercase',
