@@ -1,5 +1,5 @@
-// FILE: src/pages/Dashboard/filterHelpers.ts
-import type { IJob } from '../../types';
+// FILE: src/pages/seeker/Dashboard/filterHelpers.ts
+import type { IJob } from '../../../types';
 
 /** How many jobs were posted/scraped in the last 3 days. */
 export function countNewJobs(jobs: IJob[]): number {

@@ -1,13 +1,13 @@
-// FILE: src/pages/CompanyDirectory.tsx
+// FILE: src/pages/seeker/CompanyDirectory.tsx
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Search, X, Building2 } from 'lucide-react';
-import { useCompanies, type SortOption } from '../hooks/useCompanies';
-import { Container, PageHeader, EmptyState } from '../components/ui';
-import DirectoryCard from '../components/DirectoryCard';
-import SkeletonCompanyCard from '../components/SkeletonCompanyCard';
-import Pagination from '../components/Pagination';
-import { COPY } from '../theme/brand';
+import { useCompanies, type SortOption } from '../../hooks/seeker/useCompanies';
+import { Container, PageHeader, EmptyState } from '../../components/ui';
+import DirectoryCard from '../../components/seeker/DirectoryCard';
+import SkeletonCompanyCard from '../../components/seeker/SkeletonCompanyCard';
+import Pagination from '../../components/seeker/Pagination';
+import { COPY } from '../../theme/brand';
 
 const PAGE_SIZE = 24;
 

@@ -1,9 +1,9 @@
-// FILE: src/pages/Home/index.tsx
+// FILE: src/pages/seeker/Home/index.tsx
 // Guest landing page. Composes Hero + CompaniesCarousel + JobsList.
 
 import { useEffect, useState } from 'react';
-import type { IJob, ICompany } from '../../types';
-import { BRAND } from '../../theme/brand';
+import type { IJob, ICompany } from '../../../types';
+import { BRAND } from '../../../theme/brand';
 import Hero from './Hero';
 import CompaniesCarousel from './CompaniesCarousel';
 import JobsList from './JobsList';
@@ -18,8 +18,8 @@ export default function Home() {
   useEffect(() => {
     let cancelled = false;
     Promise.all([
-      fetch('/api/jobs?limit=8').then(r => r.ok ? r.json() : { jobs: [] }),
-      fetch('/api/jobs/directory').then(r => r.ok ? r.json() : []),
+      fetch('/api/seeker/jobs?limit=8').then(r => r.ok ? r.json() : { jobs: [] }),
+      fetch('/api/seeker/jobs/directory').then(r => r.ok ? r.json() : []),
     ]).then(([j, c]) => {
       if (cancelled) return;
       setJobs((j?.jobs || j || []).slice(0, 8));

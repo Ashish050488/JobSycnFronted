@@ -1,23 +1,28 @@
 // FILE: src/App.tsx
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
-import Layout from './components/Layout';
-import Home from './pages/Home';
-import Today from './pages/Today';
-import CompanyDirectory from './pages/CompanyDirectory';
-import Dashboard from './pages/Dashboard';
-import Progress from './pages/Progress';
-import Legal from './pages/Legal';
-import LoginScreen from './components/LoginScreen';
-import { useUser } from './context/UserContext';
+import AppLayout from './components/layouts/AppLayout';
+import Home from './pages/seeker/Home';
+import Today from './pages/seeker/Today';
+import CompanyDirectory from './pages/seeker/CompanyDirectory';
+import Dashboard from './pages/seeker/Dashboard';
+import Progress from './pages/seeker/Progress';
+import Legal from './pages/seeker/Legal';
+import LoginScreen from './components/seeker/LoginScreen';
+import { useSeeker } from './context/seeker/SeekerContext';
 
 function AppRoutes() {
-  const { currentUser, isLoading } = useUser();
+  const { currentUser, isLoading } = useSeeker();
   if (isLoading) return null;
 
+  // Routing convention:
+  //   - Seeker pages are at the URL root (/today, /dashboard, etc.). Seekers are the default audience on jobmesh.in.
+  //   - Employer pages live under /employer/* (added in a later phase).
+  //   - Public apply pages live under /apply/* (added in a later phase).
+  //   - Backend API uses /api/seeker/*, /api/employer/*, /api/public/* prefixes regardless of frontend URL.
   return (
     <Routes>
-      <Route path="/" element={<Layout />}>
+      <Route path="/" element={<AppLayout />}>
         {/* Guests see marketing landing at /. Logged-in users get redirected to /jobs. */}
         <Route index element={currentUser ? <Navigate to="/jobs" replace /> : <Home />} />
         <Route path="today" element={currentUser ? <Today /> : <LoginScreen />} />

@@ -1,7 +1,7 @@
-// FILE: src/components/DirectoryCardModern.tsx
+// FILE: src/components/seeker/DirectoryCardModern.tsx
 import { useState } from 'react';
 import { MapPin, ArrowUpRight } from 'lucide-react';
-import type { ICompany } from '../types';
+import type { ICompany } from '../../types';
 import CompanyLogo from './CompanyLogo';
 
 interface Props {

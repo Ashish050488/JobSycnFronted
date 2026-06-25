@@ -1,8 +1,8 @@
-// FILE: src/pages/Legal.tsx
+// FILE: src/pages/seeker/Legal.tsx
 import { useState, useEffect } from 'react';
 import { ChevronDown, Mail } from 'lucide-react';
-import { Container, PageHeader } from '../components/ui';
-import { BRAND, COPY } from '../theme/brand';
+import { Container, PageHeader } from '../../components/ui';
+import { BRAND, COPY } from '../../theme/brand';
 
 interface Section { title: string; body: string; }
 

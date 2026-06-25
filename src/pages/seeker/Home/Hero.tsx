@@ -1,7 +1,7 @@
-// FILE: src/pages/Home/Hero.tsx
+// FILE: src/pages/seeker/Home/Hero.tsx
 import { ArrowRight, Building2, Sparkles } from 'lucide-react';
-import { Container, Button } from '../../components/ui';
-import { COPY } from '../../theme/brand';
+import { Container, Button } from '../../../components/ui';
+import { COPY } from '../../../theme/brand';
 import { Stat } from './shared';
 
 export default function Hero() {

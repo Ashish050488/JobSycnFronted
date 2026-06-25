@@ -1,8 +1,8 @@
-// FILE: src/components/SkillsEditor.tsx
+// FILE: src/components/seeker/SkillsEditor.tsx
 import { useEffect, useRef, useState } from 'react';
 import { X, Plus, Sparkles } from 'lucide-react';
-import { useUser } from '../context/UserContext';
-import { Button } from './ui';
+import { useSeeker } from '../../context/seeker/SeekerContext';
+import { Button } from '../ui';
 
 interface Props { onClose: () => void; }
 
@@ -14,7 +14,7 @@ const SUGGESTIONS = [
 ];
 
 export default function SkillsEditor({ onClose }: Props) {
-  const { userSkills, saveSkills } = useUser();
+  const { userSkills, saveSkills } = useSeeker();
   const [skills, setSkills] = useState<string[]>(userSkills);
   const [input, setInput] = useState('');
   const [saving, setSaving] = useState(false);

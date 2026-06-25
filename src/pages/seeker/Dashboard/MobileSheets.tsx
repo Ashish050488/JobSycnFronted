@@ -1,9 +1,9 @@
-// FILE: src/pages/Dashboard/MobileSheets.tsx
+// FILE: src/pages/seeker/Dashboard/MobileSheets.tsx
 // The two mobile-only modal sheets bundled together.
 
-import type { IJob } from '../../types';
-import DashboardJobSheet from '../../components/DashboardJobSheet';
-import DashboardFilterSheet from '../../components/DashboardFilterSheet';
+import type { IJob } from '../../../types';
+import DashboardJobSheet from '../../../components/seeker/DashboardJobSheet';
+import DashboardFilterSheet from '../../../components/seeker/DashboardFilterSheet';
 import { ROLE_OPTIONS, EXPERIENCE_OPTIONS } from './constants';
 
 interface Props {

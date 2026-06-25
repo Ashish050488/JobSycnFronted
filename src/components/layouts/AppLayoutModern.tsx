@@ -1,4 +1,4 @@
-// FILE: src/components/LayoutModern.tsx
+// FILE: src/components/layouts/AppLayoutModern.tsx
 // Top-level layout. Composes TopNav + BottomNav (mobile) + Footer (desktop) around the routed page.
 
 import { useEffect } from 'react';
@@ -6,21 +6,21 @@ import { Outlet, useLocation } from 'react-router-dom';
 import {
   Briefcase, Building2, Home as HomeIcon, BarChart3,
 } from 'lucide-react';
-import { useTheme } from '../theme/ThemeProvider';
-import { useUser } from '../context/UserContext';
-import SkillsEditor from './SkillsEditor';
+import { useTheme } from '../../theme/ThemeProvider';
+import { useSeeker } from '../../context/seeker/SeekerContext';
+import SkillsEditor from '../seeker/SkillsEditor';
 import Footer from './Footer';
-import TopNav from './Layout/TopNav';
-import BottomNav from './Layout/BottomNav';
-import { useViewport } from './Layout/useViewport';
-import type { NavItem } from './Layout/types';
+import TopNav from './parts/TopNav';
+import BottomNav from './parts/BottomNav';
+import { useViewport } from '../../hooks/shared/useViewport';
+import type { NavItem } from './parts/types';
 
-export default function LayoutModern() {
+export default function AppLayoutModern() {
   const { mode, toggle } = useTheme();
   const {
     currentUser, logout, skillsEditorOpen, openSkillsEditor, closeSkillsEditor,
     todayCount, streak,
-  } = useUser();
+  } = useSeeker();
 
   const vp = useViewport();
   const isMobile = vp.w < 768;

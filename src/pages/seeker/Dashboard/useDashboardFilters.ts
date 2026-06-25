@@ -1,4 +1,4 @@
-// FILE: src/pages/Dashboard/useDashboardFilters.ts
+// FILE: src/pages/seeker/Dashboard/useDashboardFilters.ts
 // Owns all filter state. Syncs writes to the URL via setSp.
 
 import { useState } from 'react';

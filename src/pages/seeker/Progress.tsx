@@ -1,20 +1,20 @@
-// FILE: src/pages/Progress.tsx
+// FILE: src/pages/seeker/Progress.tsx
 import { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Flame, Briefcase, Target } from 'lucide-react';
-import { useUser } from '../context/UserContext';
-import { Container, PageHeader, Button, EmptyState } from '../components/ui';
-import { COPY } from '../theme/brand';
-import ProgressRing from '../components/ProgressRing';
-import ActivityChart from '../components/ActivityChart';
-import HeatmapCalendar from '../components/HeatmapCalendar';
-import FunnelChart from '../components/FunnelChart';
-import PipelineView, { type PipelineJob } from '../components/PipelineView';
-import type { AppliedJobDetail } from '../types';
+import { useSeeker } from '../../context/seeker/SeekerContext';
+import { Container, PageHeader, Button, EmptyState } from '../../components/ui';
+import { COPY } from '../../theme/brand';
+import ProgressRing from '../../components/seeker/ProgressRing';
+import ActivityChart from '../../components/seeker/ActivityChart';
+import HeatmapCalendar from '../../components/seeker/HeatmapCalendar';
+import FunnelChart from '../../components/seeker/FunnelChart';
+import PipelineView, { type PipelineJob } from '../../components/seeker/PipelineView';
+import type { AppliedJobDetail } from '../../types';
 
 export default function Progress() {
   const navigate = useNavigate();
-  const { currentUser, appliedJobs, todayCount, streak, dailyGoal, saveDailyGoal, updateStage } = useUser();
+  const { currentUser, appliedJobs, todayCount, streak, dailyGoal, saveDailyGoal, updateStage } = useSeeker();
   const [appliedDetails, setAppliedDetails] = useState<AppliedJobDetail[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -23,7 +23,7 @@ export default function Progress() {
   useEffect(() => {
     if (!currentUser) { navigate('/jobs'); return; }
     let cancelled = false;
-    fetch('/api/me/applied/details', { credentials: 'include' })
+    fetch('/api/seeker/me/applied/details', { credentials: 'include' })
       .then(r => r.ok ? r.json() : [])
       .then((d: AppliedJobDetail[]) => { if (!cancelled) setAppliedDetails(Array.isArray(d) ? d : []); })
       .catch(() => { })

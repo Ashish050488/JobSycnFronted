@@ -1,6 +1,6 @@
-// FILE: src/context/user/useSkillsAndGoal.ts
+// FILE: src/context/seeker/useSkillsAndGoal.ts
 import { useState, useCallback } from 'react';
-import type { AppUser } from './types';
+import type { AppUser } from './seeker-context-types';
 
 export function useSkillsAndGoal(currentUser: AppUser | null) {
   const [userSkills, setUserSkills] = useState<string[]>([]);
@@ -9,7 +9,7 @@ export function useSkillsAndGoal(currentUser: AppUser | null) {
   const saveSkills = useCallback(async (skills: string[]) => {
     if (!currentUser) return;
     try {
-      const r = await fetch('/api/me/skills', {
+      const r = await fetch('/api/seeker/me/skills', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -27,7 +27,7 @@ export function useSkillsAndGoal(currentUser: AppUser | null) {
     const nextGoal = Math.max(1, Math.min(50, goal || 5));
     setDailyGoal(nextGoal);
     try {
-      const r = await fetch('/api/me/goal', {
+      const r = await fetch('/api/seeker/me/goal', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

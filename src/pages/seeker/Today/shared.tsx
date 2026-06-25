@@ -1,4 +1,4 @@
-// FILE: src/pages/Today/shared.tsx
+// FILE: src/pages/seeker/Today/shared.tsx
 // Shared types, styles, and small leaf components used across the Today sections.
 
 import type { CSSProperties, ReactNode } from 'react';

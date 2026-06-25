@@ -1,7 +1,7 @@
-// FILE: src/components/JobListItem.tsx
+// FILE: src/components/seeker/JobListItem.tsx
 import { useEffect, useState, memo } from 'react';
 import { Clock, CheckCircle2, X } from 'lucide-react';
-import type { IJob } from '../types';
+import type { IJob } from '../../types';
 import CompanyLogo from './CompanyLogo';
 
 export type CompactBadge = { key: string; label: string; bg: string; color: string };

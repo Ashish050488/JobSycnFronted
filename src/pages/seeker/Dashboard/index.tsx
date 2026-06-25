@@ -1,12 +1,12 @@
-// FILE: src/pages/Dashboard/index.tsx
+// FILE: src/pages/seeker/Dashboard/index.tsx
 // Orchestrator. All state lives in hooks; all UI lives in sibling components.
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { useUser } from '../../context/UserContext';
-import type { IJob, ICompany } from '../../types';
-import { Container, PageHeader } from '../../components/ui';
-import { COPY } from '../../theme/brand';
-import { buildSkillsRegex } from '../../components/JobDetailPanel';
+import { useSeeker } from '../../../context/seeker/SeekerContext';
+import type { IJob, ICompany } from '../../../types';
+import { Container, PageHeader } from '../../../components/ui';
+import { COPY } from '../../../theme/brand';
+import { buildSkillsRegex } from '../../../components/seeker/JobDetailPanel';
 
 import { useViewport } from './useViewport';
 import { useComeBack } from './useComeBack';
@@ -28,7 +28,7 @@ export default function Dashboard() {
   const listRef = useRef<HTMLDivElement>(null);
 
   const { isMobile, useSplit } = useViewport();
-  const { appliedJobIds, dismissedJobIds, toggleApplied, toggleDismissed, userSkills, currentUser } = useUser();
+  const { appliedJobIds, dismissedJobIds, toggleApplied, toggleDismissed, userSkills, currentUser } = useSeeker();
   const { comeBackMap, toggle: handleToggleComeBack, remove: handleRemoveComeBack } = useComeBack(currentUser);
 
   const {
@@ -57,7 +57,7 @@ export default function Dashboard() {
   // Companies directory
   useEffect(() => {
     let cancelled = false;
-    fetch('/api/jobs/directory')
+    fetch('/api/seeker/jobs/directory')
       .then(r => r.ok ? r.json() : [])
       .then((d: ICompany[]) => { if (!cancelled) setCos(Array.isArray(d) ? d : []); })
       .catch(() => { });
@@ -70,7 +70,7 @@ export default function Dashboard() {
     const found = jobs.find(j => j._id === f.selectedJobParam);
     if (found) setSelectedJob(found);
     else if (f.selectedJobParam !== selectedJob?._id) {
-      fetch(`/api/jobs/${encodeURIComponent(f.selectedJobParam)}`)
+      fetch(`/api/seeker/jobs/${encodeURIComponent(f.selectedJobParam)}`)
         .then(r => r.ok ? r.json() : null)
         .then((j: IJob | null) => { if (j) setSelectedJob(j); })
         .catch(() => { });

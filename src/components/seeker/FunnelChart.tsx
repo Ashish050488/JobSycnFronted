@@ -1,4 +1,4 @@
-// FILE: src/components/FunnelChart.tsx
+// FILE: src/components/seeker/FunnelChart.tsx
 import { useEffect, useState } from 'react';
 import { STAGES, STAGE_ORDER } from './PipelineCard';
 import type { StageName } from './PipelineCard';

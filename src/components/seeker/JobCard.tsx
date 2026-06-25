@@ -1,7 +1,7 @@
-// FILE: src/components/JobCard.tsx
+// FILE: src/components/seeker/JobCard.tsx
 import { useEffect, useState } from 'react';
 import { MapPin, Clock, ArrowUpRight } from 'lucide-react';
-import type { IJob } from '../types';
+import type { IJob } from '../../types';
 import CompanyLogo from './CompanyLogo';
 
 interface Props {

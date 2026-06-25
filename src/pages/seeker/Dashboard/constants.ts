@@ -1,4 +1,4 @@
-// FILE: src/pages/Dashboard/constants.ts
+// FILE: src/pages/seeker/Dashboard/constants.ts
 import type { CSSProperties } from 'react';
 
 export const ROLE_OPTIONS = [

@@ -1,9 +1,9 @@
-// FILE: src/components/SimilarJobs.tsx
+// FILE: src/components/seeker/SimilarJobs.tsx
 import { useEffect, useState } from 'react';
 import { ChevronRight } from 'lucide-react';
-import type { IJob } from '../types';
+import type { IJob } from '../../types';
 import CompanyLogo from './CompanyLogo';
-import { useUser } from '../context/UserContext';
+import { useSeeker } from '../../context/seeker/SeekerContext';
 import { buildSkillsRegex } from './JobDetailPanel';
 
 const cache = new Map<string, IJob[]>();
@@ -11,7 +11,7 @@ const cache = new Map<string, IJob[]>();
 interface Props { jobId: string; onSelect: (job: IJob) => void; }
 
 export default function SimilarJobs({ jobId, onSelect }: Props) {
-  const { userSkills } = useUser();
+  const { userSkills } = useSeeker();
   const cacheKey = `${jobId}::${userSkills.length}`;
   const [jobs, setJobs] = useState<IJob[]>(cache.get(cacheKey) || []);
   const [loading, setLoading] = useState(!cache.has(cacheKey));
@@ -20,7 +20,7 @@ export default function SimilarJobs({ jobId, onSelect }: Props) {
     if (cache.has(cacheKey)) { setJobs(cache.get(cacheKey)!); setLoading(false); return; }
     let cancelled = false;
     setLoading(true);
-    fetch(`/api/jobs/similar/${encodeURIComponent(jobId)}`)
+    fetch(`/api/seeker/jobs/similar/${encodeURIComponent(jobId)}`)
       .then(r => r.ok ? r.json() : [])
       .then((data: IJob[]) => { if (!cancelled) { cache.set(cacheKey, data); setJobs(data); } })
       .catch(() => { })

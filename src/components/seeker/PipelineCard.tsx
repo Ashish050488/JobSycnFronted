@@ -1,4 +1,4 @@
-// FILE: src/components/PipelineCard.tsx
+// FILE: src/components/seeker/PipelineCard.tsx
 import { useState, useEffect } from 'react';
 import { ExternalLink, Clock, MoreHorizontal } from 'lucide-react';
 import { STAGES, STAGE_ORDER, type StageName } from './pipelineStages';

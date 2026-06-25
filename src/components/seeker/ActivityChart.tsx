@@ -1,8 +1,8 @@
-// FILE: src/components/ActivityChart.tsx
-import type { AppliedJobEntry } from '../types';
+// FILE: src/components/seeker/ActivityChart.tsx
+import type { AppliedJobEntry } from '../../types';
 import {
   getDayBuckets, getGoalMetDays, getThisWeekApplied, getWeekStart, getStreak,
-} from '../utils/progress';
+} from '../../utils/progress';
 
 interface Props {
   appliedJobs: AppliedJobEntry[];

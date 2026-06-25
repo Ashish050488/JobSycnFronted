@@ -1,16 +1,16 @@
-// FILE: src/components/LoginScreen.tsx
+// FILE: src/components/seeker/LoginScreen.tsx
 // Quiet, paper-textured sign-in card. Apple-style focus, no theatre.
 
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
-import { useUser } from '../context/UserContext';
-import BrandLogo from './BrandLogo';
+import { useSeeker } from '../../context/seeker/SeekerContext';
+import BrandLogo from '../BrandLogo';
 import { LOGIN_BENEFITS } from './loginBenefits';
 
 export default function LoginScreen() {
-  const { login } = useUser();
+  const { login } = useSeeker();
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);

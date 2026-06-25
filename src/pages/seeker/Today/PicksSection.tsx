@@ -1,7 +1,7 @@
-// FILE: src/pages/Today/PicksSection.tsx
+// FILE: src/pages/seeker/Today/PicksSection.tsx
 import { Sparkles } from 'lucide-react';
-import type { IJob } from '../../types';
-import JobCard from '../../components/JobCard';
+import type { IJob } from '../../../types';
+import JobCard from '../../../components/seeker/JobCard';
 import { SectionHead } from './shared';
 
 interface Props {

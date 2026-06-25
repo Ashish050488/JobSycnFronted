@@ -1,9 +1,9 @@
-// FILE: src/pages/Dashboard/DashboardControls.tsx
+// FILE: src/pages/seeker/Dashboard/DashboardControls.tsx
 // Search bar + filter bar + active chips row, picked based on viewport.
 
-import DashboardSearchBar from '../../components/DashboardSearchBar';
-import DashboardMobileFilters from '../../components/DashboardMobileFilters';
-import DashboardFilterBar from '../../components/DashboardFilterBar';
+import DashboardSearchBar from '../../../components/seeker/DashboardSearchBar';
+import DashboardMobileFilters from '../../../components/seeker/DashboardMobileFilters';
+import DashboardFilterBar from '../../../components/seeker/DashboardFilterBar';
 import ActiveChips from './ActiveChips';
 import { ROLE_OPTIONS, EXPERIENCE_OPTIONS, desktopSelectStyle } from './constants';
 

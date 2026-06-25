@@ -1,4 +1,4 @@
-// FILE: src/components/PipelineView/Controls.tsx
+// FILE: src/components/seeker/PipelineView/Controls.tsx
 import { Search, X as XIcon } from 'lucide-react';
 import { STAGES, STAGE_ORDER } from '../PipelineCard';
 

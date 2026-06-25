@@ -1,7 +1,7 @@
-// FILE: src/components/JobDetailPanel/index.tsx
+// FILE: src/components/seeker/JobDetailPanel/index.tsx
 // Orchestrator. Composes Header + Actions + Body.
 
-import type { IJob } from '../../types';
+import type { IJob } from '../../../types';
 import Header from './Header';
 import Actions from './Actions';
 import Body from './Body';

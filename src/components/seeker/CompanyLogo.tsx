@@ -1,4 +1,4 @@
-// FILE: src/components/CompanyLogo.tsx
+// FILE: src/components/seeker/CompanyLogo.tsx
 // Resolves a company's logo via ATS slug → guessed domain → Clearbit autocomplete → logo.dev.
 // API surface preserved; visual shell modernized.
 

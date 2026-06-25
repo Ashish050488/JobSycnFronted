@@ -1,8 +1,8 @@
-// FILE: src/components/Layout/TopNav.tsx
+// FILE: src/components/layouts/parts/TopNav.tsx
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Sun, Moon, Menu, X } from 'lucide-react';
-import BrandLogo from '../BrandLogo';
+import BrandLogo from '../../BrandLogo';
 import UserMenu from './UserMenu';
 import MobileDropdown from './MobileDropdown';
 import { utilityBtn, type NavItem } from './types';

@@ -1,7 +1,7 @@
-// FILE: src/context/user/useApplied.ts
+// FILE: src/context/seeker/useApplied.ts
 import { useState, useMemo, useCallback } from 'react';
 import type { AppliedJobEntry } from '../../types';
-import type { AppUser } from './types';
+import type { AppUser } from './seeker-context-types';
 
 export function useApplied(currentUser: AppUser | null) {
   const [appliedJobs, setAppliedJobs] = useState<AppliedJobEntry[]>([]);
@@ -18,7 +18,7 @@ export function useApplied(currentUser: AppUser | null) {
     if (!exists) setAppliedCount(prev => prev + 1);
     setAppliedJobs(prev => exists ? prev.filter(e => e.jobId !== jobId) : [...prev, optimistic]);
     try {
-      const r = await fetch(`/api/me/applied/${encodedJobId}`, { method: exists ? 'DELETE' : 'POST', credentials: 'include' });
+      const r = await fetch(`/api/seeker/me/applied/${encodedJobId}`, { method: exists ? 'DELETE' : 'POST', credentials: 'include' });
       if (!r.ok) throw new Error('Failed to toggle applied');
       const data = await r.json() as AppliedJobEntry[];
       setAppliedJobs(Array.isArray(data) ? data : []);
@@ -35,7 +35,7 @@ export function useApplied(currentUser: AppUser | null) {
       entry.jobId === jobId ? { ...entry, stage, stageUpdatedAt: new Date().toISOString() } : entry
     ));
     try {
-      const r = await fetch(`/api/me/applied/${encodedJobId}/stage`, {
+      const r = await fetch(`/api/seeker/me/applied/${encodedJobId}/stage`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -46,7 +46,7 @@ export function useApplied(currentUser: AppUser | null) {
       setAppliedJobs(Array.isArray(data) ? data : []);
     } catch {
       try {
-        const r = await fetch('/api/me/applied', { credentials: 'include' });
+        const r = await fetch('/api/seeker/me/applied', { credentials: 'include' });
         if (r.ok) {
           const data = await r.json();
           setAppliedJobs(Array.isArray(data) ? data : []);

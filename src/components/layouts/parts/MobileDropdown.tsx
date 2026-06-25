@@ -1,4 +1,4 @@
-// FILE: src/components/Layout/MobileDropdown.tsx
+// FILE: src/components/layouts/parts/MobileDropdown.tsx
 import { LogOut, BookOpen } from 'lucide-react';
 import { mobileMenuButton } from './types';
 

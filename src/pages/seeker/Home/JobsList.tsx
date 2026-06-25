@@ -1,10 +1,10 @@
-// FILE: src/pages/Home/JobsList.tsx
+// FILE: src/pages/seeker/Home/JobsList.tsx
 import { Link } from 'react-router-dom';
 import { ArrowRight, Briefcase } from 'lucide-react';
-import { Container, Button } from '../../components/ui';
-import { COPY } from '../../theme/brand';
-import type { IJob } from '../../types';
-import JobCard from '../../components/JobCard';
+import { Container, Button } from '../../../components/ui';
+import { COPY } from '../../../theme/brand';
+import type { IJob } from '../../../types';
+import JobCard from '../../../components/seeker/JobCard';
 import { sectionLabel, sectionTitle, linkStyle } from './shared';
 
 interface Props { jobs: IJob[]; loading: boolean; }

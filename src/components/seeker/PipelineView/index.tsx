@@ -1,4 +1,4 @@
-// FILE: src/components/PipelineView/index.tsx
+// FILE: src/components/seeker/PipelineView/index.tsx
 import { useMemo, useState } from 'react';
 import { Briefcase } from 'lucide-react';
 import { groupByCompany, type PipelineJob } from './groupByCompany';

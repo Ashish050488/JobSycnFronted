@@ -1,4 +1,4 @@
-// FILE: src/pages/Dashboard/ActiveChips.tsx
+// FILE: src/pages/seeker/Dashboard/ActiveChips.tsx
 
 interface Chip { label: string; clear: () => void; }
 

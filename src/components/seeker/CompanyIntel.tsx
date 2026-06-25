@@ -1,4 +1,4 @@
-// FILE: src/components/CompanyIntel.tsx
+// FILE: src/components/seeker/CompanyIntel.tsx
 // Strip showing freshness, posting cadence, and stats for a company.
 import { useEffect, useState } from 'react';
 import { TrendingUp, Clock, Briefcase } from 'lucide-react';
@@ -30,7 +30,7 @@ export default function CompanyIntel({ companyName }: Props) {
     if (cache.has(companyName)) { setData(cache.get(companyName)!); setLoading(false); return; }
     let cancelled = false;
     setLoading(true);
-    fetch(`/api/jobs/company-intel/${encodeURIComponent(companyName)}`)
+    fetch(`/api/seeker/jobs/company-intel/${encodeURIComponent(companyName)}`)
       .then(r => r.ok ? r.json() : null)
       .then((d: IntelData | null) => { if (!cancelled) { cache.set(companyName, d); setData(d); } })
       .catch(() => { cache.set(companyName, null); })

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import type { ICompany } from '../types';
+import type { ICompany } from '../../types';
 
 export type SortOption = 'a-z' | 'z-a' | 'most-hiring';
 
@@ -33,7 +33,7 @@ export function useCompanies({ page, limit, search, sort }: UseCompaniesParams):
         setLoading(true);
         setError(null);
 
-        fetch('/api/jobs/directory', { signal: ctrl.signal })
+        fetch('/api/seeker/jobs/directory', { signal: ctrl.signal })
             .then(r => r.json())
             .then(d => { setAllCompanies(Array.isArray(d) ? d : []); })
             .catch(e => {

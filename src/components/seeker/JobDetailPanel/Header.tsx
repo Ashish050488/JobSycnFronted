@@ -1,6 +1,6 @@
-// FILE: src/components/JobDetailPanel/Header.tsx
+// FILE: src/components/seeker/JobDetailPanel/Header.tsx
 import { MapPin, Clock } from 'lucide-react';
-import type { IJob } from '../../types';
+import type { IJob } from '../../../types';
 import CompanyLogo from '../CompanyLogo';
 import { getAutoTags, inferWorkplace, relTime, roleBadgeStyle, metaPill } from './utils';
 

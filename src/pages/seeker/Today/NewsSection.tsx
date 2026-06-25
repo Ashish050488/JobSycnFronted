@@ -1,9 +1,9 @@
-// FILE: src/pages/Today/NewsSection.tsx
+// FILE: src/pages/seeker/Today/NewsSection.tsx
 // Tech & job news for the Today sidebar. Replaces the per-page repetition by
 // surfacing a few fresh stories from the public Hacker News API.
 import { ArrowRight, ArrowUpRight, Newspaper } from 'lucide-react';
-import { useTechNews } from '../../hooks/useTechNews';
-import { formatAppliedRelativeTime } from '../../utils/progress';
+import { useTechNews } from '../../../hooks/seeker/useTechNews';
+import { formatAppliedRelativeTime } from '../../../utils/progress';
 import { eyebrowStyle } from './shared';
 
 export default function NewsSection() {

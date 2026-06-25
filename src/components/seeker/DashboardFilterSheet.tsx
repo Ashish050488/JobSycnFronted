@@ -1,7 +1,7 @@
-// FILE: src/components/DashboardFilterSheet.tsx
+// FILE: src/components/seeker/DashboardFilterSheet.tsx
 import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
-import { Button } from './ui';
+import { Button } from '../ui';
 import { Group, Chips } from './dashboardFilterSheetParts';
 
 interface Option { value: string; label: string; }

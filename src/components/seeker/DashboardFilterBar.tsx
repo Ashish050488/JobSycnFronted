@@ -1,4 +1,4 @@
-// FILE: src/components/DashboardFilterBar.tsx
+// FILE: src/components/seeker/DashboardFilterBar.tsx
 import type { CSSProperties } from 'react';
 
 interface Option { value: string; label: string; }

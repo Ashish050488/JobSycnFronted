@@ -1,4 +1,4 @@
-// FILE: src/components/DashboardMobileFilters.tsx
+// FILE: src/components/seeker/DashboardMobileFilters.tsx
 import { CheckCircle2, Sparkles, Bell } from 'lucide-react';
 import type { CSSProperties } from 'react';
 

@@ -1,4 +1,4 @@
-// FILE: src/components/Pagination.tsx
+// FILE: src/components/seeker/Pagination.tsx
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
 

@@ -1,5 +1,5 @@
-// FILE: src/pages/Today/Hero.tsx
-import ProgressRing from '../../components/ProgressRing';
+// FILE: src/pages/seeker/Today/Hero.tsx
+import ProgressRing from '../../../components/seeker/ProgressRing';
 import { eyebrowStyle } from './shared';
 
 interface Props {

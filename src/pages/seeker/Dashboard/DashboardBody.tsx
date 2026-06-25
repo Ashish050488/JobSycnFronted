@@ -1,12 +1,12 @@
-  // FILE: src/pages/Dashboard/DashboardBody.tsx
+  // FILE: src/pages/seeker/Dashboard/DashboardBody.tsx
   // The list + detail panel area. Handles loading skeleton, empty state, and the
   // desktop split vs mobile list layouts.
 
   import { Briefcase } from 'lucide-react';
-  import type { IJob } from '../../types';
-  import { Button, EmptyState } from '../../components/ui';
-  import { COPY } from '../../theme/brand';
-  import JobDetailPanel from '../../components/JobDetailPanel';
+  import type { IJob } from '../../../types';
+  import { Button, EmptyState } from '../../../components/ui';
+  import { COPY } from '../../../theme/brand';
+  import JobDetailPanel from '../../../components/seeker/JobDetailPanel';
   import JobListColumn from './JobListColumn';
 
   interface Props {

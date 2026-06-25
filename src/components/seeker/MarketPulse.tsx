@@ -1,4 +1,4 @@
-// FILE: src/components/MarketPulse.tsx
+// FILE: src/components/seeker/MarketPulse.tsx
 // Simplified bars view (mobile + desktop). Same fetch.
 import { useEffect, useState } from 'react';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
@@ -21,7 +21,7 @@ export default function MarketPulse() {
   useEffect(() => {
     if (sessionCache) return;
     let cancelled = false;
-    fetch('/api/jobs/market-pulse')
+    fetch('/api/seeker/jobs/market-pulse')
       .then(r => r.ok ? r.json() : null)
       .then((d: MarketPulseData | null) => { if (!cancelled && d) { sessionCache = d; setData(d); } })
       .catch(() => { })

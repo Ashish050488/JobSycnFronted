@@ -1,4 +1,4 @@
-// FILE: src/components/ProgressRing.tsx
+// FILE: src/components/seeker/ProgressRing.tsx
 import { useState } from 'react';
 import { Pencil, Check } from 'lucide-react';
 

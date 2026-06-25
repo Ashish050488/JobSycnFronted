@@ -1,4 +1,4 @@
-// FILE: src/pages/Home/shared.tsx
+// FILE: src/pages/seeker/Home/shared.tsx
 import type { CSSProperties } from 'react';
 
 export function Stat({ value, label }: { value: string; label: string }) {

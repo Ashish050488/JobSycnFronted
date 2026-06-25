@@ -1,4 +1,4 @@
-// FILE: src/components/Layout/types.ts
+// FILE: src/components/layouts/parts/types.ts
 import type { ReactNode, CSSProperties } from 'react';
 
 export interface NavItem {

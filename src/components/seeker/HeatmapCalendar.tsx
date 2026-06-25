@@ -1,6 +1,6 @@
-// FILE: src/components/HeatmapCalendar.tsx
+// FILE: src/components/seeker/HeatmapCalendar.tsx
 import { useEffect, useMemo, useState } from 'react';
-import type { AppliedJobEntry } from '../types';
+import type { AppliedJobEntry } from '../../types';
 
 interface Props {
   appliedJobs: AppliedJobEntry[];

@@ -1,4 +1,4 @@
-// FILE: src/components/SkeletonCompanyCard.tsx
+// FILE: src/components/seeker/SkeletonCompanyCard.tsx
 export default function SkeletonCompanyCard() {
   return (
     <div style={{

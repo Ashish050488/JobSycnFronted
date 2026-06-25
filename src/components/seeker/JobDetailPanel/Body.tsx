@@ -1,6 +1,6 @@
-// FILE: src/components/JobDetailPanel/Body.tsx
+// FILE: src/components/seeker/JobDetailPanel/Body.tsx
 import { useState, useMemo, useEffect } from 'react';
-import type { IJob } from '../../types';
+import type { IJob } from '../../../types';
 import SimilarJobs from '../SimilarJobs';
 import { getAutoTags, stripHtmlText, BOILERPLATE_REGEX, sectionLabel } from './utils';
 

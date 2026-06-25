@@ -1,14 +1,14 @@
-// FILE: src/context/user/useAuth.ts
+// FILE: src/context/user/useSeekerAuth.ts
 import { useState, useEffect, useCallback } from 'react';
-import type { AppUser } from './types';
+import type { AppUser } from './seeker-context-types';
 
 /** Manages the logged-in user (cookie session). */
-export function useAuth() {
+export function useSeekerAuth() {
   const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/auth/me', { credentials: 'include' })
+    fetch('/api/seeker/auth/me', { credentials: 'include' })
       .then(async r => {
         if (r.ok) { const user = await r.json(); setCurrentUser(user); }
         else setCurrentUser(null);
@@ -18,7 +18,7 @@ export function useAuth() {
   }, []);
 
   const login = useCallback(async (credential: string) => {
-    const r = await fetch('/api/auth/google', {
+    const r = await fetch('/api/seeker/auth/google', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -30,7 +30,7 @@ export function useAuth() {
   }, []);
 
   const rawLogout = useCallback(async () => {
-    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+    await fetch('/api/seeker/auth/logout', { method: 'POST', credentials: 'include' });
     setCurrentUser(null);
   }, []);
 

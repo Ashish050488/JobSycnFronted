@@ -1,11 +1,11 @@
-// FILE: src/pages/Home/CompaniesCarousel.tsx
+// FILE: src/pages/seeker/Home/CompaniesCarousel.tsx
 import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Container } from '../../components/ui';
-import { COPY } from '../../theme/brand';
-import type { ICompany } from '../../types';
-import CompanyLogo from '../../components/CompanyLogo';
+import { Container } from '../../../components/ui';
+import { COPY } from '../../../theme/brand';
+import type { ICompany } from '../../../types';
+import CompanyLogo from '../../../components/seeker/CompanyLogo';
 import { sectionLabel, sectionTitle, linkStyle, scrollBtn } from './shared';
 
 interface Props { companies: ICompany[]; loading: boolean; }

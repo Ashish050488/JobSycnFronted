@@ -1,7 +1,7 @@
-// FILE: src/components/DashboardJobSheet.tsx
+// FILE: src/components/seeker/DashboardJobSheet.tsx
 import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
-import type { IJob } from '../types';
+import type { IJob } from '../../types';
 import JobDetailPanel from './JobDetailPanel';
 
 interface Props {

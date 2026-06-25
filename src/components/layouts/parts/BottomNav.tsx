@@ -1,4 +1,4 @@
-// FILE: src/components/Layout/BottomNav.tsx
+// FILE: src/components/layouts/parts/BottomNav.tsx
 import { Link, useLocation } from 'react-router-dom';
 import type { NavItem } from './types';
 

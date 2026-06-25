@@ -1,7 +1,7 @@
-// FILE: src/components/FooterModern.tsx
+// FILE: src/components/layouts/FooterModern.tsx
 import { Link } from 'react-router-dom';
-import { BRAND, COPY } from '../theme/brand';
-import BrandLogo from './BrandLogo';
+import { BRAND, COPY } from '../../theme/brand';
+import BrandLogo from '../BrandLogo';
 
 export default function FooterModern() {
   const year = new Date().getFullYear();

@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-// Tech / job-market news. Served by our own backend (/api/news), which proxies
+// Tech / job-market news. Served by our own backend (/api/seeker/news), which proxies
 // the public Hacker News API and caches the result for ~60 min — so we never
 // hammer the upstream and no third-party host is hit from the browser.
-const NEWS_ENDPOINT = '/api/news';
+const NEWS_ENDPOINT = '/api/seeker/news';
 
 export interface TechNewsItem {
     id: string;

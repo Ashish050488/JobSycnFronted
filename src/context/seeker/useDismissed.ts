@@ -1,6 +1,6 @@
-// FILE: src/context/user/useDismissed.ts
+// FILE: src/context/seeker/useDismissed.ts
 import { useState, useCallback } from 'react';
-import type { AppUser } from './types';
+import type { AppUser } from './seeker-context-types';
 
 export function useDismissed(currentUser: AppUser | null) {
   const [dismissedJobIds, setDismissedJobIds] = useState<Set<string>>(new Set());
@@ -15,7 +15,7 @@ export function useDismissed(currentUser: AppUser | null) {
       return next;
     });
     try {
-      const r = await fetch(`/api/me/dismissed/${encoded}`, {
+      const r = await fetch(`/api/seeker/me/dismissed/${encoded}`, {
         method: isDismissed ? 'DELETE' : 'POST',
         credentials: 'include',
       });

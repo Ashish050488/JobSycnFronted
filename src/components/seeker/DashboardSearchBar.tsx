@@ -1,4 +1,4 @@
-// FILE: src/components/DashboardSearchBar.tsx
+// FILE: src/components/seeker/DashboardSearchBar.tsx
 import { Search, X, Sparkles } from 'lucide-react';
 
 interface Props {

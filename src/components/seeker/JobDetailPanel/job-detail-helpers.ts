@@ -1,9 +1,9 @@
-// FILE: src/components/JobDetailPanel/utils.ts
+// FILE: src/components/seeker/JobDetailPanel/utils.ts
 // Pure helpers + shared CSS. Re-exported via the shim at ../JobDetailPanel.tsx
 // so existing import sites keep working.
 
 import type { CSSProperties } from 'react';
-import type { IJob, IJobAutoTags } from '../../types';
+import type { IJob, IJobAutoTags } from '../../../types';
 
 export function stripHtmlText(html: string): string {
   return html.replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();

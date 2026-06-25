@@ -1,8 +1,8 @@
-// FILE: src/components/JobDetailPanel/Actions.tsx
+// FILE: src/components/seeker/JobDetailPanel/Actions.tsx
 import { useState, useEffect } from 'react';
 import { CheckCircle2, ExternalLink, X as XIcon, Bookmark, BookmarkCheck } from 'lucide-react';
-import type { IJob } from '../../types';
-import { Button } from '../ui';
+import type { IJob } from '../../../types';
+import { Button } from '../../ui';
 
 interface Props {
   job: IJob;

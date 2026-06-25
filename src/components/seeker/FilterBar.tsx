@@ -1,8 +1,8 @@
-// FILE: src/components/FilterBar.tsx
+// FILE: src/components/seeker/FilterBar.tsx
 // Legacy lightweight filter dropdown. Kept for any older import paths.
 
 import { useEffect, useState } from 'react';
-import { COPY } from '../theme/brand';
+import { COPY } from '../../theme/brand';
 
 interface Props {
   selectedCompany: string;

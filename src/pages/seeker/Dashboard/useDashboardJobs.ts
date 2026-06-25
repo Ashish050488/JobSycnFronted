@@ -1,6 +1,6 @@
-// FILE: src/pages/Dashboard/useDashboardJobs.ts
+// FILE: src/pages/seeker/Dashboard/useDashboardJobs.ts
 import { useState, useEffect, useCallback } from 'react';
-import type { IJob } from '../../types';
+import type { IJob } from '../../../types';
 import { PAGE_SIZE } from './constants';
 
 interface FilterParams {
@@ -35,7 +35,7 @@ export function useDashboardJobs(filters: FilterParams) {
       if (filters.dateFilter !== 'all') p.set('date', filters.dateFilter);
       if (filters.debouncedSearch.length >= 2) p.set('search', filters.debouncedSearch);
 
-      const r = await fetch(`/api/jobs?${p}`);
+      const r = await fetch(`/api/seeker/jobs?${p}`);
       const d = await r.json() as { jobs?: IJob[]; totalJobs?: number; totalPages?: number; currentPage?: number };
       setTotalJobs(d.totalJobs ?? 0);
       setTotalPages(d.totalPages ?? 1);

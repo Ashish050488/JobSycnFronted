@@ -1,7 +1,7 @@
-// FILE: src/pages/Dashboard/jobBadges.ts
-import type { IJob } from '../../types';
-import type { CompactBadge } from '../../components/JobListItem';
-import { getAutoTags, roleBadgeStyle } from '../../components/JobDetailPanel';
+// FILE: src/pages/seeker/Dashboard/jobBadges.ts
+import type { IJob } from '../../../types';
+import type { CompactBadge } from '../../../components/seeker/JobListItem';
+import { getAutoTags, roleBadgeStyle } from '../../../components/seeker/JobDetailPanel';
 
 /** Build the small set of badges shown on each job card in the list. */
 export function compactJobBadges(job: IJob): CompactBadge[] {

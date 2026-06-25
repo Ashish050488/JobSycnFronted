@@ -1,15 +1,15 @@
-// FILE: src/context/UserContext.tsx
+// FILE: src/context/seeker/SeekerContext.tsx
 // Orchestrator — composes domain hooks under ./user/ into one context.
 // Individual concerns (auth, applied, dismissed, skills) live in sibling files.
 
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode } from 'react';
-import type { AppliedJobEntry } from '../types';
-import { getStreak, getTodayCount } from '../utils/progress';
-import { useAuth } from './user/useAuth';
-import { useApplied } from './user/useApplied';
-import { useDismissed } from './user/useDismissed';
-import { useSkillsAndGoal } from './user/useSkillsAndGoal';
-import type { UserCtx, AppUser } from './user/types';
+import type { AppliedJobEntry } from '../../types';
+import { getStreak, getTodayCount } from '../../utils/progress';
+import { useSeekerAuth } from './useSeekerAuth';
+import { useApplied } from './useApplied';
+import { useDismissed } from './useDismissed';
+import { useSkillsAndGoal } from './useSkillsAndGoal';
+import type { UserCtx, AppUser } from './seeker-context-types';
 
 // Re-export for back-compat
 export type { AppUser };
@@ -27,8 +27,8 @@ const Ctx = createContext<UserCtx>({
   logout: () => { }, login: async () => { },
 });
 
-export function UserProvider({ children }: { children: ReactNode }) {
-  const { currentUser, setCurrentUser, isLoading, login, rawLogout } = useAuth();
+export function SeekerProvider({ children }: { children: ReactNode }) {
+  const { currentUser, setCurrentUser, isLoading, login, rawLogout } = useSeekerAuth();
   const { userSkills, setUserSkills, dailyGoal, setDailyGoal, saveSkills, saveDailyGoal } = useSkillsAndGoal(currentUser);
   const { appliedJobs, setAppliedJobs, appliedCount, setAppliedCount, appliedJobIds, toggleApplied, updateStage } = useApplied(currentUser);
   const { dismissedJobIds, setDismissedJobIds, toggleDismissed } = useDismissed(currentUser);
@@ -49,12 +49,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
     setIsUserDataLoading(true);
 
     Promise.all([
-      fetch('/api/me', { credentials: 'include' }).then(r => {
+      fetch('/api/seeker/me', { credentials: 'include' }).then(r => {
         if (r.status === 401) throw new Error('Unauthorized');
         return r.ok ? r.json() : null;
       }),
-      fetch('/api/me/applied', { credentials: 'include' }).then(r => r.ok ? r.json() : []),
-      fetch('/api/me/visit', { method: 'PATCH', credentials: 'include' }).then(r => r.ok ? r.json() : null),
+      fetch('/api/seeker/me/applied', { credentials: 'include' }).then(r => r.ok ? r.json() : []),
+      fetch('/api/seeker/me/visit', { method: 'PATCH', credentials: 'include' }).then(r => r.ok ? r.json() : null),
     ])
       .then(([userData, appliedData, visitData]: [{ skills?: string[]; dailyGoal?: number; appliedCount?: number; dismissedJobIds?: string[] } | null, AppliedJobEntry[], { previousVisitAt: string | null } | null]) => {
         if (cancelled) return;
@@ -96,4 +96,4 @@ export function UserProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export const useUser = () => useContext(Ctx);
+export const useSeeker = () => useContext(Ctx);

@@ -1,18 +1,18 @@
-// FILE: src/pages/Today/index.tsx
+// FILE: src/pages/seeker/Today/index.tsx
 // Personalized home for logged-in users. Composes Hero + (Picks + News) + Sidebar.
 
 import { useEffect, useMemo, useState } from 'react';
-import { useUser } from '../../context/UserContext';
-import { Container } from '../../components/ui';
-import type { IJob } from '../../types';
-import { buildSkillsRegex } from '../../components/JobDetailPanel';
-import { BRAND } from '../../theme/brand';
+import { useSeeker } from '../../../context/seeker/SeekerContext';
+import { Container } from '../../../components/ui';
+import type { IJob } from '../../../types';
+import { buildSkillsRegex } from '../../../components/seeker/JobDetailPanel';
+import { BRAND } from '../../../theme/brand';
 import Hero from './Hero';
 import PicksSection from './PicksSection';
 import NewsSection from './NewsSection';
 
 export default function Today() {
-  const { currentUser, userSkills, todayCount, dailyGoal, openSkillsEditor, saveDailyGoal } = useUser();
+  const { currentUser, userSkills, todayCount, dailyGoal, openSkillsEditor, saveDailyGoal } = useSeeker();
   const [jobs, setJobs] = useState<IJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDesktop, setIsDesktop] = useState(() => typeof window !== 'undefined' ? window.innerWidth >= 900 : true);
@@ -27,7 +27,7 @@ export default function Today() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch('/api/jobs?limit=40')
+    fetch('/api/seeker/jobs?limit=40')
       .then(r => r.ok ? r.json() : { jobs: [] })
       .then(j => {
         if (cancelled) return;

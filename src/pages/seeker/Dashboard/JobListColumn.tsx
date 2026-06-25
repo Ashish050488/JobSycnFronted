@@ -1,8 +1,8 @@
-// FILE: src/pages/Dashboard/JobListColumn.tsx
-import type { IJob } from '../../types';
-import { Button } from '../../components/ui';
-import JobListItem from '../../components/JobListItem';
-import { getAutoTags, relTime } from '../../components/JobDetailPanel';
+// FILE: src/pages/seeker/Dashboard/JobListColumn.tsx
+import type { IJob } from '../../../types';
+import { Button } from '../../../components/ui';
+import JobListItem from '../../../components/seeker/JobListItem';
+import { getAutoTags, relTime } from '../../../components/seeker/JobDetailPanel';
 import { compactJobBadges } from './jobBadges';
 
 interface Props {

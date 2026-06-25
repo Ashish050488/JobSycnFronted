@@ -1,4 +1,4 @@
-// FILE: src/components/Layout/useViewport.ts
+// FILE: src/hooks/shared/useViewport.ts
 import { useState, useEffect } from 'react';
 
 export function useViewport() {

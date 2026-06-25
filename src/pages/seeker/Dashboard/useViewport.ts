@@ -1,4 +1,4 @@
-// FILE: src/pages/Dashboard/useViewport.ts
+// FILE: src/pages/seeker/Dashboard/useViewport.ts
 import { useState, useEffect } from 'react';
 
 export function useViewport() {

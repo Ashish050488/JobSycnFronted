@@ -1,4 +1,4 @@
-// FILE: src/context/user/types.ts
+// FILE: src/context/seeker/seeker-context-types.ts
 import type { AppliedJobEntry } from '../../types';
 
 export interface AppUser {

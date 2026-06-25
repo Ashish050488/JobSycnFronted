@@ -1,4 +1,4 @@
-// FILE: src/pages/Dashboard/useComeBack.ts
+// FILE: src/pages/seeker/Dashboard/useComeBack.ts
 import { useState, useEffect, useCallback } from 'react';
 
 interface CurrentUser { slug: string; }
@@ -10,7 +10,7 @@ export function useComeBack(currentUser: CurrentUser | null) {
   useEffect(() => {
     if (!currentUser) { setComeBackMap({}); return; }
     let cancelled = false;
-    fetch('/api/me/comeback', { credentials: 'include' })
+    fetch('/api/seeker/me/comeback', { credentials: 'include' })
       .then(r => r.ok ? r.json() : [])
       .then((arr: Array<{ jobId: string; note?: string }>) => {
         if (cancelled) return;
@@ -30,7 +30,7 @@ export function useComeBack(currentUser: CurrentUser | null) {
     if (!currentUser) return;
     const newNote = note || '';
     setComeBackMap(prev => ({ ...prev, [jobId]: newNote }));
-    fetch(`/api/me/comeback/${encodeURIComponent(jobId)}`, {
+    fetch(`/api/seeker/me/comeback/${encodeURIComponent(jobId)}`, {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
@@ -41,7 +41,7 @@ export function useComeBack(currentUser: CurrentUser | null) {
   const remove = useCallback((jobId: string) => {
     if (!currentUser) return;
     setComeBackMap(prev => { const n = { ...prev }; delete n[jobId]; return n; });
-    fetch(`/api/me/comeback/${encodeURIComponent(jobId)}`, {
+    fetch(`/api/seeker/me/comeback/${encodeURIComponent(jobId)}`, {
       method: 'DELETE',
       credentials: 'include',
     }).catch(() => { });

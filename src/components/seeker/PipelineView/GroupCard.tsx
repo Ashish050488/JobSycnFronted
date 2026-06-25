@@ -1,4 +1,4 @@
-// FILE: src/components/PipelineView/GroupCard.tsx
+// FILE: src/components/seeker/PipelineView/GroupCard.tsx
 import { ChevronDown } from 'lucide-react';
 import PipelineCard, { STAGES, STAGE_ORDER } from '../PipelineCard';
 import CompanyLogo from '../CompanyLogo';

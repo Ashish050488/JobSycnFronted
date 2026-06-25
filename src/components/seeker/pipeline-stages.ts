@@ -1,4 +1,4 @@
-// FILE: src/components/pipelineStages.ts
+// FILE: src/components/seeker/pipelineStages.ts
 // Shared stage constants for the pipeline view.
 
 export const STAGES = {

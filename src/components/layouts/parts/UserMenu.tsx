@@ -1,4 +1,4 @@
-// FILE: src/components/Layout/UserMenu.tsx
+// FILE: src/components/layouts/parts/UserMenu.tsx
 import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { LogOut, BookOpen, BarChart3 } from 'lucide-react';
