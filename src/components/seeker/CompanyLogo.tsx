@@ -7,7 +7,7 @@ import { Building2 } from 'lucide-react';
 import {
   getDomainFromUrl, cleanCompanyName, slugify, slugFromAtsUrl, isAtsHost,
   resolveDomainViaAutocomplete, logoDevUrl, preloadImg, companyInitial,
-} from './companyLogoHelpers';
+} from './company-logo-helpers';
 
 interface Props {
   name?: string;

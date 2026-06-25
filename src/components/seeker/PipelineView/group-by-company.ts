@@ -1,4 +1,4 @@
-// FILE: src/components/seeker/PipelineView/groupByCompany.ts
+// FILE: src/components/seeker/PipelineView/group-by-company.ts
 import type { StageName } from '../PipelineCard';
 
 export interface PipelineJob {

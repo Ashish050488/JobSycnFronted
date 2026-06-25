@@ -2,7 +2,7 @@
 import { ChevronDown } from 'lucide-react';
 import PipelineCard, { STAGES, STAGE_ORDER } from '../PipelineCard';
 import CompanyLogo from '../CompanyLogo';
-import type { CompanyGroup } from './groupByCompany';
+import type { CompanyGroup } from './group-by-company';
 
 interface Props {
   group: CompanyGroup;

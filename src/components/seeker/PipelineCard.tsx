@@ -1,7 +1,7 @@
 // FILE: src/components/seeker/PipelineCard.tsx
 import { useState, useEffect } from 'react';
 import { ExternalLink, Clock, MoreHorizontal } from 'lucide-react';
-import { STAGES, STAGE_ORDER, type StageName } from './pipelineStages';
+import { STAGES, STAGE_ORDER, type StageName } from './pipeline-stages';
 
 // Re-export for back-compat (other files import these from PipelineCard)
 export { STAGES, STAGE_ORDER };

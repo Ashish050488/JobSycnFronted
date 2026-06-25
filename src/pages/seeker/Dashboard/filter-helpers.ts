@@ -1,4 +1,4 @@
-// FILE: src/pages/seeker/Dashboard/filterHelpers.ts
+// FILE: src/pages/seeker/Dashboard/filter-helpers.ts
 import type { IJob } from '../../../types';
 
 /** How many jobs were posted/scraped in the last 3 days. */

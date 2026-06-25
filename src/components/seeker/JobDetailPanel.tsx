@@ -6,4 +6,4 @@ export { default } from './JobDetailPanel/index';
 export {
   stripHtmlText, buildSkillsRegex, relTime,
   getAutoTags, roleBadgeStyle, inferWorkplace,
-} from './JobDetailPanel/utils';
+} from './JobDetailPanel/job-detail-helpers';

@@ -1,4 +1,4 @@
-// FILE: src/components/seeker/dashboardFilterSheetParts.tsx
+// FILE: src/components/seeker/DashboardFilterSheetParts.tsx
 import type { ReactNode } from 'react';
 
 export function Group({ label, children }: { label: string; children: ReactNode }) {

@@ -3,7 +3,7 @@ import type { IJob } from '../../../types';
 import { Button } from '../../../components/ui';
 import JobListItem from '../../../components/seeker/JobListItem';
 import { getAutoTags, relTime } from '../../../components/seeker/JobDetailPanel';
-import { compactJobBadges } from './jobBadges';
+import { compactJobBadges } from './job-badges';
 
 interface Props {
   jobs: IJob[];

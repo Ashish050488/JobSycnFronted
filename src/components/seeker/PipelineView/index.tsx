@@ -1,7 +1,7 @@
 // FILE: src/components/seeker/PipelineView/index.tsx
 import { useMemo, useState } from 'react';
 import { Briefcase } from 'lucide-react';
-import { groupByCompany, type PipelineJob } from './groupByCompany';
+import { groupByCompany, type PipelineJob } from './group-by-company';
 import Controls from './Controls';
 import GroupCard from './GroupCard';
 

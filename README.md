@@ -11,6 +11,9 @@ The JobSync Frontend Client is a state-of-the-art Single Page Application (SPA) 
 
 Built with scalability and user experience in mind, the frontend architecture focuses on clean component separation, efficient state management, and strict type-safety. The design system heavily leverages utility-first CSS to create a modern, accessible, and highly engaging UI that interacts smoothly with our proprietary backend data engines.
 
+## Project conventions
+This project follows the rules in `NAMING-CONVENTIONS.md` at the repo root. Every contributor (including AI assistants) must read sections 0, 2, 3, and 4 before writing code. The two-audience boundary (seeker / employer / public) is enforced by folder structure — see section 0.
+
 ## ✨ Core Features
 
 *   **Dynamic Dashboard:** A rich, interactive interface that provides users with real-time insights, application tracking, and personalized job recommendations.

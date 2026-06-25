@@ -1,4 +1,4 @@
-// FILE: src/components/seeker/loginBenefits.tsx
+// FILE: src/components/seeker/login-benefits.tsx
 import { Sparkles, Bookmark, Target, BarChart3 } from 'lucide-react';
 import type { ReactNode } from 'react';
 

@@ -1,4 +1,4 @@
-// FILE: src/components/seeker/companyLogoHelpers.ts
+// FILE: src/components/seeker/company-logo-helpers.ts
 // Pure helpers + caches for CompanyLogo. Extracted so the component file stays slim.
 
 export const LOGODEV_TOKEN = (import.meta as any).env?.VITE_LOGODEV_TOKEN || '';

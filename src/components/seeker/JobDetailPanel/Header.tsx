@@ -2,7 +2,7 @@
 import { MapPin, Clock } from 'lucide-react';
 import type { IJob } from '../../../types';
 import CompanyLogo from '../CompanyLogo';
-import { getAutoTags, inferWorkplace, relTime, roleBadgeStyle, metaPill } from './utils';
+import { getAutoTags, inferWorkplace, relTime, roleBadgeStyle, metaPill } from './job-detail-helpers';
 
 interface Props {
   job: IJob;

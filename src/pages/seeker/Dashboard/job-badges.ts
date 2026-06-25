@@ -1,4 +1,4 @@
-// FILE: src/pages/seeker/Dashboard/jobBadges.ts
+// FILE: src/pages/seeker/Dashboard/job-badges.ts
 import type { IJob } from '../../../types';
 import type { CompactBadge } from '../../../components/seeker/JobListItem';
 import { getAutoTags, roleBadgeStyle } from '../../../components/seeker/JobDetailPanel';

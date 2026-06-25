@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '../ui';
-import { Group, Chips } from './dashboardFilterSheetParts';
+import { Group, Chips } from './DashboardFilterSheetParts';
 
 interface Option { value: string; label: string; }
 

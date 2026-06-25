@@ -7,7 +7,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
 import { useSeeker } from '../../context/seeker/SeekerContext';
 import BrandLogo from '../BrandLogo';
-import { LOGIN_BENEFITS } from './loginBenefits';
+import { LOGIN_BENEFITS } from './login-benefits';
 
 export default function LoginScreen() {
   const { login } = useSeeker();

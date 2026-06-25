@@ -15,7 +15,7 @@ import { useDashboardFilters } from './useDashboardFilters';
 import DashboardControls from './DashboardControls';
 import DashboardBody from './DashboardBody';
 import MobileSheets from './MobileSheets';
-import { countNewJobs, applyClientFilters } from './filterHelpers';
+import { countNewJobs, applyClientFilters } from './filter-helpers';
 
 export default function Dashboard() {
   const f = useDashboardFilters();

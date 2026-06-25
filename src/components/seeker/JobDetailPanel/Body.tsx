@@ -2,7 +2,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import type { IJob } from '../../../types';
 import SimilarJobs from '../SimilarJobs';
-import { getAutoTags, stripHtmlText, BOILERPLATE_REGEX, sectionLabel } from './utils';
+import { getAutoTags, stripHtmlText, BOILERPLATE_REGEX, sectionLabel } from './job-detail-helpers';
 
 interface Props {
   job: IJob;

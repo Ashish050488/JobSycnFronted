@@ -1,4 +1,4 @@
-// FILE: src/components/seeker/JobDetailPanel/utils.ts
+// FILE: src/components/seeker/JobDetailPanel/job-detail-helpers.ts
 // Pure helpers + shared CSS. Re-exported via the shim at ../JobDetailPanel.tsx
 // so existing import sites keep working.
 
