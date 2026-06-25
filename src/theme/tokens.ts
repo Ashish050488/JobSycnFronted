@@ -33,3 +33,14 @@ export const MOTION = {
 export const Z = {
   base: 0, card: 10, sticky: 40, nav: 50, overlay: 60, modal: 70, toast: 80,
 } as const;
+
+// Box-shadow tokens. These reference the theme CSS variables (defined in
+// themes.ts) so shadows adapt automatically between light and dark mode.
+// `focus` is the standard focus ring used by all interactive primitives.
+export const SHADOW = {
+  xs: 'var(--shadow-xs)',
+  sm: 'var(--shadow-sm)',
+  md: 'var(--shadow-md)',
+  lg: 'var(--shadow-lg)',
+  focus: 'var(--focus-ring)',
+} as const;

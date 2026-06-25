@@ -99,7 +99,7 @@ export default function TopNav(p: Props) {
             <span style={{
               width: 22, height: 22, borderRadius: 6,
               background: p.todayCount > 0 ? 'var(--accent)' : 'var(--paper-3)',
-              color: p.todayCount > 0 ? '#fff' : 'var(--ink-muted)',
+              color: p.todayCount > 0 ? 'var(--text-on-accent)' : 'var(--ink-muted)',
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               fontSize: '0.72rem', fontWeight: 700,
             }}>{p.todayCount}</span>

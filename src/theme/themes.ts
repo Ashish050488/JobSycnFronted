@@ -70,6 +70,21 @@ export const lightVars: Record<string, string> = {
   /* Nav glass */
   '--glass-bg': 'rgba(255, 255, 255, 0.72)',
   '--glass-stroke': 'rgba(55, 53, 47, 0.10)',
+
+  /* ── Semantic role tokens (design-system step 1) ───────────────────
+     Named surface / text / brand roles consumed by components/ui and
+     components/layouts. Brand scale derives from the existing accent
+     (#2D6A4F) — no new brand hue is introduced. */
+  '--surface-raised': '#FFFFFF',
+  '--surface-sunken': '#F4F2EC',
+  '--surface-muted': '#EDEAE1',
+  '--text-inverse': '#FFFFFF',
+  '--brand-50': '#EAF3EE',
+  '--brand-500': '#2D6A4F',
+  '--brand-600': '#214F3B',
+  '--brand-700': '#163A2B',
+  '--overlay': 'rgba(15, 15, 14, 0.45)',
+  '--text-on-accent': '#FFFFFF', // always white (text sitting on the accent fill)
 };
 
 export const darkVars: Record<string, string> = {
@@ -132,4 +147,16 @@ export const darkVars: Record<string, string> = {
 
   '--glass-bg': 'rgba(25, 25, 24, 0.72)',
   '--glass-stroke': 'rgba(255, 255, 255, 0.08)',
+
+  /* ── Semantic role tokens (design-system step 1) — dark mirror ───── */
+  '--surface-raised': '#202020',
+  '--surface-sunken': '#1B1B1A',
+  '--surface-muted': '#2A2A28',
+  '--text-inverse': '#191918',
+  '--brand-50': 'rgba(95, 181, 141, 0.14)',
+  '--brand-500': '#5FB58D',
+  '--brand-600': '#74C29B',
+  '--brand-700': '#8ED0AD',
+  '--overlay': 'rgba(0, 0, 0, 0.6)',
+  '--text-on-accent': '#FFFFFF', // always white (text sitting on the accent fill)
 };

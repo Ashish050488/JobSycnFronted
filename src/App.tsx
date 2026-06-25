@@ -9,6 +9,8 @@ import Dashboard from './pages/seeker/Dashboard';
 import Progress from './pages/seeker/Progress';
 import Legal from './pages/seeker/Legal';
 import LoginScreen from './components/seeker/LoginScreen';
+import Styleguide from './pages/Styleguide';
+import { ToastProvider } from './components/ui';
 import { useSeeker } from './context/seeker/SeekerContext';
 
 function AppRoutes() {
@@ -30,6 +32,8 @@ function AppRoutes() {
         <Route path="directory" element={currentUser ? <CompanyDirectory /> : <LoginScreen />} />
         <Route path="jobs" element={<Dashboard />} />
         <Route path="progress" element={currentUser ? <Progress /> : <LoginScreen />} />
+        {/* Dev-only design-system gallery. Excluded from production builds. */}
+        {import.meta.env.DEV && <Route path="styleguide" element={<Styleguide />} />}
       </Route>
       <Route path="login" element={<LoginScreen />} />
       <Route path="*" element={<Navigate to="/" replace />} />
@@ -40,7 +44,9 @@ function AppRoutes() {
 export default function App() {
   return (
     <BrowserRouter>
-      <AppRoutes />
+      <ToastProvider>
+        <AppRoutes />
+      </ToastProvider>
     </BrowserRouter>
   );
 }

@@ -1,71 +1,77 @@
 // FILE: src/components/ui/forms.tsx
-import {
-  forwardRef, type ReactNode, type CSSProperties,
-  type InputHTMLAttributes, type TextareaHTMLAttributes, type SelectHTMLAttributes,
-} from 'react';
+// Shared form-field building blocks consumed by Input/Select/Textarea and the
+// toggle controls. Public field components live in their own files.
+import { useId } from 'react';
+import type { ReactNode, CSSProperties, FocusEvent } from 'react';
+import { RADIUS, TYPE, SHADOW } from '../../theme/tokens';
 
-const INPUT_STYLE: CSSProperties = {
+/** Base visual style shared by text inputs, selects and textareas. */
+export const fieldBaseStyle: CSSProperties = {
   width: '100%', padding: '10px 12px',
-  fontFamily: 'inherit', fontSize: '0.9375rem',
+  fontFamily: 'inherit', fontSize: TYPE.base,
   background: 'var(--surface)', color: 'var(--ink)',
-  border: '1px solid var(--border-strong)', borderRadius: 10,
+  border: '1px solid var(--border-strong)', borderRadius: RADIUS.md,
   outline: 'none', transition: 'border-color 180ms ease, box-shadow 180ms ease',
 };
 
-export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement> & { error?: string }>(
-  ({ error, style, onFocus, onBlur, className = '', ...rest }, ref) => (
-    <div style={{ width: '100%' }}>
-      <input ref={ref} className={className}
-        style={{ ...INPUT_STYLE, ...(error ? { borderColor: 'var(--danger)' } : {}), ...style }}
-        onFocus={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.boxShadow = 'var(--focus-ring)'; onFocus?.(e); }}
-        onBlur={e => { e.currentTarget.style.borderColor = error ? 'var(--danger)' : 'var(--border-strong)'; e.currentTarget.style.boxShadow = 'none'; onBlur?.(e); }}
-        {...rest} />
-      {error && <p style={{ color: 'var(--danger)', fontSize: '0.75rem', marginTop: 5, fontWeight: 500 }}>{error}</p>}
-    </div>
-  )
-);
-
-export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<HTMLTextAreaElement> & { error?: string }>(
-  ({ error, style, onFocus, onBlur, className = '', ...rest }, ref) => (
-    <div style={{ width: '100%' }}>
-      <textarea ref={ref} className={className}
-        style={{ ...INPUT_STYLE, resize: 'vertical', minHeight: 100, ...style }}
-        onFocus={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.boxShadow = 'var(--focus-ring)'; onFocus?.(e); }}
-        onBlur={e => { e.currentTarget.style.borderColor = 'var(--border-strong)'; e.currentTarget.style.boxShadow = 'none'; onBlur?.(e); }}
-        {...rest} />
-      {error && <p style={{ color: 'var(--danger)', fontSize: '0.75rem', marginTop: 5, fontWeight: 500 }}>{error}</p>}
-    </div>
-  )
-);
-
-export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSelectElement> & { error?: string }>(
-  ({ error, style, onFocus, onBlur, children, className = '', ...rest }, ref) => (
-    <div style={{ width: '100%', position: 'relative' }}>
-      <select ref={ref} className={className}
-        style={{
-          ...INPUT_STYLE, appearance: 'none',
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%236F6E69' stroke-width='2'%3E%3Cpath d='M3 5l4 4 4-4'/%3E%3C/svg%3E")`,
-          backgroundRepeat: 'no-repeat', backgroundPosition: 'right 10px center',
-          paddingRight: 32, cursor: 'pointer', ...style,
-        }}
-        onFocus={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.boxShadow = 'var(--focus-ring)'; onFocus?.(e); }}
-        onBlur={e => { e.currentTarget.style.borderColor = 'var(--border-strong)'; e.currentTarget.style.boxShadow = 'none'; onBlur?.(e); }}
-        {...rest}>{children}</select>
-      {error && <p style={{ color: 'var(--danger)', fontSize: '0.75rem', marginTop: 5, fontWeight: 500 }}>{error}</p>}
-    </div>
-  )
-);
-
-export function Label({ children, htmlFor }: { children: ReactNode; htmlFor?: string }) {
-  return <label htmlFor={htmlFor} style={{ display: 'block', marginBottom: 6, fontSize: '0.78rem', fontWeight: 500, color: 'var(--ink-muted)' }}>{children}</label>;
+/** onFocus/onBlur handlers that draw the accent ring and restore on blur. */
+export function focusHandlers<T extends HTMLElement>(hasError?: boolean) {
+  return {
+    onFocus: (e: FocusEvent<T>) => {
+      e.currentTarget.style.borderColor = 'var(--accent)';
+      e.currentTarget.style.boxShadow = SHADOW.focus;
+    },
+    onBlur: (e: FocusEvent<T>) => {
+      e.currentTarget.style.borderColor = hasError ? 'var(--danger)' : 'var(--border-strong)';
+      e.currentTarget.style.boxShadow = 'none';
+    },
+  };
 }
 
+export function Label({ children, htmlFor, required }: { children: ReactNode; htmlFor?: string; required?: boolean }) {
+  return (
+    <label htmlFor={htmlFor} style={{ display: 'block', marginBottom: 6, fontSize: TYPE.sm, fontWeight: 500, color: 'var(--ink-muted)' }}>
+      {children}
+      {required && <span aria-hidden style={{ color: 'var(--danger)', marginLeft: 4 }}>*</span>}
+    </label>
+  );
+}
+
+/**
+ * Wraps a control with its label, hint and error message and wires up the
+ * accessible ids. Pass the generated `controlId`/`describedBy` into the child.
+ */
+export function FieldShell({
+  label, hint, error, required, children,
+}: {
+  label?: string;
+  hint?: string;
+  error?: string;
+  required?: boolean;
+  /** Receives the id to attach to the control + aria-describedby target id. */
+  children: (ids: { controlId: string; describedBy?: string }) => ReactNode;
+}) {
+  const controlId = useId();
+  const msgId = `${controlId}-msg`;
+  const describedBy = error || hint ? msgId : undefined;
+  return (
+    <div style={{ width: '100%' }}>
+      {label && <Label htmlFor={controlId} required={required}>{label}</Label>}
+      {children({ controlId, describedBy })}
+      {error
+        ? <p id={msgId} role="alert" style={{ color: 'var(--danger)', fontSize: TYPE.xs, marginTop: 5, fontWeight: 500 }}>{error}</p>
+        : hint ? <p id={msgId} style={{ color: 'var(--ink-faint)', fontSize: TYPE.xs, marginTop: 5 }}>{hint}</p> : null}
+    </div>
+  );
+}
+
+/** Simple label + hint wrapper retained for existing callers. */
 export function FormField({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
   return (
     <div>
       <Label>{label}</Label>
       {children}
-      {hint && <p style={{ color: 'var(--ink-faint)', fontSize: '0.75rem', marginTop: 5 }}>{hint}</p>}
+      {hint && <p style={{ color: 'var(--ink-faint)', fontSize: TYPE.xs, marginTop: 5 }}>{hint}</p>}
     </div>
   );
 }

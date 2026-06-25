@@ -1,35 +1,44 @@
 // FILE: src/components/ui/Card.tsx
+// Surface container. `variant` (flat|raised) and `padding` (sm|md|lg) are
+// opt-in; when omitted the original responsive padding is preserved so
+// existing callers render unchanged.
 import type { ReactNode, CSSProperties } from 'react';
+import { SPACING, SHADOW } from '../../theme/tokens';
 
-export function Card({ children, hoverable, style, onClick, className = '' }: {
-  children: ReactNode; hoverable?: boolean; style?: CSSProperties; onClick?: () => void; className?: string;
-}) {
-  return (
-    <div onClick={onClick} className={`card ${hoverable ? 'hover' : ''} ${className}`}
-      style={{ padding: 'clamp(16px, 3vw, 22px)', ...style }}>{children}</div>
-  );
-}
+type CardVariant = 'flat' | 'raised';
+type CardPadding = 'sm' | 'md' | 'lg';
 
-type BadgeVariant = 'primary' | 'green' | 'red' | 'yellow' | 'blue' | 'neutral' | 'acid';
-
-const BADGE_STYLE: Record<BadgeVariant, CSSProperties> = {
-  primary: { background: 'var(--accent-soft)', color: 'var(--accent)' },
-  green: { background: 'var(--success-soft)', color: 'var(--success)' },
-  red: { background: 'var(--danger-soft)', color: 'var(--danger)' },
-  yellow: { background: 'var(--warning-soft)', color: 'var(--warning)' },
-  blue: { background: 'var(--info-soft)', color: 'var(--info)' },
-  neutral: { background: 'var(--paper-2)', color: 'var(--ink-muted)' },
-  acid: { background: 'var(--accent-soft)', color: 'var(--accent)' },
+const PADDING: Record<CardPadding, string> = {
+  sm: SPACING[3], // 12
+  md: SPACING[4], // 16
+  lg: SPACING[6], // 24
 };
 
-export function Badge({ children, variant = 'neutral', style }: { children: ReactNode; variant?: BadgeVariant; style?: CSSProperties }) {
+export function Card({
+  children, hoverable, variant = 'flat', padding, style, onClick, className = '',
+}: {
+  children: ReactNode;
+  /** `raised` adds an elevation shadow. @default 'flat' */
+  variant?: CardVariant;
+  /** Token padding. When omitted, a responsive default is used. */
+  padding?: CardPadding;
+  hoverable?: boolean;
+  style?: CSSProperties;
+  onClick?: () => void;
+  className?: string;
+}) {
+  const pad = padding ? PADDING[padding] : 'clamp(16px, 3vw, 22px)';
   return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: 4,
-      padding: '3px 9px', borderRadius: 999,
-      fontFamily: 'inherit', fontSize: '0.7rem', fontWeight: 600,
-      letterSpacing: '-0.005em', whiteSpace: 'nowrap',
-      border: '1px solid transparent', ...BADGE_STYLE[variant], ...style,
-    }}>{children}</span>
+    <div
+      onClick={onClick}
+      className={`card ${hoverable ? 'hover' : ''} ${className}`}
+      style={{
+        padding: pad,
+        ...(variant === 'raised' ? { boxShadow: SHADOW.md } : {}),
+        ...style,
+      }}
+    >
+      {children}
+    </div>
   );
 }

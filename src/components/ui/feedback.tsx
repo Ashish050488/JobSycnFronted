@@ -1,6 +1,9 @@
 // FILE: src/components/ui/feedback.tsx
 import type { ReactNode } from 'react';
 import { Card } from './Card';
+import { Button } from './Button';
+
+interface EmptyStateAction { label: string; onClick: () => void }
 
 export function PageHeader({ label, title, subtitle, actions }: {
   label?: string; title: ReactNode; subtitle?: ReactNode; actions?: ReactNode;
@@ -29,16 +32,33 @@ export function PageHeader({ label, title, subtitle, actions }: {
   );
 }
 
-export function EmptyState({ icon, title, body, action }: { icon?: ReactNode; title: string; body?: string; action?: ReactNode }) {
+/**
+ * Empty / error placeholder. `heading`+`description` are the documented props;
+ * `title`+`body` are accepted as aliases for existing callers. `action` may be
+ * a ReactNode or an `{ label, onClick }` object.
+ */
+export function EmptyState({ icon, title, heading, body, description, action }: {
+  icon?: ReactNode;
+  title?: string;
+  heading?: string;
+  body?: string;
+  description?: string;
+  action?: ReactNode | EmptyStateAction;
+}) {
+  const head = heading ?? title ?? '';
+  const desc = description ?? body;
+  const isActionObject = !!action && typeof action === 'object' && 'label' in (action as object);
   return (
     <div style={{
       textAlign: 'center', padding: 'clamp(40px, 8vw, 64px) clamp(20px, 4vw, 32px)',
       background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14,
     }}>
       {icon && <div style={{ color: 'var(--ink-faint)', marginBottom: 14, display: 'flex', justifyContent: 'center' }}>{icon}</div>}
-      <h3 style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--ink)', marginBottom: 6 }}>{title}</h3>
-      {body && <p style={{ color: 'var(--ink-muted)', fontSize: '0.875rem', maxWidth: 380, margin: '0 auto 18px', lineHeight: 1.55 }}>{body}</p>}
-      {action}
+      <h3 style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--ink)', marginBottom: 6 }}>{head}</h3>
+      {desc && <p style={{ color: 'var(--ink-muted)', fontSize: '0.875rem', maxWidth: 380, margin: '0 auto 18px', lineHeight: 1.55 }}>{desc}</p>}
+      {isActionObject
+        ? <Button onClick={(action as EmptyStateAction).onClick}>{(action as EmptyStateAction).label}</Button>
+        : (action as ReactNode)}
     </div>
   );
 }
