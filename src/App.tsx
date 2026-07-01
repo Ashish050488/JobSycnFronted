@@ -10,6 +10,8 @@ import Progress from './pages/seeker/Progress';
 import Legal from './pages/seeker/Legal';
 import Privacy from './pages/public/Privacy';
 import ConsentManager from './pages/seeker/ConsentManager';
+import ResumeUpload from './pages/seeker/ResumeUpload';
+import Profile from './pages/seeker/Profile';
 import LoginScreen from './components/seeker/LoginScreen';
 import Styleguide from './pages/Styleguide';
 import EmployerLogin from './pages/employer/Login';
@@ -46,6 +48,8 @@ function AppRoutes() {
         <Route path="directory" element={currentUser ? <CompanyDirectory /> : <LoginScreen />} />
         <Route path="jobs" element={<Dashboard />} />
         <Route path="progress" element={currentUser ? <Progress /> : <LoginScreen />} />
+        <Route path="resume" element={currentUser ? <ResumeUpload /> : <LoginScreen />} />
+        <Route path="profile" element={currentUser ? <Profile /> : <LoginScreen />} />
         {/* Dev-only design-system gallery. Excluded from production builds. */}
         {import.meta.env.DEV && <Route path="styleguide" element={<Styleguide />} />}
       </Route>

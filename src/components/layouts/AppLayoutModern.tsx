@@ -4,7 +4,7 @@
 import { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import {
-  Briefcase, Building2, Home as HomeIcon, BarChart3,
+  Briefcase, Building2, Home as HomeIcon, BarChart3, FileText, User,
 } from 'lucide-react';
 import { useTheme } from '../../theme/ThemeProvider';
 import { useSeeker } from '../../context/seeker/SeekerContext';
@@ -35,6 +35,8 @@ export default function AppLayoutModern() {
     { to: '/today', label: 'Today', icon: <HomeIcon size={18} /> },
     { to: '/directory', label: 'Companies', icon: <Building2 size={18} /> },
     { to: '/progress', label: 'Progress', icon: <BarChart3 size={18} /> },
+    { to: '/resume', label: 'Resume', icon: <FileText size={18} /> },
+    { to: '/profile', label: 'Profile', icon: <User size={18} /> },
   ] : [
     { to: '/', label: 'Home', icon: <HomeIcon size={18} /> },
     { to: '/jobs', label: 'Jobs', icon: <Briefcase size={18} /> },
