@@ -8,8 +8,20 @@ import CompanyDirectory from './pages/seeker/CompanyDirectory';
 import Dashboard from './pages/seeker/Dashboard';
 import Progress from './pages/seeker/Progress';
 import Legal from './pages/seeker/Legal';
+import Privacy from './pages/public/Privacy';
+import ConsentManager from './pages/seeker/ConsentManager';
 import LoginScreen from './components/seeker/LoginScreen';
 import Styleguide from './pages/Styleguide';
+import EmployerLogin from './pages/employer/Login';
+import EmployerDashboard from './pages/employer/Dashboard';
+import EmployerOnboarding from './pages/employer/Onboarding';
+import EmployerJobsList from './pages/employer/Jobs';
+import EmployerJobsNew from './pages/employer/Jobs/New';
+import EmployerJobsDetail from './pages/employer/Jobs/Detail';
+import RequireEmployerAuth from './components/employer/RequireEmployerAuth';
+import RequireEmployerOnboarded from './components/employer/RequireEmployerOnboarded';
+import AdminEmployerAccess from './pages/admin/EmployerAccess';
+import RequireSeekerAdmin from './components/admin/RequireSeekerAdmin';
 import { ToastProvider } from './components/ui';
 import { useSeeker } from './context/seeker/SeekerContext';
 
@@ -29,6 +41,8 @@ function AppRoutes() {
         <Route index element={currentUser ? <Navigate to="/jobs" replace /> : <Home />} />
         <Route path="today" element={currentUser ? <Today /> : <LoginScreen />} />
         <Route path="legal" element={<Legal />} />
+        <Route path="legal/privacy" element={<Privacy />} />
+        <Route path="account/privacy" element={currentUser ? <ConsentManager /> : <LoginScreen />} />
         <Route path="directory" element={currentUser ? <CompanyDirectory /> : <LoginScreen />} />
         <Route path="jobs" element={<Dashboard />} />
         <Route path="progress" element={currentUser ? <Progress /> : <LoginScreen />} />
@@ -36,6 +50,21 @@ function AppRoutes() {
         {import.meta.env.DEV && <Route path="styleguide" element={<Styleguide />} />}
       </Route>
       <Route path="login" element={<LoginScreen />} />
+      {/* Employer audience — login is public; the dashboard is guarded. */}
+      <Route path="employer/login" element={<EmployerLogin />} />
+      <Route path="employer" element={<RequireEmployerAuth />}>
+        <Route path="onboarding" element={<EmployerOnboarding />} />
+        <Route element={<RequireEmployerOnboarded />}>
+          <Route index element={<EmployerDashboard />} />
+          <Route path="jobs" element={<EmployerJobsList />} />
+          <Route path="jobs/new" element={<EmployerJobsNew />} />
+          <Route path="jobs/:postingId" element={<EmployerJobsDetail />} />
+        </Route>
+      </Route>
+      {/* Admin audience — seeker cookie required; admin-vs-not enforced by the API. */}
+      <Route path="admin" element={<RequireSeekerAdmin />}>
+        <Route path="employer-access" element={<AdminEmployerAccess />} />
+      </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

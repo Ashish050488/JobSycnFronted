@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 import { fileURLToPath, URL } from 'node:url'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
@@ -19,5 +19,14 @@ export default defineConfig({
         secure: false,
       },
     },
+    headers: {
+    'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
+  },
+
+  },
+  test: {
+    environment: 'happy-dom',
+    setupFiles: ['./tests/setup.ts'],
+    globals: true,
   },
 })

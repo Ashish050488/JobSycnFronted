@@ -43,7 +43,7 @@ export default function FooterModern() {
             title={COPY.footer.legalTitle}
             links={[
               ['/legal', COPY.footer.legalInfoLink],
-              ['/legal', COPY.footer.privacyLink],
+              ['/legal/privacy', COPY.footer.privacyLink],
               ['/legal', COPY.footer.contactLink],
             ]}
           />
