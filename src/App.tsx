@@ -12,6 +12,9 @@ import Privacy from './pages/public/Privacy';
 import ConsentManager from './pages/seeker/ConsentManager';
 import ResumeUpload from './pages/seeker/ResumeUpload';
 import Profile from './pages/seeker/Profile';
+import ApplyCompany from './pages/apply/Company';
+import ApplyForm from './pages/apply/Form';
+import ApplySuccess from './pages/apply/Success';
 import LoginScreen from './components/seeker/LoginScreen';
 import Styleguide from './pages/Styleguide';
 import EmployerLogin from './pages/employer/Login';
@@ -54,6 +57,10 @@ function AppRoutes() {
         {import.meta.env.DEV && <Route path="styleguide" element={<Styleguide />} />}
       </Route>
       <Route path="login" element={<LoginScreen />} />
+      {/* Public apply pages — unauthenticated candidates. Self-wrap PublicLayout. */}
+      <Route path="apply/:companySlug" element={<ApplyCompany />} />
+      <Route path="apply/:companySlug/:jobSlug" element={<ApplyForm />} />
+      <Route path="apply/:companySlug/:jobSlug/success" element={<ApplySuccess />} />
       {/* Employer audience — login is public; the dashboard is guarded. */}
       <Route path="employer/login" element={<EmployerLogin />} />
       <Route path="employer" element={<RequireEmployerAuth />}>

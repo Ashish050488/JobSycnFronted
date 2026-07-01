@@ -1,0 +1,100 @@
+// FILE: tests/pages/apply/Form.test.tsx
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { MemoryRouter, Routes, Route } from 'react-router-dom';
+
+const { fetchPublicJob, submitApplication, PublicApiError } = vi.hoisted(() => {
+  class PublicApiError extends Error {
+    status: number; code: string | null;
+    constructor(status: number, code: string | null, message: string) { super(message); this.status = status; this.code = code; }
+  }
+  return { fetchPublicJob: vi.fn(), submitApplication: vi.fn(), PublicApiError };
+});
+vi.mock('../../../src/api/public-api', () => ({ fetchPublicJob, submitApplication, PublicApiError }));
+
+import ApplyForm from '../../../src/pages/apply/Form';
+
+const JOB = { company: { name: 'Acme', slug: 'acme', website: null, logoUrl: null }, job: { id: 'j1', slug: 'react-dev', title: 'React Developer', description: 'Build UIs', location: 'Bengaluru', workplaceType: 'remote', employmentType: 'full-time', salaryMin: null, salaryMax: null, salaryCurrency: 'INR', postedAt: null } };
+
+function renderForm() {
+  return render(
+    <MemoryRouter initialEntries={['/apply/acme/react-dev']}>
+      <Routes>
+        <Route path="/apply/:companySlug/:jobSlug" element={<ApplyForm />} />
+        <Route path="/apply/:companySlug/:jobSlug/success" element={<div>SUCCESS PAGE</div>} />
+      </Routes>
+    </MemoryRouter>,
+  );
+}
+const type = (label: string, value: string) => fireEvent.change(screen.getByLabelText(label, { exact: false }), { target: { value } });
+function attachResume(container: HTMLElement) {
+  const file = new File(['%PDF'], 'cv.pdf', { type: 'application/pdf' });
+  Object.defineProperty(file, 'size', { value: 1000 });
+  fireEvent.change(container.querySelector('input[type="file"]') as HTMLInputElement, { target: { files: [file] } });
+}
+async function fillValid(container: HTMLElement) {
+  await screen.findByRole('heading', { name: 'React Developer' });
+  type('First name', 'Asha'); type('Last name', 'Rao'); type('Email', 'asha@x.com');
+  attachResume(container);
+  fireEvent.click(screen.getByRole('checkbox', { name: /processing my data/i }));
+}
+
+beforeEach(() => vi.clearAllMocks());
+
+describe('ApplyForm page', () => {
+  it('shows a loading skeleton while fetching the job', () => {
+    fetchPublicJob.mockReturnValue(new Promise(() => {}));
+    const { container } = renderForm();
+    expect(container.querySelector('[aria-hidden="true"]')).toBeTruthy();
+  });
+
+  it('shows a "no longer accepting" message on 404', async () => {
+    fetchPublicJob.mockRejectedValue(new PublicApiError(404, 'POSTING_NOT_FOUND', 'gone'));
+    renderForm();
+    expect(await screen.findByText(/no longer accepting applications/i)).toBeInTheDocument();
+  });
+
+  it('keeps submit disabled until required fields are filled', async () => {
+    fetchPublicJob.mockResolvedValue(JOB);
+    const { container } = renderForm();
+    await screen.findByRole('heading', { name: 'React Developer' });
+    expect(screen.getByRole('button', { name: 'Submit application' })).toBeDisabled();
+    await fillValid(container);
+    expect(screen.getByRole('button', { name: 'Submit application' })).toBeEnabled();
+  });
+
+  it('shows an inline error on blur for empty first name and invalid email', async () => {
+    fetchPublicJob.mockResolvedValue(JOB);
+    renderForm();
+    await screen.findByRole('heading', { name: 'React Developer' });
+    fireEvent.blur(screen.getByLabelText('First name', { exact: false }));
+    expect(await screen.findByText(/First name is required/i)).toBeInTheDocument();
+    type('Email', 'notanemail');
+    fireEvent.blur(screen.getByLabelText('Email', { exact: false }));
+    expect(await screen.findByText(/valid email address/i)).toBeInTheDocument();
+  });
+
+  it('submits FormData with all fields + honeypot + resume, then navigates to success', async () => {
+    fetchPublicJob.mockResolvedValue(JOB);
+    submitApplication.mockResolvedValue({ applicationId: 'a1' });
+    const { container } = renderForm();
+    await fillValid(container);
+    fireEvent.click(screen.getByRole('button', { name: 'Submit application' }));
+    expect(await screen.findByText('SUCCESS PAGE')).toBeInTheDocument();
+    const form = submitApplication.mock.calls[0][2] as FormData;
+    expect(form.get('firstName')).toBe('Asha');
+    expect(form.get('consent_dpdp')).toBe('true');
+    expect(form.get('website_url')).toBe('');
+    expect(form.get('resume')).toBeInstanceOf(File);
+  });
+
+  it('maps a server field error onto the field', async () => {
+    fetchPublicJob.mockResolvedValue(JOB);
+    submitApplication.mockRejectedValue(new PublicApiError(400, 'INVALID_EMAIL', 'That email is invalid.'));
+    const { container } = renderForm();
+    await fillValid(container);
+    fireEvent.click(screen.getByRole('button', { name: 'Submit application' }));
+    expect(await screen.findByText('That email is invalid.')).toBeInTheDocument();
+    expect(screen.queryByText('SUCCESS PAGE')).toBeNull();
+  });
+});

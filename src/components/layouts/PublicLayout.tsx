@@ -1,7 +1,7 @@
 // FILE: src/components/layouts/PublicLayout.tsx
 // Minimal header + content + footer for public apply pages.
 import type { ReactNode } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, Link } from 'react-router-dom';
 import { BRAND_SPLIT, COPY } from '../../theme/brand';
 import { TYPE } from '../../theme/tokens';
 
@@ -37,7 +37,11 @@ export default function PublicLayout({
       </main>
 
       <footer style={{ flexShrink: 0, padding: '16px 24px', borderTop: '1px solid var(--border)', textAlign: 'center' }}>
-        <p style={{ fontSize: TYPE.xs, color: 'var(--ink-faint)', margin: 0 }}>{COPY.footer.disclaimer}</p>
+        <p style={{ fontSize: TYPE.xs, color: 'var(--ink-faint)', margin: 0 }}>
+          {COPY.footer.disclaimer}
+          {' · '}
+          <Link to="/legal/privacy" style={{ color: 'var(--ink-muted)' }}>Privacy</Link>
+        </p>
       </footer>
     </div>
   );
