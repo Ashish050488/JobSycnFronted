@@ -76,14 +76,20 @@ describe('EmployerJobsDetail', () => {
     expect(screen.getByRole('tab', { name: 'Settings' })).toBeInTheDocument();
   });
 
-  it('switching tabs shows the placeholder cards', async () => {
-    stubFetch(async () => response(200, { posting: POSTING }));
+  it('Pipeline + Ranked tabs mount their real content; Stats stays a placeholder', async () => {
+    // Route each request by URL: posting for the detail fetch, empty lists for the
+    // applicant/stage fetches the Pipeline and Ranked tabs fire on mount.
+    stubFetch((async (url: string) => {
+      if (url.includes('/applicants')) return response(200, { applicants: [] });
+      if (url.includes('/stages')) return response(200, { stages: [] });
+      return response(200, { posting: POSTING });
+    }) as unknown as () => Promise<Response>);
     renderDetail();
     await screen.findByRole('heading', { name: 'React Developer' });
-    fireEvent.click(screen.getByRole('tab', { name: 'Pipeline' }));
-    await waitFor(() => expect(screen.getByText(/Ships in Step 7/)).toBeInTheDocument());
+
     fireEvent.click(screen.getByRole('tab', { name: 'Ranked' }));
-    await waitFor(() => expect(screen.getByText(/Ships in Step 6/)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('No applications yet')).toBeInTheDocument());
+
     fireEvent.click(screen.getByRole('tab', { name: 'Stats' }));
     await waitFor(() => expect(screen.getByText(/Ships in Step 8/)).toBeInTheDocument());
   });

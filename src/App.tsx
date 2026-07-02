@@ -23,6 +23,7 @@ import EmployerOnboarding from './pages/employer/Onboarding';
 import EmployerJobsList from './pages/employer/Jobs';
 import EmployerJobsNew from './pages/employer/Jobs/New';
 import EmployerJobsDetail from './pages/employer/Jobs/Detail';
+import ShipsNext from './components/shared/ShipsNext';
 import RequireEmployerAuth from './components/employer/RequireEmployerAuth';
 import RequireEmployerOnboarded from './components/employer/RequireEmployerOnboarded';
 import AdminEmployerAccess from './pages/admin/EmployerAccess';
@@ -70,6 +71,7 @@ function AppRoutes() {
           <Route path="jobs" element={<EmployerJobsList />} />
           <Route path="jobs/new" element={<EmployerJobsNew />} />
           <Route path="jobs/:postingId" element={<EmployerJobsDetail />} />
+          <Route path="jobs/:postingId/applicants/:appId" element={<ShipsNext label="Applicant detail" />} />
         </Route>
       </Route>
       {/* Admin audience — seeker cookie required; admin-vs-not enforced by the API. */}

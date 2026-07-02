@@ -12,6 +12,8 @@ import {
 } from '../../../components/ui';
 import type { TabItem } from '../../../components/ui';
 import DetailSettings from './DetailSettings';
+import PipelineTab from './PipelineTab';
+import RankedTab from './RankedTab';
 import { getEmployerPosting, EmployerJobsApiError } from '../../../api/employer-jobs-api';
 import type { Posting } from '../../../types/employer-jobs';
 
@@ -80,8 +82,8 @@ export default function EmployerJobsDetail() {
 
     const tabs: TabItem[] = [
       { id: 'settings', label: 'Settings', content: <DetailSettings posting={posting} onReload={loadPosting} /> },
-      { id: 'pipeline', label: 'Pipeline', content: <PlaceholderTab>Ships in Step 7 — the applicant pipeline Kanban lives here.</PlaceholderTab> },
-      { id: 'ranked', label: 'Ranked', content: <PlaceholderTab>Ships in Step 6 — AI-ranked applicants live here.</PlaceholderTab> },
+      { id: 'pipeline', label: 'Pipeline', content: <PipelineTab postingId={posting.id} /> },
+      { id: 'ranked', label: 'Ranked', content: <RankedTab postingId={posting.id} /> },
       { id: 'stats', label: 'Stats', content: <PlaceholderTab>Ships in Step 8 — the posting funnel stats live here.</PlaceholderTab> },
     ];
     return <Tabs tabs={tabs} defaultTabId="settings" />;
