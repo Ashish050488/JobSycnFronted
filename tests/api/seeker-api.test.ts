@@ -1,7 +1,7 @@
 // FILE: tests/api/seeker-api.test.ts
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
-  uploadResume, uploadResumeText, fetchProfile, patchProfile, SeekerApiError,
+  uploadResume, uploadResumeText, fetchProfile, patchProfile, fetchResumeJob, SeekerApiError,
 } from '../../src/api/seeker-api';
 
 function response(status: number, body: unknown) {
@@ -13,11 +13,11 @@ beforeEach(() => { fetchMock = vi.fn(); vi.stubGlobal('fetch', fetchMock); });
 afterEach(() => vi.unstubAllGlobals());
 
 describe('seeker-api', () => {
-  it('uploadResume sends FormData with a "resume" field', async () => {
-    fetchMock.mockResolvedValue(response(200, { profile: { fullName: 'A' }, isUnchanged: false }));
+  it('uploadResume sends FormData with a "resume" field and normalizes the queued branch', async () => {
+    fetchMock.mockResolvedValue(response(200, { jobId: 'job-1', status: 'queued' }));
     const file = new File(['%PDF'], 'cv.pdf', { type: 'application/pdf' });
     const result = await uploadResume(file);
-    expect(result.profile.fullName).toBe('A');
+    expect(result).toEqual({ kind: 'queued', jobId: 'job-1' });
     const [path, init] = fetchMock.mock.calls[0];
     expect(path).toBe('/api/seeker/resume/upload');
     expect(init.method).toBe('POST');
@@ -25,12 +25,31 @@ describe('seeker-api', () => {
     expect((init.body as FormData).get('resume')).toBeInstanceOf(File);
   });
 
-  it('uploadResumeText sends { text } as JSON', async () => {
-    fetchMock.mockResolvedValue(response(200, { profile: {}, isUnchanged: false }));
-    await uploadResumeText('some long resume text');
+  it('uploadResume normalizes the dedup fast-path into the unchanged branch', async () => {
+    const profile = { fullName: 'A' };
+    fetchMock.mockResolvedValue(response(200, { profile, isUnchanged: true, jobId: null }));
+    const result = await uploadResume(new File(['%PDF'], 'cv.pdf', { type: 'application/pdf' }));
+    expect(result).toEqual({ kind: 'unchanged', profile });
+  });
+
+  it('uploadResumeText sends { text } as JSON and mirrors both branches', async () => {
+    fetchMock.mockResolvedValue(response(200, { jobId: 'job-2', status: 'queued' }));
+    const queued = await uploadResumeText('some long resume text');
+    expect(queued).toEqual({ kind: 'queued', jobId: 'job-2' });
     const [path, init] = fetchMock.mock.calls[0];
     expect(path).toBe('/api/seeker/resume/text');
     expect(JSON.parse(init.body)).toEqual({ text: 'some long resume text' });
+
+    const profile = { fullName: 'B' };
+    fetchMock.mockResolvedValue(response(200, { profile, isUnchanged: true, jobId: null }));
+    expect(await uploadResumeText('some long resume text')).toEqual({ kind: 'unchanged', profile });
+  });
+
+  it('fetchResumeJob unwraps { job } and returns the inner shape', async () => {
+    const job = { id: 'job-1', status: 'done', result: { profile: { fullName: 'A' }, isUnchanged: false }, errorCode: null, errorMessage: null };
+    fetchMock.mockResolvedValue(response(200, { job }));
+    expect(await fetchResumeJob('job-1')).toEqual(job);
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/seeker/resume/jobs/job-1');
   });
 
   it('fetchProfile returns null when the profile is null', async () => {

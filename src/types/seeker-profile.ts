@@ -50,4 +50,22 @@ export interface ParsedProfile {
   parsedAt: string | null;
 }
 
-export interface ResumeUploadResult { profile: ParsedProfile; isUnchanged: boolean }
+// Discriminated union the page reacts to (D1). seeker-api normalizes the raw
+// backend envelope into one of these before the UI ever sees it.
+export type ResumeUploadResult =
+  | { kind: 'queued'; jobId: string }
+  | { kind: 'unchanged'; profile: ParsedProfile };
+
+export type ResumeParseJobStatus = 'queued' | 'processing' | 'done' | 'failed';
+
+export interface ResumeParseJobResult { profile: ParsedProfile; isUnchanged: boolean }
+
+// The client-safe parse-job shape (backend toPublicJob, D1). tmpPath/resumeText
+// are stripped server-side; the page only ever reads status/result/error fields.
+export interface ResumeParseJob {
+  id: string;
+  status: ResumeParseJobStatus;
+  result: ResumeParseJobResult | null;
+  errorCode: string | null;
+  errorMessage: string | null;
+}
