@@ -4,7 +4,7 @@
 // non-2xx. Pipeline/Ranked pages call only this module — never fetch() directly.
 
 import type {
-  Applicant, Stage, ArchiveReason, ApplicantSort,
+  Applicant, ApplicantDetail, ResumeUrl, Stage, ArchiveReason, ApplicantSort,
 } from '../types/employer-applicants';
 
 export class EmployerApplicantsApiError extends Error {
@@ -47,6 +47,15 @@ export async function listApplicantsForPosting(
     `/api/employer/jobs/${encodeURIComponent(postingId)}/applicants${query}`,
   );
   return body.applicants;
+}
+
+export async function fetchApplicantDetail(applicationId: string): Promise<ApplicantDetail> {
+  const body = await request<{ applicant: ApplicantDetail }>(applicantPath(applicationId));
+  return body.applicant;
+}
+
+export async function refreshResumeUrl(applicationId: string): Promise<ResumeUrl> {
+  return request<ResumeUrl>(`${applicantPath(applicationId)}/resume-url`);
 }
 
 export async function listStages(): Promise<Stage[]> {

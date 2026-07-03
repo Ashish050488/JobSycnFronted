@@ -17,7 +17,6 @@
     "jsx": "react-jsx",
 
     /* Path alias — `@/` resolves to src/ (mirrored in vite.config.ts) */
-    "baseUrl": ".",
     "paths": { "@/*": ["./src/*"] },
 
     /* Linting */

@@ -11,9 +11,47 @@ export interface ApplicantScore {
   tier: ScoreTier;
   matchedSkills: string[];
   missingSkills: string[];
+  /** Detail-view fields (7C); optional so the leaner pipeline payloads still type-check. */
+  bonusSkills?: string[];
+  experienceFit?: string | null;
+  locationFit?: string | null;
+  noticePeriodFit?: string | null;
   explanation: string | null;
   processedAt: string | null;
   processingError: string | null;
+}
+
+/** One resume file's metadata (7A). Null when the candidate never uploaded one. */
+export interface ResumeMeta {
+  id: string;
+  originalFilename: string | null;
+  mimeType: string | null;
+  sizeBytes: number | null;
+  uploadedAt: string | null;
+}
+
+/** One stage-history entry. Archive/unarchive rows carry a note beginning "Archived:"/"Unarchived". */
+export interface StageChange {
+  id: string;
+  fromStageId: string | null;
+  toStageId: string | null;
+  movedByUserId: string | null;
+  note: string | null;
+  movedAt: string | null;
+}
+
+/** Full applicant detail payload (7A endpoint) consumed by the ApplicantDetail page. */
+export interface ApplicantDetail extends Applicant {
+  stageChanges: StageChange[];
+  resumeMeta: ResumeMeta | null;
+  resumeDownloadUrl: string | null;
+  resumeDownloadExpiresAt: string | null;
+}
+
+/** Refreshed signed resume URL (7A resume-url endpoint). */
+export interface ResumeUrl {
+  url: string;
+  expiresAt: string;
 }
 
 export interface Applicant {

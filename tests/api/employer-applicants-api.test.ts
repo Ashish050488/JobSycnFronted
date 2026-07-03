@@ -3,6 +3,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import {
   listApplicantsForPosting, listStages, listArchiveReasons,
   moveApplicant, archiveApplicant, unarchiveApplicant, EmployerApplicantsApiError,
+  fetchApplicantDetail, refreshResumeUrl,
 } from '../../src/api/employer-applicants-api';
 
 function response(status: number, body: unknown) {
@@ -57,6 +58,22 @@ describe('employer-applicants-api', () => {
     await unarchiveApplicant('a1');
     expect(unarchiveFetch.mock.calls[0][0]).toBe('/api/employer/applicants/a1/unarchive');
     expect(unarchiveFetch.mock.calls[0][1]?.method).toBe('POST');
+  });
+
+  it('fetchApplicantDetail GETs the applicant endpoint and unwraps { applicant }', async () => {
+    const fetchMock = mockFetch(async () => response(200, { applicant: { application: { id: 'a1' } } }));
+    const detail = await fetchApplicantDetail('a1');
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/employer/applicants/a1');
+    expect(fetchMock.mock.calls[0][1]?.credentials).toBe('include');
+    expect(detail).toEqual({ application: { id: 'a1' } });
+  });
+
+  it('refreshResumeUrl GETs the resume-url endpoint and returns { url, expiresAt }', async () => {
+    const fetchMock = mockFetch(async () => response(200, { url: '/api/public/resume-download?token=t', expiresAt: '2026-07-03T00:15:00Z' }));
+    const result = await refreshResumeUrl('a1');
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/employer/applicants/a1/resume-url');
+    expect(result.url).toBe('/api/public/resume-download?token=t');
+    expect(result.expiresAt).toBe('2026-07-03T00:15:00Z');
   });
 
   it('throws EmployerApplicantsApiError with status + code on non-2xx', async () => {
