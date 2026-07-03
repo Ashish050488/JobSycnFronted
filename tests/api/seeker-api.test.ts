@@ -2,6 +2,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   uploadResume, uploadResumeText, fetchProfile, patchProfile, fetchResumeJob, SeekerApiError,
+  fetchResumeReview, runResumeReview, fetchMatchCount, fetchSalaryBenchmark,
 } from '../../src/api/seeker-api';
 
 function response(status: number, body: unknown) {
@@ -71,5 +72,43 @@ describe('seeker-api', () => {
     fetchMock.mockResolvedValue(response(400, { error: 'bad', code: 'INVALID_RESUME_TEXT' }));
     await expect(uploadResumeText('x')).rejects.toBeInstanceOf(SeekerApiError);
     await expect(uploadResumeText('x')).rejects.toMatchObject({ status: 400, code: 'INVALID_RESUME_TEXT' });
+  });
+
+  it('fetchResumeReview returns null when no review has run', async () => {
+    fetchMock.mockResolvedValue(response(200, { review: null }));
+    expect(await fetchResumeReview()).toBeNull();
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/seeker/resume/review');
+  });
+
+  it('fetchResumeReview unwraps the { review } envelope', async () => {
+    const review = { scores: { overall: 80 }, reviewedAt: 'x' };
+    fetchMock.mockResolvedValue(response(200, { review }));
+    expect(await fetchResumeReview()).toEqual(review);
+  });
+
+  it('runResumeReview POSTs and unwraps { review }', async () => {
+    const review = { scores: { overall: 72 }, reviewedAt: 'y' };
+    fetchMock.mockResolvedValue(response(200, { review }));
+    expect(await runResumeReview()).toEqual(review);
+    expect(fetchMock.mock.calls[0][1].method).toBe('POST');
+  });
+
+  it('runResumeReview propagates SeekerApiError with .code on failure', async () => {
+    fetchMock.mockResolvedValue(response(400, { error: 'no profile', code: 'NO_PROFILE' }));
+    await expect(runResumeReview()).rejects.toMatchObject({ status: 400, code: 'NO_PROFILE' });
+  });
+
+  it('fetchMatchCount unwraps the direct shape', async () => {
+    const body = { count: 3, breakdown: { byLocation: [], byRoleCategory: [] }, asOf: 'z' };
+    fetchMock.mockResolvedValue(response(200, body));
+    expect(await fetchMatchCount()).toEqual(body);
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/seeker/market/match-count');
+  });
+
+  it('fetchSalaryBenchmark unwraps the direct shape', async () => {
+    const body = { p25: null, p50: null, p75: null, sampleSize: 2, currency: 'INR', unit: 'LPA', filters: {}, asOf: 'z' };
+    fetchMock.mockResolvedValue(response(200, body));
+    expect(await fetchSalaryBenchmark()).toEqual(body);
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/seeker/market/salary-benchmark');
   });
 });

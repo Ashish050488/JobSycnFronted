@@ -3,14 +3,24 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
-const { fetchProfile, patchProfile, SeekerApiError } = vi.hoisted(() => {
+const {
+  fetchProfile, patchProfile, SeekerApiError,
+  fetchResumeReview, runResumeReview, fetchMatchCount, fetchSalaryBenchmark,
+} = vi.hoisted(() => {
   class SeekerApiError extends Error {
     status: number; code: string | null;
     constructor(status: number, code: string | null, message: string) { super(message); this.status = status; this.code = code; }
   }
-  return { fetchProfile: vi.fn(), patchProfile: vi.fn(), SeekerApiError };
+  return {
+    fetchProfile: vi.fn(), patchProfile: vi.fn(), SeekerApiError,
+    fetchResumeReview: vi.fn(), runResumeReview: vi.fn(),
+    fetchMatchCount: vi.fn(), fetchSalaryBenchmark: vi.fn(),
+  };
 });
-vi.mock('../../../src/api/seeker-api', () => ({ fetchProfile, patchProfile, SeekerApiError }));
+vi.mock('../../../src/api/seeker-api', () => ({
+  fetchProfile, patchProfile, SeekerApiError,
+  fetchResumeReview, runResumeReview, fetchMatchCount, fetchSalaryBenchmark,
+}));
 
 import Profile from '../../../src/pages/seeker/Profile';
 
@@ -23,7 +33,14 @@ const PROFILE = {
 };
 
 function renderPage() { return render(<MemoryRouter><Profile /></MemoryRouter>); }
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => {
+  vi.clearAllMocks();
+  // Default the F3c card fetches so the two new cards settle without errors.
+  fetchResumeReview.mockResolvedValue(null);
+  runResumeReview.mockResolvedValue(null);
+  fetchMatchCount.mockResolvedValue({ count: 0, breakdown: { byLocation: [], byRoleCategory: [] }, asOf: new Date().toISOString() });
+  fetchSalaryBenchmark.mockResolvedValue({ p25: null, p50: null, p75: null, sampleSize: 0, currency: 'INR', unit: 'LPA', filters: { seniority: null, roleCategory: null, location: null }, asOf: new Date().toISOString() });
+});
 
 describe('Profile page', () => {
   it('shows the upload CTA when there is no profile', async () => {
@@ -41,6 +58,18 @@ describe('Profile page', () => {
     expect(screen.getByText('Skills')).toBeInTheDocument();
     expect(screen.getByText('Node.js')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Re-upload resume/i })).toHaveAttribute('href', '/resume');
+  });
+
+  it('renders the review + market cards above the existing sections', async () => {
+    fetchProfile.mockResolvedValue(PROFILE);
+    renderPage();
+    await screen.findByText('Asha Rao');
+    // Review card: no review yet → its empty-state CTA is present.
+    expect(await screen.findByRole('button', { name: 'Run review' })).toBeInTheDocument();
+    // Market card header renders; existing sections still render below.
+    expect(await screen.findByText('Market snapshot')).toBeInTheDocument();
+    expect(screen.getByText('Contact')).toBeInTheDocument();
+    expect(screen.getByText('Skills')).toBeInTheDocument();
   });
 
   it('editing Contact shows inputs and Save calls patchProfile', async () => {

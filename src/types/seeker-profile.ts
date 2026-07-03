@@ -69,3 +69,56 @@ export interface ResumeParseJob {
   errorCode: string | null;
   errorMessage: string | null;
 }
+
+// ─── F3c: resume review + market snapshot (mirror the F3a/F3b backend shapes) ──
+
+export type ReviewScoreDimension =
+  | 'parseability' | 'contentStrength' | 'indiaMarketFit' | 'skillsDepth';
+
+export type ReviewFindingSeverity = 'critical' | 'warning' | 'info';
+
+export type ReviewFindingSection =
+  | 'contact' | 'summary' | 'experience' | 'education'
+  | 'skills' | 'projects' | 'certifications' | 'layout';
+
+export interface ReviewFinding {
+  section: ReviewFindingSection;
+  severity: ReviewFindingSeverity;
+  message: string;
+  sourceEvidence: string | null;
+}
+
+export interface ReviewImprovement {
+  title: string;
+  why: string;
+  observedBullet: string | null;
+  question: string;
+}
+
+export interface ResumeReview {
+  scores: Record<ReviewScoreDimension, number> & { overall: number };
+  strengths: string[];
+  findings: ReviewFinding[];
+  topImprovements: ReviewImprovement[];
+  reviewedAt: string;
+  modelVersion: string;
+}
+
+export interface MatchBreakdownItem { key: string; count: number }
+
+export interface MatchCount {
+  count: number;
+  breakdown: { byLocation: MatchBreakdownItem[]; byRoleCategory: MatchBreakdownItem[] };
+  asOf: string;
+}
+
+export interface SalaryBenchmark {
+  p25: number | null;
+  p50: number | null;
+  p75: number | null;
+  sampleSize: number;
+  currency: 'INR';
+  unit: 'LPA';
+  filters: { seniority: string | null; roleCategory: string | null; location: string | null };
+  asOf: string;
+}

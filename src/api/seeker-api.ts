@@ -4,7 +4,10 @@
 // throws SeekerApiError (status + code) on non-2xx. Resume/profile UI calls only
 // this module — never fetch() directly.
 
-import type { ParsedProfile, ResumeParseJob, ResumeUploadResult } from '../types/seeker-profile';
+import type {
+  ParsedProfile, ResumeParseJob, ResumeUploadResult,
+  ResumeReview, MatchCount, SalaryBenchmark,
+} from '../types/seeker-profile';
 
 // Raw backend envelope for /upload + /text: either a queued job or the dedup
 // fast-path ({ profile, isUnchanged: true, jobId: null }). normalized below (D1).
@@ -81,4 +84,26 @@ export async function patchProfile(patch: Partial<ParsedProfile>): Promise<Parse
     body: JSON.stringify(patch),
   });
   return body.profile;
+}
+
+/** The caller's cached resume review, or null when none has run yet (D2). */
+export async function fetchResumeReview(signal?: AbortSignal): Promise<ResumeReview | null> {
+  const body = await request<{ review: ResumeReview | null }>('/api/seeker/resume/review', { signal });
+  return body.review ?? null;
+}
+
+/** Run a fresh review and return it. Propagates SeekerApiError (.code) on failure. */
+export async function runResumeReview(signal?: AbortSignal): Promise<ResumeReview> {
+  const body = await request<{ review: ResumeReview }>('/api/seeker/resume/review', { method: 'POST', signal });
+  return body.review;
+}
+
+/** Live count of postings matching the caller's profile (direct shape). */
+export async function fetchMatchCount(signal?: AbortSignal): Promise<MatchCount> {
+  return request<MatchCount>('/api/seeker/market/match-count', { signal });
+}
+
+/** Salary benchmark band for the caller's seniority slice (direct shape). */
+export async function fetchSalaryBenchmark(signal?: AbortSignal): Promise<SalaryBenchmark> {
+  return request<SalaryBenchmark>('/api/seeker/market/salary-benchmark', { signal });
 }
