@@ -26,6 +26,7 @@ import EmployerJobsDetail from './pages/employer/Jobs/Detail';
 import EmployerApplicantDetail from './pages/employer/Jobs/ApplicantDetail';
 import RequireEmployerAuth from './components/employer/RequireEmployerAuth';
 import RequireEmployerOnboarded from './components/employer/RequireEmployerOnboarded';
+import EmployerAppLayout from './components/layouts/EmployerAppLayout';
 import AdminEmployerAccess from './pages/admin/EmployerAccess';
 import RequireSeekerAdmin from './components/admin/RequireSeekerAdmin';
 import { ToastProvider } from './components/ui';
@@ -67,11 +68,13 @@ function AppRoutes() {
       <Route path="employer" element={<RequireEmployerAuth />}>
         <Route path="onboarding" element={<EmployerOnboarding />} />
         <Route element={<RequireEmployerOnboarded />}>
-          <Route index element={<EmployerDashboard />} />
-          <Route path="jobs" element={<EmployerJobsList />} />
-          <Route path="jobs/new" element={<EmployerJobsNew />} />
-          <Route path="jobs/:postingId" element={<EmployerJobsDetail />} />
-          <Route path="jobs/:postingId/applicants/:appId" element={<EmployerApplicantDetail />} />
+          <Route element={<EmployerAppLayout />}>
+            <Route index element={<EmployerDashboard />} />
+            <Route path="jobs" element={<EmployerJobsList />} />
+            <Route path="jobs/new" element={<EmployerJobsNew />} />
+            <Route path="jobs/:postingId" element={<EmployerJobsDetail />} />
+            <Route path="jobs/:postingId/applicants/:appId" element={<EmployerApplicantDetail />} />
+          </Route>
         </Route>
       </Route>
       {/* Admin audience — seeker cookie required; admin-vs-not enforced by the API. */}
