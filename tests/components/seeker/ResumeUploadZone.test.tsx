@@ -13,7 +13,7 @@ vi.mock('../../../src/api/seeker-api', () => ({ uploadResume, uploadResumeText, 
 
 import ResumeUploadZone from '../../../src/components/seeker/ResumeUploadZone';
 
-const PROFILE = { fullName: 'Asha' };
+const QUEUED = { kind: 'queued', jobId: 'job-1' } as const;
 function renderZone() {
   const onComplete = vi.fn();
   const { container } = render(<ResumeUploadZone onUploadComplete={onComplete} />);
@@ -35,11 +35,11 @@ describe('ResumeUploadZone', () => {
     expect(screen.getByText(/PDF only, max 5 MB/i)).toBeInTheDocument();
   });
 
-  it('a valid PDF selection triggers upload and calls onUploadComplete', async () => {
-    uploadResume.mockResolvedValue({ profile: PROFILE, isUnchanged: false });
+  it('a valid PDF selection triggers upload and calls onUploadComplete with the queued result', async () => {
+    uploadResume.mockResolvedValue(QUEUED);
     const { onComplete, container } = renderZone();
     fireEvent.change(fileInput(container), { target: { files: [pdf()] } });
-    await waitFor(() => expect(onComplete).toHaveBeenCalledWith(PROFILE, false));
+    await waitFor(() => expect(onComplete).toHaveBeenCalledWith(QUEUED));
     expect(uploadResume).toHaveBeenCalledTimes(1);
   });
 
@@ -69,7 +69,7 @@ describe('ResumeUploadZone', () => {
   });
 
   it('paste tab: the parse button is disabled for short text and calls the API for valid text', async () => {
-    uploadResumeText.mockResolvedValue({ profile: PROFILE, isUnchanged: false });
+    uploadResumeText.mockResolvedValue(QUEUED);
     const { onComplete } = renderZone();
     fireEvent.click(screen.getByRole('tab', { name: 'Paste text' }));
     const button = screen.getByRole('button', { name: 'Parse resume' });
@@ -77,7 +77,7 @@ describe('ResumeUploadZone', () => {
     fireEvent.change(screen.getByLabelText(/Resume text/i), { target: { value: 'x'.repeat(250) } });
     expect(screen.getByRole('button', { name: 'Parse resume' })).toBeEnabled();
     fireEvent.click(screen.getByRole('button', { name: 'Parse resume' }));
-    await waitFor(() => expect(onComplete).toHaveBeenCalledWith(PROFILE, false));
+    await waitFor(() => expect(onComplete).toHaveBeenCalledWith(QUEUED));
     expect(uploadResumeText).toHaveBeenCalledWith('x'.repeat(250));
   });
 });
