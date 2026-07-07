@@ -97,10 +97,10 @@ describe('ApplicantDetail page', () => {
     const { container } = renderPage();
     expect(await screen.findByText('Asha Rao')).toBeInTheDocument();
     expect(screen.getByText('asha@x.com')).toBeInTheDocument();
-    expect(container.querySelector('iframe')?.getAttribute('src')).toBe('/api/public/resume-download?token=t1#zoom=page-width');
-    expect(screen.getByText('82')).toBeInTheDocument(); // score card
-    expect(screen.getByRole('button', { name: /Stage history/ })).toBeInTheDocument();
-    expect(screen.queryByText('No stage changes yet.')).toBeNull(); // collapsed by default (P3.2)
+    expect(container.querySelector('iframe')?.getAttribute('src')).toBe('/api/public/resume-download?token=t1#zoom=page-width&navpanes=0');
+    expect(screen.getByText('82')).toBeInTheDocument(); // ApplicantReviewPanel score hero
+    // The review panel renders its one-line history footer; detail() has no changes.
+    expect(screen.getByText('No stage changes yet')).toBeInTheDocument();
   });
 
   it('desktop: renders the sticky bar and hides the PageHeader (P2.1/P2.4)', async () => {
@@ -119,11 +119,33 @@ describe('ApplicantDetail page', () => {
     expect(screen.getByText('APPLICANT')).toBeInTheDocument(); // PageHeader label present
   });
 
-  it('desktop grid uses the wider 1.9fr PDF column (P2.2 regression guard)', async () => {
+  it('desktop grid uses the 1.4fr PDF column + 360px sidebar min (P5 regression guard)', async () => {
     api.fetchApplicantDetail.mockResolvedValue(detail());
     const { container } = renderPage();
     await screen.findByText('Asha Rao');
-    expect(container.querySelector('div[style*="1.9fr"]')).not.toBeNull();
+    const grid = container.querySelector('div[style*="1.4fr"]');
+    expect(grid).not.toBeNull();
+    expect(grid?.getAttribute('style')).toContain('minmax(360px');
+  });
+
+  it('desktop: content is full-width (opts out of the Container max-width cap) (P5/D1)', async () => {
+    api.fetchApplicantDetail.mockResolvedValue(detail());
+    const { container } = renderPage();
+    await screen.findByText('Asha Rao');
+    // The outer wrapper is a plain padded div, not the centred Container (max-width:1200px).
+    const outer = container.firstElementChild as HTMLElement | null;
+    expect(outer?.getAttribute('style')).toContain('width: 100%');
+    expect(outer?.getAttribute('style')).not.toContain('max-width');
+    expect(outer?.getAttribute('style')).toContain('box-sizing: border-box');
+  });
+
+  it('mobile: content stays inside the centred Container (max-width cap kept) (P5/D1)', async () => {
+    setViewportWidth(800);
+    api.fetchApplicantDetail.mockResolvedValue(detail());
+    const { container } = renderPage();
+    await screen.findByText('Asha Rao');
+    const outer = container.firstElementChild as HTMLElement | null;
+    expect(outer?.getAttribute('style')).toContain('max-width');
   });
 
   it('?from=pipeline → back link labelled "Back to Pipeline" pointing at the tab (P1.4/P2.1)', async () => {
@@ -223,33 +245,72 @@ describe('ApplicantDetail page', () => {
 
   // ─── P3: sidebar scroll + default-collapsed content ───────────────
 
-  it('desktop: the sidebar wrapper owns its scroll (maxHeight + overflowY)', async () => {
+  it('desktop: the sidebar column owns its scroll (height:100% + overflowY:auto)', async () => {
     api.fetchApplicantDetail.mockResolvedValue(detail());
     const { container } = renderPage();
     await screen.findByText('Asha Rao');
     const scroller = container.querySelector('div[style*="overflow-y: auto"]') as HTMLElement | null;
     expect(scroller).not.toBeNull();
-    expect(scroller?.getAttribute('style')).toContain('calc(100vh');
+    expect(scroller?.getAttribute('style')).toContain('height: 100%');
   });
 
-  it('mobile: the sidebar is not wrapped in a scroll container', async () => {
+  it('mobile: the page is not height-pinned (document flow, no desktop scroll column)', async () => {
     setViewportWidth(800);
     api.fetchApplicantDetail.mockResolvedValue(detail());
     const { container } = renderPage();
     await screen.findByText('Asha Rao');
-    expect(container.querySelector('div[style*="overflow-y: auto"]')).toBeNull();
+    const outer = container.firstElementChild as HTMLElement | null;
+    expect(outer?.getAttribute('style')).not.toContain('overflow: hidden');
+    // The desktop grid's fixed-height scroll column is absent on mobile.
+    expect(container.querySelector('div[style*="height: 100%"][style*="overflow-y: auto"]')).toBeNull();
   });
 
-  it('Summary and Stage history default collapsed on load (content absent until opened)', async () => {
+  it('Summary and the latest-stage line are visible on load without interaction (P4.1)', async () => {
     const withContent = {
       ...detail(),
       score: { ...detail().score!, explanation: 'Strong React and AWS match.' },
-      stageChanges: [{ id: 'sc1', fromStageId: 's1', toStageId: 's1', movedByUserId: 'u1', note: 'Applied', movedAt: '2026-06-01T00:00:00Z' }],
+      stageChanges: [{ id: 'sc1', fromStageId: null, toStageId: 's1', movedByUserId: 'u1', note: 'Applied', movedAt: '2026-06-01T00:00:00Z' }],
     };
     api.fetchApplicantDetail.mockResolvedValue(withContent);
     renderPage();
     await screen.findByText('Asha Rao');
-    expect(screen.queryByText('Strong React and AWS match.')).toBeNull(); // Summary collapsed
-    expect(screen.queryAllByRole('listitem')).toHaveLength(0); // Stage history collapsed
+    expect(screen.getByText('Strong React and AWS match.')).toBeInTheDocument(); // Summary always visible
+    expect(screen.getByText(/Applied ·/)).toBeInTheDocument(); // one-line stage history visible
+  });
+
+  it('renders the redesigned review panel with score, actions and fit (P9)', async () => {
+    api.fetchApplicantDetail.mockResolvedValue(detail());
+    renderPage();
+    await screen.findByText('Asha Rao');
+    expect(screen.getByText('82')).toBeInTheDocument(); // score hero
+    expect(screen.getByText('/ 100')).toBeInTheDocument(); // hero meter caption
+    expect(screen.getByRole('button', { name: 'Move stage' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Archive' })).toBeInTheDocument();
+    expect(screen.getByText('Experience')).toBeInTheDocument(); // fit tile
+  });
+
+  it('desktop: the page wrapper is height-pinned + overflow:hidden so the document never scrolls (P8.2)', async () => {
+    api.fetchApplicantDetail.mockResolvedValue(detail());
+    const { container } = renderPage();
+    await screen.findByText('Asha Rao');
+    const outer = container.firstElementChild as HTMLElement | null;
+    expect(outer?.getAttribute('style')).toContain('overflow: hidden');
+    expect(outer?.getAttribute('style')).toContain('calc(100vh - 65px)');
+    // Tightened guard (P7 review): the grid's TWO DIRECT children each own height:100%.
+    const grid = container.querySelector('div[style*="grid-template-columns"]') as HTMLElement | null;
+    expect(grid).not.toBeNull();
+    const columns = Array.from(grid!.children) as HTMLElement[];
+    expect(columns).toHaveLength(2);
+    columns.forEach((col) => expect(col.getAttribute('style')).toContain('height: 100%'));
+    expect(columns[1].getAttribute('style')).toContain('overflow-y: auto'); // sidebar scrolls
+  });
+
+  it('mobile: the page wrapper is not height-pinned / overflow-hidden (P7.2 regression guard)', async () => {
+    setViewportWidth(800);
+    api.fetchApplicantDetail.mockResolvedValue(detail());
+    const { container } = renderPage();
+    await screen.findByText('Asha Rao');
+    const outer = container.firstElementChild as HTMLElement | null;
+    expect(outer?.getAttribute('style')).not.toContain('overflow: hidden');
   });
 });

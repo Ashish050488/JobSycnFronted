@@ -1,24 +1,17 @@
 // FILE: src/pages/employer/Jobs/ApplicantDetail.tsx
-// Applicant detail page (D3). Fetches detail + stages + archive reasons in parallel;
-// desktop (>900px) is two columns (resume left, scrollable sidebar right), mobile
-// stacks them. PP2 adds prev/next over the source-tab list; P3 gives the sidebar its
-// own scroll so the page never scrolls on desktop.
+// Applicant detail page. Desktop (>900px) is two full-width columns (resume left, 3-card
+// sidebar right, P8), mobile stacks them. PP2 adds prev/next over the source-tab list.
 
 import { useCallback, useEffect, useState } from 'react';
+import type { CSSProperties } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import {
-  Container, Card, Button, Alert, PageHeader, Stack, SkeletonCard,
-} from '../../../components/ui';
-import {
-  fetchApplicantDetail, listApplicantsForPosting, listStages, listArchiveReasons, EmployerApplicantsApiError,
-} from '../../../api/employer-applicants-api';
+import { Container, Card, Button, Alert, PageHeader, Stack, SkeletonCard } from '../../../components/ui';
+import { fetchApplicantDetail, listApplicantsForPosting, listStages, listArchiveReasons, EmployerApplicantsApiError } from '../../../api/employer-applicants-api';
 import type { Applicant, ApplicantDetail, ApplicantSort, Stage, ArchiveReason } from '../../../types/employer-applicants';
 import { useViewport } from '../../../hooks/shared/useViewport';
 import { useApplicantKeyboardNav } from '../../../hooks/employer/useApplicantKeyboardNav';
 import ApplicantResumeViewer from './ApplicantResumeViewer';
-import ApplicantScoreCard from './ApplicantScoreCard';
-import ApplicantActions from './ApplicantActions';
-import ApplicantStageHistory from './ApplicantStageHistory';
+import ApplicantReviewPanel from './ApplicantReviewPanel';
 import ApplicantStickyHeader from './ApplicantStickyHeader';
 
 type LoadState = 'loading' | 'loaded' | 'error' | 'not_found';
@@ -28,11 +21,9 @@ const LOAD_ERROR_MESSAGE = 'Could not load this applicant.';
 // Prev/next list order mirrors the source tab (PP2/R4): Ranked → score, else date.
 const sortForFrom = (from: string | null): ApplicantSort => (from === 'ranked' ? 'score' : 'date');
 
-// No magic strings for tab ids (C2/D6). Only pipeline/ranked are returnable; a
-// missing/other ?from lands on Settings (no query), the posting page's default.
+// No magic strings for tab ids (C2/D6). Only pipeline/ranked are returnable.
 const TAB_IDS = { SETTINGS: 'settings', PIPELINE: 'pipeline', RANKED: 'ranked' } as const;
 const RETURNABLE_TAB_IDS: string[] = [TAB_IDS.PIPELINE, TAB_IDS.RANKED];
-
 // Back-link copy mirrors the ?from source (P2.1/D4); unknown/missing → generic.
 const BACK_LABEL_BY_FROM = { ranked: 'Back to Ranked', pipeline: 'Back to Pipeline' } as const;
 const DEFAULT_BACK_LABEL = 'Back to posting';
@@ -41,9 +32,21 @@ function resolveBackLabel(from: string | null): string {
   if (from === TAB_IDS.RANKED || from === TAB_IDS.PIPELINE) return BACK_LABEL_BY_FROM[from];
   return DEFAULT_BACK_LABEL;
 }
-// Desktop sidebar owns its scroll (P3.1): cap it at the viewport minus fixed chrome —
-// N1 nav + P2 sticky bar + spacing. Recompute if the nav or sticky-bar height changes.
-const NAV_AND_STICKY_OFFSET_PIXELS = 145;
+// No-page-scroll (P8/D2/D3): wrapper pinned to viewport minus N1 nav; overflow:hidden clips so
+// the document never scrolls. Grid children own their height and scroll internally.
+const NAV_HEIGHT_PIXELS = 65;
+const PAGE_HORIZONTAL_PADDING_PIXELS = 24;
+const WRAPPER_STYLE: CSSProperties = {
+  width: '100%', height: `calc(100vh - ${NAV_HEIGHT_PIXELS}px)`, overflow: 'hidden',
+  paddingLeft: PAGE_HORIZONTAL_PADDING_PIXELS, paddingRight: PAGE_HORIZONTAL_PADDING_PIXELS,
+  boxSizing: 'border-box', display: 'flex', flexDirection: 'column',
+};
+const GRID_STYLE: CSSProperties = {
+  display: 'grid', gridTemplateColumns: 'minmax(0, 1.4fr) minmax(360px, 1fr)',
+  gap: 20, alignItems: 'stretch', flex: 1, minHeight: 0,
+};
+const LEFT_COLUMN_STYLE: CSSProperties = { height: '100%', overflow: 'hidden', minHeight: 0 };
+const RIGHT_COLUMN_STYLE: CSSProperties = { height: '100%', overflowY: 'auto', overflowX: 'hidden', paddingRight: 6, minHeight: 0 };
 
 export default function ApplicantDetailPage() {
   const { postingId, appId } = useParams<{ postingId: string; appId: string }>();
@@ -134,37 +137,27 @@ export default function ApplicantDetailPage() {
       );
     }
 
-    const viewer = (
-      <ApplicantResumeViewer
-        applicationId={detail.application.id}
-        resumeMeta={detail.resumeMeta}
-        initialUrl={detail.resumeDownloadUrl}
-      />
-    );
+    const viewer = <ApplicantResumeViewer applicationId={detail.application.id} resumeMeta={detail.resumeMeta} initialUrl={detail.resumeDownloadUrl} />;
     const sidebar = (
-      <Stack gap={16}>
-        <ApplicantScoreCard score={detail.score} />
-        <ApplicantActions
-          applicationId={detail.application.id}
-          currentStageId={detail.application.stageId}
-          archived={Boolean(detail.application.archived)}
-          stages={stages}
-          reasons={reasons}
-          onDone={load}
-        />
-        <ApplicantStageHistory stageChanges={detail.stageChanges} stages={stages} />
-      </Stack>
+      <ApplicantReviewPanel
+        score={detail.score}
+        applicationId={detail.application.id}
+        currentStageId={detail.application.stageId}
+        archived={Boolean(detail.application.archived)}
+        stages={stages}
+        reasons={reasons}
+        stageChanges={detail.stageChanges}
+        onDone={load}
+      />
     );
 
     if (!twoColumn) {
       return <Stack gap={16}>{viewer}{sidebar}</Stack>;
     }
     return (
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.9fr) minmax(340px, 1fr)', gap: 20, alignItems: 'start' }}>
-        {viewer}
-        <div style={{ maxHeight: `calc(100vh - ${NAV_AND_STICKY_OFFSET_PIXELS}px)`, overflowY: 'auto', paddingRight: 8 }}>
-          {sidebar}
-        </div>
+      <div style={GRID_STYLE}>
+        <div style={LEFT_COLUMN_STYLE}>{viewer}</div>
+        <div style={RIGHT_COLUMN_STYLE}>{sidebar}</div>
       </div>
     );
   }
@@ -172,28 +165,31 @@ export default function ApplicantDetailPage() {
   const name = detail?.contact?.fullName ?? 'Applicant';
   const email = detail?.contact?.email;
 
-  // Desktop pins a sticky bar with the back-CTA + identity (P2.1/P2.4); mobile keeps
-  // the PageHeader as its single header.
+  // Desktop pins a sticky bar with the back-CTA + identity (P2.1/P2.4); mobile keeps PageHeader.
+  const header = twoColumn ? (
+    <ApplicantStickyHeader
+      backHref={backHref} backLabel={backLabel} candidateName={name} candidateEmail={email ?? null}
+      previousHref={previousHref} nextHref={nextHref} positionText={positionText}
+    />
+  ) : (
+    <PageHeader
+      label="APPLICANT" title={name} subtitle={email}
+      actions={<Link to={backHref}><Button variant="ghost" size="sm">{backLabel}</Button></Link>}
+    />
+  );
+
+  // Desktop: full-width fixed-viewport wrapper (P8); mobile keeps the centred Container.
+  if (twoColumn) {
+    return (
+      <div style={WRAPPER_STYLE}>
+        {header}
+        {renderBody()}
+      </div>
+    );
+  }
   return (
-    <Container size="xl" style={{ paddingTop: twoColumn ? 0 : 32, paddingBottom: 60 }}>
-      {twoColumn ? (
-        <ApplicantStickyHeader
-          backHref={backHref}
-          backLabel={backLabel}
-          candidateName={name}
-          candidateEmail={email ?? null}
-          previousHref={previousHref}
-          nextHref={nextHref}
-          positionText={positionText}
-        />
-      ) : (
-        <PageHeader
-          label="APPLICANT"
-          title={name}
-          subtitle={email}
-          actions={<Link to={backHref}><Button variant="ghost" size="sm">{backLabel}</Button></Link>}
-        />
-      )}
+    <Container size="xl" style={{ paddingTop: 32, paddingBottom: 60 }}>
+      {header}
       {renderBody()}
     </Container>
   );

@@ -1,19 +1,13 @@
 // FILE: src/pages/employer/Jobs/ApplicantStickyHeader.tsx
-// Desktop-only sticky rail for the applicant detail page (P2.1, R4). Pins the
-// back-CTA + candidate identity below the N1 employer top nav while the resume and
-// score scroll beneath it. Pure presentational — no state, no data fetching; the
-// parent owns backHref/backLabel (reusing the P1 ?from→?tab logic, R5).
+// Desktop header rail for the applicant detail page: back-CTA + candidate identity +
+// prev/next. On the fixed-viewport, no-scroll layout (P8+) the page never scrolls, so
+// this is a plain top flex row — NOT position:sticky, which would float over the score
+// and PDF toolbar below it. Pure presentational; the parent owns backHref/backLabel.
 
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '../../../components/ui';
-
-// N1's EmployerTopNav is a sticky header whose inner bar declares minHeight: 60 under
-// the global `* { box-sizing: border-box }` reset (index.css:22), plus a 1px
-// border-bottom — so its rendered height is 61px. This bar pins directly below it.
-// Source: src/components/layouts/parts/EmployerTopNav.tsx:87 (minHeight) + :83 (border).
-const NAV_HEIGHT_PIXELS = 61;
 
 const ICON_LINK_STYLE = {
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -45,13 +39,11 @@ export default function ApplicantStickyHeader({
   return (
     <div
       style={{
-        position: 'sticky',
-        top: NAV_HEIGHT_PIXELS,
-        zIndex: 20,
+        flexShrink: 0,
         background: 'var(--paper)',
         borderBottom: '1px solid var(--border)',
-        padding: '12px 20px',
-        marginBottom: 16,
+        padding: '8px 4px',
+        marginBottom: 10,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',

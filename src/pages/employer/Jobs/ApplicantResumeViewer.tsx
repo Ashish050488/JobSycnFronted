@@ -13,16 +13,14 @@ import type { ResumeMeta } from '../../../types/employer-applicants';
 
 const REFRESH_ERROR = 'Could not refresh the resume link.';
 
-// Default the browser PDF viewer to fit-width — best for portrait resumes (P2.3, R1).
-// Chrome/Firefox/Safari honour this hash fragment; append with & if the URL already
+// Default the browser PDF viewer to fit-width + no thumbnail/nav pane — best for a
+// full-page portrait resume (P2.3, R1). navpanes=0 hides the left thumbnail rail.
+// Chrome/Firefox/Safari honour these hash fragments; append with & if the URL already
 // carries a fragment so we never produce a double '#'.
+const PDF_VIEW_FRAGMENT = 'zoom=page-width&navpanes=0';
 function appendPdfZoomFragment(url: string): string {
-  return url.includes('#') ? `${url}&zoom=page-width` : `${url}#zoom=page-width`;
+  return url.includes('#') ? `${url}&${PDF_VIEW_FRAGMENT}` : `${url}#${PDF_VIEW_FRAGMENT}`;
 }
-
-// Fill more of the viewport (P2.3). 220px budgets the N1 nav + sticky detail bar +
-// Container top padding + this card's toolbar so the iframe doesn't overflow the fold.
-const IFRAME_VERTICAL_OFFSET_PIXELS = 220;
 
 function formatBytes(bytes: number | null): string {
   if (!bytes || bytes <= 0) return '';
@@ -71,8 +69,8 @@ export default function ApplicantResumeViewer({
   const size = formatBytes(resumeMeta.sizeBytes);
 
   return (
-    <Card padding="sm">
-      <Stack gap={12}>
+    <Card padding="sm" style={{ height: '100%', display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, height: '100%', minHeight: 0 }}>
         <Stack gap={8} dir="row" align="center" justify="space-between" wrap>
           <div style={{ minWidth: 0 }}>
             <div style={{ fontWeight: 600, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{filename}</div>
@@ -100,10 +98,10 @@ export default function ApplicantResumeViewer({
             title={`Resume — ${filename}`}
             src={appendPdfZoomFragment(url)}
             onError={() => setLoadFailed(true)}
-            style={{ width: '100%', minHeight: `calc(100vh - ${IFRAME_VERTICAL_OFFSET_PIXELS}px)`, border: '1px solid var(--border)', borderRadius: 8, background: 'var(--paper-2)' }}
+            style={{ flex: 1, minHeight: 0, width: '100%', border: '1px solid var(--border)', borderRadius: 8, background: 'var(--paper-2)' }}
           />
         )}
-      </Stack>
+      </div>
     </Card>
   );
 }

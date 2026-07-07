@@ -1,6 +1,6 @@
 // FILE: tests/pages/employer/ApplicantScoreCard.test.tsx
 import { describe, it, expect } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import ApplicantScoreCard from '../../../src/pages/employer/Jobs/ApplicantScoreCard';
 import type { ApplicantScore } from '../../../src/types/employer-applicants';
 
@@ -15,7 +15,7 @@ function score(overrides: Partial<ApplicantScore> = {}): ApplicantScore {
 }
 
 describe('ApplicantScoreCard', () => {
-  it('renders score, tier, skill chips and fit rows (summary collapsed by default)', () => {
+  it('renders score, tier, skill chips and fit rows', () => {
     render(<ApplicantScoreCard score={score()} />);
     expect(screen.getByText('82')).toBeInTheDocument();
     expect(screen.getByText('good')).toBeInTheDocument();
@@ -26,23 +26,33 @@ describe('ApplicantScoreCard', () => {
     expect(screen.getByText('5 yrs — strong')).toBeInTheDocument();
   });
 
-  it('does not render the Summary trigger when there is no explanation (P3.2)', () => {
-    render(<ApplicantScoreCard score={score({ explanation: null })} />);
-    expect(screen.queryByRole('button', { name: /Summary/ })).toBeNull();
+  it('uses the tighter "sm" card padding (P5/D4)', () => {
+    const { container } = render(<ApplicantScoreCard score={score()} />);
+    expect(container.querySelector('.card')?.getAttribute('style')).toContain('padding: 12px');
   });
 
-  it('Summary is collapsed by default and toggles on click (P3.2)', () => {
+  it('renders inline MATCHED/MISSING/BONUS labels with counts (P4.2)', () => {
     render(<ApplicantScoreCard score={score()} />);
-    const trigger = screen.getByRole('button', { name: /Summary/ });
-    expect(trigger).toHaveAttribute('aria-expanded', 'false');
-    expect(screen.queryByText('Solid frontend match.')).toBeNull();
+    expect(screen.getByText('MATCHED (2)')).toBeInTheDocument();
+    expect(screen.getByText('MISSING (1)')).toBeInTheDocument();
+    expect(screen.getByText('BONUS (1)')).toBeInTheDocument();
+  });
 
-    fireEvent.click(trigger);
-    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+  it('renders a missing fit value as an em dash', () => {
+    render(<ApplicantScoreCard score={score({ locationFit: null })} />);
+    expect(screen.getByText('Location').parentElement).toHaveTextContent('—');
+  });
+
+  it('Summary text is always visible when explanation is present (P4.1 regression undo)', () => {
+    render(<ApplicantScoreCard score={score()} />);
     expect(screen.getByText('Solid frontend match.')).toBeInTheDocument();
+    // Summary must never become a click again (V8).
+    expect(screen.queryByRole('button', { name: /Summary/ })).toBeNull();
+    expect(document.querySelector('[aria-expanded]')).toBeNull();
+  });
 
-    fireEvent.click(trigger);
-    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  it('does not render the summary paragraph when there is no explanation', () => {
+    render(<ApplicantScoreCard score={score({ explanation: null })} />);
     expect(screen.queryByText('Solid frontend match.')).toBeNull();
   });
 
