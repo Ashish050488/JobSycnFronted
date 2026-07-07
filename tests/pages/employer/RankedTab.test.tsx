@@ -64,14 +64,26 @@ describe('RankedTab', () => {
     renderTab();
     expect(await screen.findByText('Asha Rao')).toBeInTheDocument();
     expect(screen.getByText('asha@x.com')).toBeInTheDocument();
-    expect(screen.getByText('82 · good')).toBeInTheDocument();
+    expect(screen.getByText('AI Score 82/100 · good match')).toBeInTheDocument();
     expect(screen.getByText('Screening')).toBeInTheDocument(); // stage name
   });
 
-  it('shows "Not scored" when score is null', async () => {
-    listApplicantsForPosting.mockResolvedValue([applicant({ score: null })]);
+  it('shows "Not scored" when score is null and the application is old (P1.5)', async () => {
+    listApplicantsForPosting.mockResolvedValue([applicant({
+      score: null,
+      application: { id: 'a1', jobId: 'j1', contactId: 'c1', stageId: 's1', archived: null, appliedAt: '2020-01-01T00:00:00Z', lastStageMovedAt: 't' },
+    })]);
     renderTab();
     expect(await screen.findByText('Not scored')).toBeInTheDocument();
+  });
+
+  it('shows "Scoring…" when score is null but the application is fresh (P1.5)', async () => {
+    listApplicantsForPosting.mockResolvedValue([applicant({
+      score: null,
+      application: { id: 'a1', jobId: 'j1', contactId: 'c1', stageId: 's1', archived: null, appliedAt: new Date().toISOString(), lastStageMovedAt: 't' },
+    })]);
+    renderTab();
+    expect(await screen.findByText('Scoring…')).toBeInTheDocument();
   });
 
   it('changing the sort dropdown refetches with the new sort', async () => {
@@ -86,7 +98,7 @@ describe('RankedTab', () => {
     listApplicantsForPosting.mockResolvedValue([applicant()]);
     renderTab();
     const link = (await screen.findByText('View')).closest('a');
-    expect(link?.getAttribute('href')).toBe('/employer/jobs/p1/applicants/a1');
+    expect(link?.getAttribute('href')).toBe('/employer/jobs/p1/applicants/a1?from=ranked');
   });
 
   it('shows an error Alert + Retry that reloads', async () => {

@@ -80,6 +80,31 @@ describe('PipelineTab', () => {
     expect(screen.queryByText('Name gone')).toBeNull();
   });
 
+  it('renders the AI score label on a scored card (P1.3)', async () => {
+    const scored: Applicant = {
+      ...applicant('a', 's1'),
+      score: { id: 'sc1', score: 35, tier: 'weak', matchedSkills: [], missingSkills: [], explanation: null, processedAt: 't', processingError: null },
+    };
+    listApplicantsForPosting.mockResolvedValue([scored]);
+    renderTab();
+    expect(await screen.findByText('AI 35 · weak match')).toBeInTheDocument();
+  });
+
+  it('shows "Scoring…" on a fresh unscored card and "Not scored" on an old one (P1.5)', async () => {
+    const fresh: Applicant = {
+      ...applicant('fresh', 's1'),
+      application: { id: 'fresh', jobId: 'j1', contactId: 'c-fresh', stageId: 's1', archived: null, appliedAt: new Date().toISOString(), lastStageMovedAt: 't' },
+    };
+    const old: Applicant = {
+      ...applicant('old', 's1'),
+      application: { id: 'old', jobId: 'j1', contactId: 'c-old', stageId: 's1', archived: null, appliedAt: '2020-01-01T00:00:00Z', lastStageMovedAt: 't' },
+    };
+    listApplicantsForPosting.mockResolvedValue([fresh, old]);
+    renderTab();
+    expect(await screen.findByText('Scoring…')).toBeInTheDocument();
+    expect(screen.getByText('Not scored')).toBeInTheDocument();
+  });
+
   it('shows an error Alert + Retry that reloads', async () => {
     listApplicantsForPosting.mockRejectedValueOnce(new EmployerApplicantsApiError(500, 'BOOM', 'Pipeline exploded'));
     renderTab();

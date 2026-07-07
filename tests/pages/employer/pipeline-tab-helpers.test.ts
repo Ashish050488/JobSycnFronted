@@ -2,6 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   groupApplicantsByStage, findApplicantById, moveApplicantInMap,
+  formatKanbanScoreLabel, formatRankedScoreLabel, isScoringInProgress,
 } from '../../../src/pages/employer/Jobs/pipeline-tab-helpers';
 import type { Applicant, Stage } from '../../../src/types/employer-applicants';
 
@@ -48,5 +49,27 @@ describe('pipeline-tab-helpers', () => {
     const grouped = groupApplicantsByStage([applicant('a', 's1')], STAGES);
     const moved = moveApplicantInMap(grouped, findApplicantById(grouped, 'a')!, 's1');
     expect(moved).toBe(grouped); // same reference — no state churn
+  });
+
+  it('formatKanbanScoreLabel prefixes AI and suffixes match', () => {
+    expect(formatKanbanScoreLabel(35, 'weak')).toBe('AI 35 · weak match');
+  });
+
+  it('formatRankedScoreLabel shows the /100 denominator', () => {
+    expect(formatRankedScoreLabel(35, 'weak')).toBe('AI Score 35/100 · weak match');
+  });
+
+  it('isScoringInProgress: within the 15-min window is true, past it is false', () => {
+    const now = new Date('2026-07-07T12:00:00Z');
+    expect(isScoringInProgress('2026-07-07T12:00:00Z', now)).toBe(true); // just now
+    expect(isScoringInProgress('2026-07-07T11:46:00Z', now)).toBe(true); // 14 min ago
+    expect(isScoringInProgress('2026-07-07T11:44:00Z', now)).toBe(false); // 16 min ago
+  });
+
+  it('isScoringInProgress: null/undefined/invalid createdAt is false', () => {
+    const now = new Date('2026-07-07T12:00:00Z');
+    expect(isScoringInProgress(null, now)).toBe(false);
+    expect(isScoringInProgress(undefined, now)).toBe(false);
+    expect(isScoringInProgress('not-a-date', now)).toBe(false);
   });
 });

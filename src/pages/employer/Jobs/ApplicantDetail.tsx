@@ -6,7 +6,7 @@
 // move/archive/unarchive we refetch the full detail so the timeline stays truthful (C9).
 
 import { useCallback, useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import {
   Container, Card, Button, Alert, PageHeader, Stack, SkeletonCard,
 } from '../../../components/ui';
@@ -23,8 +23,14 @@ import ApplicantStageHistory from './ApplicantStageHistory';
 type LoadState = 'loading' | 'loaded' | 'error' | 'not_found';
 const LOAD_ERROR_MESSAGE = 'Could not load this applicant.';
 
+// No magic strings for tab ids (C2/D6). Only pipeline/ranked are returnable; a
+// missing/other ?from lands on Settings (no query), the posting page's default.
+const TAB_IDS = { SETTINGS: 'settings', PIPELINE: 'pipeline', RANKED: 'ranked' } as const;
+const RETURNABLE_TAB_IDS: string[] = [TAB_IDS.PIPELINE, TAB_IDS.RANKED];
+
 export default function ApplicantDetailPage() {
   const { postingId, appId } = useParams<{ postingId: string; appId: string }>();
+  const [searchParams] = useSearchParams();
   const { w } = useViewport();
   const twoColumn = w > 900;
 
@@ -59,7 +65,10 @@ export default function ApplicantDetailPage() {
 
   useEffect(() => { void load(); }, [load]);
 
-  const backHref = postingId ? `/employer/jobs/${postingId}` : '/employer/jobs';
+  // Return the user to the tab they came from (P1.4): ?from=pipeline|ranked → ?tab=…
+  const fromTab = searchParams.get('from');
+  const backTabQuery = fromTab && RETURNABLE_TAB_IDS.includes(fromTab) ? `?tab=${fromTab}` : '';
+  const backHref = postingId ? `/employer/jobs/${postingId}${backTabQuery}` : '/employer/jobs';
 
   function renderBody() {
     if (loadState === 'loading') return <SkeletonCard lines={6} />;

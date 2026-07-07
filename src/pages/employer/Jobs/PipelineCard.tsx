@@ -9,6 +9,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { Card, Badge } from '../../../components/ui';
 import type { Applicant } from '../../../types/employer-applicants';
 import { tierBadgeVariant } from './applicant-view-helpers';
+import { formatKanbanScoreLabel, isScoringInProgress, SCORING_STATE_LABEL } from './pipeline-tab-helpers';
 
 export default function PipelineCard({ applicant, isDragging }: { applicant: Applicant; isDragging?: boolean }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging: isActive } = useSortable({
@@ -34,9 +35,11 @@ export default function PipelineCard({ applicant, isDragging }: { applicant: App
         <div style={{ fontWeight: 600, color: 'var(--ink)', fontSize: '0.875rem' }}>{contact?.fullName ?? '—'}</div>
         <div style={{ fontSize: '0.75rem', color: 'var(--ink-muted)', marginBottom: 8 }}>{contact?.email ?? ''}</div>
         {score && !score.processingError ? (
-          <Badge variant={tierBadgeVariant(score.tier)} size="sm">{score.score} · {score.tier}</Badge>
+          <Badge variant={tierBadgeVariant(score.tier)} size="sm">{formatKanbanScoreLabel(score.score, score.tier)}</Badge>
         ) : (
-          <Badge variant="neutral" size="sm">Not scored</Badge>
+          <Badge variant="neutral" size="sm">
+            {isScoringInProgress(applicant.application.appliedAt) ? SCORING_STATE_LABEL.IN_PROGRESS : SCORING_STATE_LABEL.NOT_SCORED}
+          </Badge>
         )}
       </Card>
     </div>

@@ -38,9 +38,9 @@ function detail(): ApplicantDetail {
   };
 }
 
-function renderPage() {
+function renderPage(path = '/employer/jobs/p1/applicants/a1') {
   return render(
-    <MemoryRouter initialEntries={['/employer/jobs/p1/applicants/a1']}>
+    <MemoryRouter initialEntries={[path]}>
       <Routes>
         <Route path="/employer/jobs/:postingId/applicants/:appId" element={<ApplicantDetailPage />} />
       </Routes>
@@ -78,5 +78,26 @@ describe('ApplicantDetail page', () => {
     expect(screen.getByText('82')).toBeInTheDocument(); // score card
     expect(screen.getByText('Stage history')).toBeInTheDocument();
     expect(screen.getByText('No stage changes yet.')).toBeInTheDocument();
+  });
+
+  it('?from=pipeline makes the back link return to the Pipeline tab (P1.4)', async () => {
+    api.fetchApplicantDetail.mockResolvedValue(detail());
+    renderPage('/employer/jobs/p1/applicants/a1?from=pipeline');
+    await screen.findByText('Asha Rao');
+    expect(screen.getByRole('link', { name: 'Back to posting' })).toHaveAttribute('href', '/employer/jobs/p1?tab=pipeline');
+  });
+
+  it('?from=ranked makes the back link return to the Ranked tab (P1.4)', async () => {
+    api.fetchApplicantDetail.mockResolvedValue(detail());
+    renderPage('/employer/jobs/p1/applicants/a1?from=ranked');
+    await screen.findByText('Asha Rao');
+    expect(screen.getByRole('link', { name: 'Back to posting' })).toHaveAttribute('href', '/employer/jobs/p1?tab=ranked');
+  });
+
+  it('no ?from leaves the back link on the posting default (Settings)', async () => {
+    api.fetchApplicantDetail.mockResolvedValue(detail());
+    renderPage();
+    await screen.findByText('Asha Rao');
+    expect(screen.getByRole('link', { name: 'Back to posting' })).toHaveAttribute('href', '/employer/jobs/p1');
   });
 });

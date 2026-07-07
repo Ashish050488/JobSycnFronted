@@ -14,6 +14,9 @@ import type { Column } from '../../../components/ui';
 import { listApplicantsForPosting, listStages, EmployerApplicantsApiError } from '../../../api/employer-applicants-api';
 import type { Applicant, Stage, ApplicantSort } from '../../../types/employer-applicants';
 import { tierBadgeVariant, formatRelativeTime } from './applicant-view-helpers';
+import {
+  formatRankedScoreLabel, isScoringInProgress, SCORING_STATE_LABEL,
+} from './pipeline-tab-helpers';
 
 type LoadState = 'loading' | 'loaded' | 'error';
 const LOAD_ERROR_MESSAGE = 'Could not load applicants.';
@@ -25,10 +28,12 @@ const SORT_OPTIONS = [
 
 function ScoreCell({ applicant }: { applicant: Applicant }) {
   if (!applicant.score || applicant.score.processingError) {
-    return <span style={{ color: 'var(--ink-muted)', fontSize: '0.8125rem' }}>Not scored</span>;
+    const label = isScoringInProgress(applicant.application.appliedAt)
+      ? SCORING_STATE_LABEL.IN_PROGRESS : SCORING_STATE_LABEL.NOT_SCORED;
+    return <span style={{ color: 'var(--ink-muted)', fontSize: '0.8125rem' }}>{label}</span>;
   }
   const { score, tier } = applicant.score;
-  return <Badge variant={tierBadgeVariant(tier)}>{score} · {tier}</Badge>;
+  return <Badge variant={tierBadgeVariant(tier)}>{formatRankedScoreLabel(score, tier)}</Badge>;
 }
 
 export default function RankedTab({ postingId }: { postingId: string }) {
@@ -84,7 +89,7 @@ export default function RankedTab({ postingId }: { postingId: string }) {
       key: 'actions',
       header: '',
       render: (applicant) => (
-        <Link to={`/employer/jobs/${postingId}/applicants/${applicant.application.id}`}>
+        <Link to={`/employer/jobs/${postingId}/applicants/${applicant.application.id}?from=ranked`}>
           <Button variant="ghost" size="sm">View</Button>
         </Link>
       ),

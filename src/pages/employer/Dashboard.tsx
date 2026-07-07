@@ -56,10 +56,6 @@ export default function EmployerDashboard() {
               </Stack>
             </div>
 
-            <p style={{ fontSize: '0.875rem', color: 'var(--ink-muted)', lineHeight: 1.55 }}>
-              Postings, applicants, and Kanban land in Steps 4–7.
-            </p>
-
             <div>
               <Button variant="ghost" onClick={logout}>Sign out</Button>
             </div>
