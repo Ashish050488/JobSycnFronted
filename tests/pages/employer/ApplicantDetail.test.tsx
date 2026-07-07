@@ -48,10 +48,15 @@ function renderPage(path = '/employer/jobs/p1/applicants/a1') {
   );
 }
 
+function setViewportWidth(width: number) {
+  Object.defineProperty(window, 'innerWidth', { value: width, configurable: true, writable: true });
+}
+
 beforeEach(() => {
   api.fetchApplicantDetail.mockReset();
   api.listStages.mockReset().mockResolvedValue(STAGES);
   api.listArchiveReasons.mockReset().mockResolvedValue([]);
+  setViewportWidth(1200); // desktop (twoColumn) unless a test overrides it
 });
 
 describe('ApplicantDetail page', () => {
@@ -74,30 +79,53 @@ describe('ApplicantDetail page', () => {
     const { container } = renderPage();
     expect(await screen.findByText('Asha Rao')).toBeInTheDocument();
     expect(screen.getByText('asha@x.com')).toBeInTheDocument();
-    expect(container.querySelector('iframe')?.getAttribute('src')).toBe('/api/public/resume-download?token=t1');
+    expect(container.querySelector('iframe')?.getAttribute('src')).toBe('/api/public/resume-download?token=t1#zoom=page-width');
     expect(screen.getByText('82')).toBeInTheDocument(); // score card
     expect(screen.getByText('Stage history')).toBeInTheDocument();
     expect(screen.getByText('No stage changes yet.')).toBeInTheDocument();
   });
 
-  it('?from=pipeline makes the back link return to the Pipeline tab (P1.4)', async () => {
-    api.fetchApplicantDetail.mockResolvedValue(detail());
-    renderPage('/employer/jobs/p1/applicants/a1?from=pipeline');
-    await screen.findByText('Asha Rao');
-    expect(screen.getByRole('link', { name: 'Back to posting' })).toHaveAttribute('href', '/employer/jobs/p1?tab=pipeline');
-  });
-
-  it('?from=ranked makes the back link return to the Ranked tab (P1.4)', async () => {
-    api.fetchApplicantDetail.mockResolvedValue(detail());
-    renderPage('/employer/jobs/p1/applicants/a1?from=ranked');
-    await screen.findByText('Asha Rao');
-    expect(screen.getByRole('link', { name: 'Back to posting' })).toHaveAttribute('href', '/employer/jobs/p1?tab=ranked');
-  });
-
-  it('no ?from leaves the back link on the posting default (Settings)', async () => {
+  it('desktop: renders the sticky bar and hides the PageHeader (P2.1/P2.4)', async () => {
     api.fetchApplicantDetail.mockResolvedValue(detail());
     renderPage();
     await screen.findByText('Asha Rao');
-    expect(screen.getByRole('link', { name: 'Back to posting' })).toHaveAttribute('href', '/employer/jobs/p1');
+    expect(screen.getByRole('link', { name: 'Back to posting' })).toBeInTheDocument(); // sticky back CTA
+    expect(screen.queryByText('APPLICANT')).toBeNull(); // PageHeader label not rendered
+  });
+
+  it('mobile: renders the PageHeader and no sticky bar', async () => {
+    setViewportWidth(800);
+    api.fetchApplicantDetail.mockResolvedValue(detail());
+    renderPage();
+    await screen.findByText('Asha Rao');
+    expect(screen.getByText('APPLICANT')).toBeInTheDocument(); // PageHeader label present
+  });
+
+  it('desktop grid uses the wider 1.9fr PDF column (P2.2 regression guard)', async () => {
+    api.fetchApplicantDetail.mockResolvedValue(detail());
+    const { container } = renderPage();
+    await screen.findByText('Asha Rao');
+    expect(container.querySelector('div[style*="1.9fr"]')).not.toBeNull();
+  });
+
+  it('?from=pipeline → back link labelled "Back to Pipeline" pointing at the tab (P1.4/P2.1)', async () => {
+    api.fetchApplicantDetail.mockResolvedValue(detail());
+    renderPage('/employer/jobs/p1/applicants/a1?from=pipeline');
+    await screen.findByText('Asha Rao');
+    expect(screen.getByRole('link', { name: /Back to Pipeline/ })).toHaveAttribute('href', '/employer/jobs/p1?tab=pipeline');
+  });
+
+  it('?from=ranked → back link labelled "Back to Ranked" pointing at the tab (P1.4/P2.1)', async () => {
+    api.fetchApplicantDetail.mockResolvedValue(detail());
+    renderPage('/employer/jobs/p1/applicants/a1?from=ranked');
+    await screen.findByText('Asha Rao');
+    expect(screen.getByRole('link', { name: /Back to Ranked/ })).toHaveAttribute('href', '/employer/jobs/p1?tab=ranked');
+  });
+
+  it('no ?from → generic "Back to posting" label and no tab query (P1.4)', async () => {
+    api.fetchApplicantDetail.mockResolvedValue(detail());
+    renderPage();
+    await screen.findByText('Asha Rao');
+    expect(screen.getByRole('link', { name: /Back to posting/ })).toHaveAttribute('href', '/employer/jobs/p1');
   });
 });

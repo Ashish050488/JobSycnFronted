@@ -19,6 +19,7 @@ import ApplicantResumeViewer from './ApplicantResumeViewer';
 import ApplicantScoreCard from './ApplicantScoreCard';
 import ApplicantActions from './ApplicantActions';
 import ApplicantStageHistory from './ApplicantStageHistory';
+import ApplicantStickyHeader from './ApplicantStickyHeader';
 
 type LoadState = 'loading' | 'loaded' | 'error' | 'not_found';
 const LOAD_ERROR_MESSAGE = 'Could not load this applicant.';
@@ -27,6 +28,15 @@ const LOAD_ERROR_MESSAGE = 'Could not load this applicant.';
 // missing/other ?from lands on Settings (no query), the posting page's default.
 const TAB_IDS = { SETTINGS: 'settings', PIPELINE: 'pipeline', RANKED: 'ranked' } as const;
 const RETURNABLE_TAB_IDS: string[] = [TAB_IDS.PIPELINE, TAB_IDS.RANKED];
+
+// Back-link copy mirrors the ?from source (P2.1/D4); unknown/missing → generic.
+const BACK_LABEL_BY_FROM = { ranked: 'Back to Ranked', pipeline: 'Back to Pipeline' } as const;
+const DEFAULT_BACK_LABEL = 'Back to posting';
+
+function resolveBackLabel(from: string | null): string {
+  if (from === TAB_IDS.RANKED || from === TAB_IDS.PIPELINE) return BACK_LABEL_BY_FROM[from];
+  return DEFAULT_BACK_LABEL;
+}
 
 export default function ApplicantDetailPage() {
   const { postingId, appId } = useParams<{ postingId: string; appId: string }>();
@@ -69,6 +79,7 @@ export default function ApplicantDetailPage() {
   const fromTab = searchParams.get('from');
   const backTabQuery = fromTab && RETURNABLE_TAB_IDS.includes(fromTab) ? `?tab=${fromTab}` : '';
   const backHref = postingId ? `/employer/jobs/${postingId}${backTabQuery}` : '/employer/jobs';
+  const backLabel = resolveBackLabel(fromTab);
 
   function renderBody() {
     if (loadState === 'loading') return <SkeletonCard lines={6} />;
@@ -119,7 +130,7 @@ export default function ApplicantDetailPage() {
       return <Stack gap={16}>{viewer}{sidebar}</Stack>;
     }
     return (
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.6fr) minmax(320px, 1fr)', gap: 20, alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.9fr) minmax(340px, 1fr)', gap: 20, alignItems: 'start' }}>
         {viewer}
         {sidebar}
       </div>
@@ -129,14 +140,26 @@ export default function ApplicantDetailPage() {
   const name = detail?.contact?.fullName ?? 'Applicant';
   const email = detail?.contact?.email;
 
+  // Desktop pins a sticky bar with the back-CTA + identity (P2.1); rendering the
+  // PageHeader too would duplicate it (P2.4). Mobile has no sticky bar — keep the
+  // PageHeader as the single header there.
   return (
-    <Container size="xl" style={{ paddingTop: 32, paddingBottom: 60 }}>
-      <PageHeader
-        label="APPLICANT"
-        title={name}
-        subtitle={email}
-        actions={<Link to={backHref}><Button variant="ghost" size="sm">Back to posting</Button></Link>}
-      />
+    <Container size="xl" style={{ paddingTop: twoColumn ? 0 : 32, paddingBottom: 60 }}>
+      {twoColumn ? (
+        <ApplicantStickyHeader
+          backHref={backHref}
+          backLabel={backLabel}
+          candidateName={name}
+          candidateEmail={email ?? null}
+        />
+      ) : (
+        <PageHeader
+          label="APPLICANT"
+          title={name}
+          subtitle={email}
+          actions={<Link to={backHref}><Button variant="ghost" size="sm">{backLabel}</Button></Link>}
+        />
+      )}
       {renderBody()}
     </Container>
   );

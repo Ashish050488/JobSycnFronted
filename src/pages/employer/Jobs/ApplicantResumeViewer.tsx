@@ -13,6 +13,17 @@ import type { ResumeMeta } from '../../../types/employer-applicants';
 
 const REFRESH_ERROR = 'Could not refresh the resume link.';
 
+// Default the browser PDF viewer to fit-width — best for portrait resumes (P2.3, R1).
+// Chrome/Firefox/Safari honour this hash fragment; append with & if the URL already
+// carries a fragment so we never produce a double '#'.
+function appendPdfZoomFragment(url: string): string {
+  return url.includes('#') ? `${url}&zoom=page-width` : `${url}#zoom=page-width`;
+}
+
+// Fill more of the viewport (P2.3). 220px budgets the N1 nav + sticky detail bar +
+// Container top padding + this card's toolbar so the iframe doesn't overflow the fold.
+const IFRAME_VERTICAL_OFFSET_PIXELS = 220;
+
 function formatBytes(bytes: number | null): string {
   if (!bytes || bytes <= 0) return '';
   const units = ['B', 'KB', 'MB'];
@@ -87,9 +98,9 @@ export default function ApplicantResumeViewer({
           <iframe
             key={url}
             title={`Resume — ${filename}`}
-            src={url}
+            src={appendPdfZoomFragment(url)}
             onError={() => setLoadFailed(true)}
-            style={{ width: '100%', minHeight: 800, border: '1px solid var(--border)', borderRadius: 8, background: 'var(--paper-2)' }}
+            style={{ width: '100%', minHeight: `calc(100vh - ${IFRAME_VERTICAL_OFFSET_PIXELS}px)`, border: '1px solid var(--border)', borderRadius: 8, background: 'var(--paper-2)' }}
           />
         )}
       </Stack>
