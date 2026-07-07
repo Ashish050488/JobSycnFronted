@@ -36,7 +36,6 @@ export interface ApplyFormData {
   lastName: string;
   email: string;
   phone: string;
-  yearsExperience: string;
   coverNote: string;
   consent_dpdp: boolean;
   consent_futureOpportunities: boolean;

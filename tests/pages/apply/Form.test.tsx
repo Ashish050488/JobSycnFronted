@@ -86,6 +86,20 @@ describe('ApplyForm page', () => {
     expect(form.get('consent_dpdp')).toBe('true');
     expect(form.get('website_url')).toBe('');
     expect(form.get('resume')).toBeInstanceOf(File);
+    // P9: the removed field is no longer sent (backend stores null).
+    expect(form.has('yearsExperience')).toBe(false);
+  });
+
+  it('does not render a "Years of experience" field and still submits (P9)', async () => {
+    fetchPublicJob.mockResolvedValue(JOB);
+    submitApplication.mockResolvedValue({ applicationId: 'a1' });
+    const { container } = renderForm();
+    await screen.findByRole('heading', { name: 'React Developer' });
+    expect(screen.queryByLabelText('Years of experience', { exact: false })).toBeNull();
+    await fillValid(container);
+    fireEvent.click(screen.getByRole('button', { name: 'Submit application' }));
+    expect(await screen.findByText('SUCCESS PAGE')).toBeInTheDocument();
+    expect((submitApplication.mock.calls[0][2] as FormData).has('yearsExperience')).toBe(false);
   });
 
   it('maps a server field error onto the field', async () => {
