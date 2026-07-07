@@ -41,4 +41,28 @@ describe('ApplicantStickyHeader', () => {
     const { container } = renderHeader();
     expect(container.querySelector('a svg')).not.toBeNull();
   });
+
+  it('renders prev/next links and position text when provided (PP2)', () => {
+    renderHeader({ previousHref: '/prev?from=ranked', nextHref: '/next?from=ranked', positionText: '2 of 3' });
+    const prev = screen.getByRole('link', { name: 'Previous applicant' });
+    const next = screen.getByRole('link', { name: 'Next applicant' });
+    expect(prev).toHaveAttribute('href', '/prev?from=ranked');
+    expect(next).toHaveAttribute('href', '/next?from=ranked');
+    expect(screen.getByText('2 of 3')).toBeInTheDocument();
+  });
+
+  it('renders a disabled Previous button (not a link) when previousHref is null', () => {
+    renderHeader({ previousHref: null, nextHref: '/next', positionText: '1 of 3' });
+    const prev = screen.getByRole('button', { name: 'Previous applicant' });
+    expect(prev).toBeDisabled();
+    expect(screen.queryByRole('link', { name: 'Previous applicant' })).toBeNull();
+    expect(screen.getByRole('link', { name: 'Next applicant' })).toBeInTheDocument();
+  });
+
+  it('renders NO right cluster when none of the PP2 props are passed (P2 backward compat)', () => {
+    renderHeader();
+    expect(screen.queryByRole('link', { name: 'Previous applicant' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Previous applicant' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Next applicant' })).toBeNull();
+  });
 });

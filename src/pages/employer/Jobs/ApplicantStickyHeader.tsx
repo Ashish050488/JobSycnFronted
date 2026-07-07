@@ -4,8 +4,10 @@
 // score scroll beneath it. Pure presentational — no state, no data fetching; the
 // parent owns backHref/backLabel (reusing the P1 ?from→?tab logic, R5).
 
+import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from '../../../components/ui';
 
 // N1's EmployerTopNav is a sticky header whose inner bar declares minHeight: 60 under
 // the global `* { box-sizing: border-box }` reset (index.css:22), plus a 1px
@@ -13,14 +15,33 @@ import { ArrowLeft } from 'lucide-react';
 // Source: src/components/layouts/parts/EmployerTopNav.tsx:87 (minHeight) + :83 (border).
 const NAV_HEIGHT_PIXELS = 61;
 
+const ICON_LINK_STYLE = {
+  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+  width: 32, height: 32, borderRadius: 8, color: 'var(--ink)',
+  border: '1px solid var(--border)', textDecoration: 'none',
+} as const;
+
+/** One prev/next control (PP2/D3): a Link when navigable, a disabled Button at the end. */
+function NavIcon({ href, label, children }: { href: string | null; label: string; children: ReactNode }) {
+  if (href) return <Link to={href} aria-label={label} style={ICON_LINK_STYLE}>{children}</Link>;
+  return <Button variant="ghost" size="sm" disabled aria-label={label}>{children}</Button>;
+}
+
 export default function ApplicantStickyHeader({
   backHref, backLabel, candidateName, candidateEmail,
+  previousHref, nextHref, positionText,
 }: {
   backHref: string;
   backLabel: string;
   candidateName: string;
   candidateEmail: string | null;
+  previousHref?: string | null;
+  nextHref?: string | null;
+  positionText?: string;
 }) {
+  // Right cluster only when there's prev/next nav to show — otherwise render exactly
+  // as P2 did (backward compat for callers that pass none of these).
+  const hasNav = Boolean(previousHref || nextHref || positionText);
   return (
     <div
       style={{
@@ -48,7 +69,7 @@ export default function ApplicantStickyHeader({
         <ArrowLeft size={16} aria-hidden="true" />
         {backLabel}
       </Link>
-      <div style={{ minWidth: 0, textAlign: 'right' }}>
+      <div style={{ minWidth: 0, textAlign: 'right', flex: 1 }}>
         <div style={{ fontWeight: 600, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {candidateName}
         </div>
@@ -58,6 +79,13 @@ export default function ApplicantStickyHeader({
           </div>
         )}
       </div>
+      {hasNav && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          <NavIcon href={previousHref ?? null} label="Previous applicant"><ChevronLeft size={16} aria-hidden="true" /></NavIcon>
+          {positionText && <span style={{ fontSize: '0.8rem', color: 'var(--ink-muted)', whiteSpace: 'nowrap' }}>{positionText}</span>}
+          <NavIcon href={nextHref ?? null} label="Next applicant"><ChevronRight size={16} aria-hidden="true" /></NavIcon>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,20 +1,20 @@
 // FILE: src/pages/employer/Jobs/ApplicantDetail.tsx
-// Applicant detail page (D3) — the last screen of the employer pipeline. On mount it
-// fetches detail + stages + archive reasons in parallel. Desktop (>900px) is two
-// columns: resume viewer left, score/actions/history right; mobile stacks them with
-// the resume first (D9). A 404 explains a stale link rather than bouncing. After any
-// move/archive/unarchive we refetch the full detail so the timeline stays truthful (C9).
+// Applicant detail page (D3) — the last screen of the employer pipeline. Fetches
+// detail + stages + archive reasons in parallel; desktop (>900px) is two columns
+// (resume left, score/actions/history right), mobile stacks them. A 404 explains a
+// stale link rather than bouncing. PP2 adds prev/next nav over the source-tab list.
 
 import { useCallback, useEffect, useState } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   Container, Card, Button, Alert, PageHeader, Stack, SkeletonCard,
 } from '../../../components/ui';
 import {
-  fetchApplicantDetail, listStages, listArchiveReasons, EmployerApplicantsApiError,
+  fetchApplicantDetail, listApplicantsForPosting, listStages, listArchiveReasons, EmployerApplicantsApiError,
 } from '../../../api/employer-applicants-api';
-import type { ApplicantDetail, Stage, ArchiveReason } from '../../../types/employer-applicants';
+import type { Applicant, ApplicantDetail, ApplicantSort, Stage, ArchiveReason } from '../../../types/employer-applicants';
 import { useViewport } from '../../../hooks/shared/useViewport';
+import { useApplicantKeyboardNav } from '../../../hooks/employer/useApplicantKeyboardNav';
 import ApplicantResumeViewer from './ApplicantResumeViewer';
 import ApplicantScoreCard from './ApplicantScoreCard';
 import ApplicantActions from './ApplicantActions';
@@ -22,7 +22,11 @@ import ApplicantStageHistory from './ApplicantStageHistory';
 import ApplicantStickyHeader from './ApplicantStickyHeader';
 
 type LoadState = 'loading' | 'loaded' | 'error' | 'not_found';
+type ListStatus = 'idle' | 'loading' | 'loaded' | 'failed';
 const LOAD_ERROR_MESSAGE = 'Could not load this applicant.';
+
+// Prev/next list order mirrors the source tab (PP2/R4): Ranked → score, else date.
+const sortForFrom = (from: string | null): ApplicantSort => (from === 'ranked' ? 'score' : 'date');
 
 // No magic strings for tab ids (C2/D6). Only pipeline/ranked are returnable; a
 // missing/other ?from lands on Settings (no query), the posting page's default.
@@ -41,6 +45,7 @@ function resolveBackLabel(from: string | null): string {
 export default function ApplicantDetailPage() {
   const { postingId, appId } = useParams<{ postingId: string; appId: string }>();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { w } = useViewport();
   const twoColumn = w > 900;
 
@@ -49,6 +54,8 @@ export default function ApplicantDetailPage() {
   const [reasons, setReasons] = useState<ArchiveReason[]>([]);
   const [loadState, setLoadState] = useState<LoadState>('loading');
   const [lastError, setLastError] = useState<string>(LOAD_ERROR_MESSAGE);
+  const [listApplicants, setListApplicants] = useState<Applicant[]>([]);
+  const [, setListStatus] = useState<ListStatus>('idle');
 
   const load = useCallback(async () => {
     if (!appId) return;
@@ -80,6 +87,30 @@ export default function ApplicantDetailPage() {
   const backTabQuery = fromTab && RETURNABLE_TAB_IDS.includes(fromTab) ? `?tab=${fromTab}` : '';
   const backHref = postingId ? `/employer/jobs/${postingId}${backTabQuery}` : '/employer/jobs';
   const backLabel = resolveBackLabel(fromTab);
+
+  // Prev/next (PP2): fetch the source-tab-ordered list; failure degrades silently (D2).
+  useEffect(() => {
+    if (!postingId) return undefined;
+    let isActive = true;
+    setListStatus('loading');
+    listApplicantsForPosting(postingId, { sort: sortForFrom(fromTab) })
+      .then((items) => { if (isActive) { setListApplicants(items); setListStatus('loaded'); } })
+      .catch(() => { if (isActive) setListStatus('failed'); });
+    return () => { isActive = false; };
+  }, [postingId, fromTab]);
+
+  const currentIndex = listApplicants.findIndex((item) => item.application.id === appId);
+  const isInList = currentIndex >= 0;
+  const buildDetailHref = (targetId: string) => `/employer/jobs/${postingId}/applicants/${targetId}${fromTab ? `?from=${fromTab}` : ''}`;
+  const previousHref = isInList && currentIndex > 0 ? buildDetailHref(listApplicants[currentIndex - 1].application.id) : null;
+  const nextHref = isInList && currentIndex < listApplicants.length - 1 ? buildDetailHref(listApplicants[currentIndex + 1].application.id) : null;
+  const positionText = isInList ? `${currentIndex + 1} of ${listApplicants.length}` : '';
+
+  useApplicantKeyboardNav({
+    onPrev: previousHref ? () => navigate(previousHref) : null,
+    onNext: nextHref ? () => navigate(nextHref) : null,
+    onEscape: () => navigate(backHref),
+  });
 
   function renderBody() {
     if (loadState === 'loading') return <SkeletonCard lines={6} />;
@@ -151,6 +182,9 @@ export default function ApplicantDetailPage() {
           backLabel={backLabel}
           candidateName={name}
           candidateEmail={email ?? null}
+          previousHref={previousHref}
+          nextHref={nextHref}
+          positionText={positionText}
         />
       ) : (
         <PageHeader

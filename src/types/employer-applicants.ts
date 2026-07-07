@@ -90,3 +90,12 @@ export interface ArchiveReason {
 }
 
 export type ApplicantSort = 'score' | 'date';
+
+/** Per-item outcome of the PP1 bulk-archive endpoint (partial success is first-class). */
+export interface BulkArchiveResult {
+  succeeded: Array<{ id: string }>;
+  failed: Array<{ id: string; code: string; message: string }>;
+  total: number;
+  successCount: number;
+  failureCount: number;
+}

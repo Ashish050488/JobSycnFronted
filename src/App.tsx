@@ -26,6 +26,7 @@ import EmployerJobsDetail from './pages/employer/Jobs/Detail';
 import EmployerApplicantDetail from './pages/employer/Jobs/ApplicantDetail';
 import RequireEmployerAuth from './components/employer/RequireEmployerAuth';
 import RequireEmployerOnboarded from './components/employer/RequireEmployerOnboarded';
+
 import EmployerAppLayout from './components/layouts/EmployerAppLayout';
 import AdminEmployerAccess from './pages/admin/EmployerAccess';
 import RequireSeekerAdmin from './components/admin/RequireSeekerAdmin';
