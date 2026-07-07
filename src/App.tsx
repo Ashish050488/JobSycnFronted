@@ -29,10 +29,11 @@ import RequireEmployerOnboarded from './components/employer/RequireEmployerOnboa
 import EmployerAppLayout from './components/layouts/EmployerAppLayout';
 import AdminEmployerAccess from './pages/admin/EmployerAccess';
 import RequireSeekerAdmin from './components/admin/RequireSeekerAdmin';
+import AdminAppLayout from './components/layouts/AdminAppLayout';
 import { ToastProvider } from './components/ui';
 import { useSeeker } from './context/seeker/SeekerContext';
 
-function AppRoutes() {
+export function AppRoutes() {
   const { currentUser, isLoading } = useSeeker();
   if (isLoading) return null;
 
@@ -79,7 +80,10 @@ function AppRoutes() {
       </Route>
       {/* Admin audience — seeker cookie required; admin-vs-not enforced by the API. */}
       <Route path="admin" element={<RequireSeekerAdmin />}>
-        <Route path="employer-access" element={<AdminEmployerAccess />} />
+        <Route element={<AdminAppLayout />}>
+          <Route index element={<Navigate to="employer-access" replace />} />
+          <Route path="employer-access" element={<AdminEmployerAccess />} />
+        </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
