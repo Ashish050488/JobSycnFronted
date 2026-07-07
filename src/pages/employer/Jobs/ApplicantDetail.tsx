@@ -1,8 +1,8 @@
 // FILE: src/pages/employer/Jobs/ApplicantDetail.tsx
-// Applicant detail page (D3) — the last screen of the employer pipeline. Fetches
-// detail + stages + archive reasons in parallel; desktop (>900px) is two columns
-// (resume left, score/actions/history right), mobile stacks them. A 404 explains a
-// stale link rather than bouncing. PP2 adds prev/next nav over the source-tab list.
+// Applicant detail page (D3). Fetches detail + stages + archive reasons in parallel;
+// desktop (>900px) is two columns (resume left, scrollable sidebar right), mobile
+// stacks them. PP2 adds prev/next over the source-tab list; P3 gives the sidebar its
+// own scroll so the page never scrolls on desktop.
 
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
@@ -41,6 +41,9 @@ function resolveBackLabel(from: string | null): string {
   if (from === TAB_IDS.RANKED || from === TAB_IDS.PIPELINE) return BACK_LABEL_BY_FROM[from];
   return DEFAULT_BACK_LABEL;
 }
+// Desktop sidebar owns its scroll (P3.1): cap it at the viewport minus fixed chrome —
+// N1 nav + P2 sticky bar + spacing. Recompute if the nav or sticky-bar height changes.
+const NAV_AND_STICKY_OFFSET_PIXELS = 145;
 
 export default function ApplicantDetailPage() {
   const { postingId, appId } = useParams<{ postingId: string; appId: string }>();
@@ -81,13 +84,11 @@ export default function ApplicantDetailPage() {
   }, [appId]);
 
   useEffect(() => { void load(); }, [load]);
-
   // Return the user to the tab they came from (P1.4): ?from=pipeline|ranked → ?tab=…
   const fromTab = searchParams.get('from');
   const backTabQuery = fromTab && RETURNABLE_TAB_IDS.includes(fromTab) ? `?tab=${fromTab}` : '';
   const backHref = postingId ? `/employer/jobs/${postingId}${backTabQuery}` : '/employer/jobs';
   const backLabel = resolveBackLabel(fromTab);
-
   // Prev/next (PP2): fetch the source-tab-ordered list; failure degrades silently (D2).
   useEffect(() => {
     if (!postingId) return undefined;
@@ -98,14 +99,12 @@ export default function ApplicantDetailPage() {
       .catch(() => { if (isActive) setListStatus('failed'); });
     return () => { isActive = false; };
   }, [postingId, fromTab]);
-
   const currentIndex = listApplicants.findIndex((item) => item.application.id === appId);
   const isInList = currentIndex >= 0;
   const buildDetailHref = (targetId: string) => `/employer/jobs/${postingId}/applicants/${targetId}${fromTab ? `?from=${fromTab}` : ''}`;
   const previousHref = isInList && currentIndex > 0 ? buildDetailHref(listApplicants[currentIndex - 1].application.id) : null;
   const nextHref = isInList && currentIndex < listApplicants.length - 1 ? buildDetailHref(listApplicants[currentIndex + 1].application.id) : null;
   const positionText = isInList ? `${currentIndex + 1} of ${listApplicants.length}` : '';
-
   useApplicantKeyboardNav({
     onPrev: previousHref ? () => navigate(previousHref) : null,
     onNext: nextHref ? () => navigate(nextHref) : null,
@@ -163,7 +162,9 @@ export default function ApplicantDetailPage() {
     return (
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.9fr) minmax(340px, 1fr)', gap: 20, alignItems: 'start' }}>
         {viewer}
-        {sidebar}
+        <div style={{ maxHeight: `calc(100vh - ${NAV_AND_STICKY_OFFSET_PIXELS}px)`, overflowY: 'auto', paddingRight: 8 }}>
+          {sidebar}
+        </div>
       </div>
     );
   }
@@ -171,9 +172,8 @@ export default function ApplicantDetailPage() {
   const name = detail?.contact?.fullName ?? 'Applicant';
   const email = detail?.contact?.email;
 
-  // Desktop pins a sticky bar with the back-CTA + identity (P2.1); rendering the
-  // PageHeader too would duplicate it (P2.4). Mobile has no sticky bar — keep the
-  // PageHeader as the single header there.
+  // Desktop pins a sticky bar with the back-CTA + identity (P2.1/P2.4); mobile keeps
+  // the PageHeader as its single header.
   return (
     <Container size="xl" style={{ paddingTop: twoColumn ? 0 : 32, paddingBottom: 60 }}>
       {twoColumn ? (

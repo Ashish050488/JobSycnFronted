@@ -99,8 +99,8 @@ describe('ApplicantDetail page', () => {
     expect(screen.getByText('asha@x.com')).toBeInTheDocument();
     expect(container.querySelector('iframe')?.getAttribute('src')).toBe('/api/public/resume-download?token=t1#zoom=page-width');
     expect(screen.getByText('82')).toBeInTheDocument(); // score card
-    expect(screen.getByText('Stage history')).toBeInTheDocument();
-    expect(screen.getByText('No stage changes yet.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Stage history/ })).toBeInTheDocument();
+    expect(screen.queryByText('No stage changes yet.')).toBeNull(); // collapsed by default (P3.2)
   });
 
   it('desktop: renders the sticky bar and hides the PageHeader (P2.1/P2.4)', async () => {
@@ -219,5 +219,37 @@ describe('ApplicantDetail page', () => {
     textarea.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }));
     expect(navigateSpy).not.toHaveBeenCalled();
     textarea.remove();
+  });
+
+  // ─── P3: sidebar scroll + default-collapsed content ───────────────
+
+  it('desktop: the sidebar wrapper owns its scroll (maxHeight + overflowY)', async () => {
+    api.fetchApplicantDetail.mockResolvedValue(detail());
+    const { container } = renderPage();
+    await screen.findByText('Asha Rao');
+    const scroller = container.querySelector('div[style*="overflow-y: auto"]') as HTMLElement | null;
+    expect(scroller).not.toBeNull();
+    expect(scroller?.getAttribute('style')).toContain('calc(100vh');
+  });
+
+  it('mobile: the sidebar is not wrapped in a scroll container', async () => {
+    setViewportWidth(800);
+    api.fetchApplicantDetail.mockResolvedValue(detail());
+    const { container } = renderPage();
+    await screen.findByText('Asha Rao');
+    expect(container.querySelector('div[style*="overflow-y: auto"]')).toBeNull();
+  });
+
+  it('Summary and Stage history default collapsed on load (content absent until opened)', async () => {
+    const withContent = {
+      ...detail(),
+      score: { ...detail().score!, explanation: 'Strong React and AWS match.' },
+      stageChanges: [{ id: 'sc1', fromStageId: 's1', toStageId: 's1', movedByUserId: 'u1', note: 'Applied', movedAt: '2026-06-01T00:00:00Z' }],
+    };
+    api.fetchApplicantDetail.mockResolvedValue(withContent);
+    renderPage();
+    await screen.findByText('Asha Rao');
+    expect(screen.queryByText('Strong React and AWS match.')).toBeNull(); // Summary collapsed
+    expect(screen.queryAllByRole('listitem')).toHaveLength(0); // Stage history collapsed
   });
 });

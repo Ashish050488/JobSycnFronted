@@ -4,9 +4,14 @@
 // "Archived:") get a distinct danger colour so a terminal move reads at a glance.
 // Empty state when the applicant has never moved.
 
+import { useState } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { Card, Stack } from '../../../components/ui';
 import type { Stage, StageChange } from '../../../types/employer-applicants';
 import { formatRelativeTime } from './applicant-view-helpers';
+
+const HISTORY_LABEL = 'Stage history';
+const HISTORY_CONTENT_ID = 'applicant-stage-history';
 
 function stageName(stages: Map<string, string>, id: string | null): string {
   if (!id) return '—';
@@ -50,17 +55,37 @@ export default function ApplicantStageHistory({
   const ordered = [...stageChanges].sort(
     (a, b) => new Date(b.movedAt ?? 0).getTime() - new Date(a.movedAt ?? 0).getTime(),
   );
+  const entryCount = ordered.length;
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const triggerLabel = `${HISTORY_LABEL} · ${entryCount === 0 ? 'No entries yet' : entryCount}`;
 
   return (
     <Card padding="md">
       <Stack gap={14}>
-        <div style={{ fontSize: '0.72rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>Stage history</div>
-        {ordered.length === 0 ? (
-          <p style={{ fontSize: '0.85rem', color: 'var(--ink-muted)', margin: 0 }}>No stage changes yet.</p>
-        ) : (
-          <ul style={{ display: 'flex', flexDirection: 'column', gap: 14, margin: 0, padding: 0 }}>
-            {ordered.map((change) => <HistoryRow key={change.id} change={change} stages={stageNames} />)}
-          </ul>
+        <button
+          type="button"
+          onClick={() => setIsHistoryOpen((open) => !open)}
+          aria-expanded={isHistoryOpen}
+          aria-controls={HISTORY_CONTENT_ID}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+            width: '100%', padding: 0, border: 'none', background: 'transparent', cursor: 'pointer',
+            fontSize: '0.72rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--ink-muted)',
+          }}
+        >
+          {triggerLabel}
+          <ChevronDown size={16} aria-hidden style={{ transition: 'transform 180ms ease', transform: `rotate(${isHistoryOpen ? 90 : 0}deg)` }} />
+        </button>
+        {isHistoryOpen && (
+          <div id={HISTORY_CONTENT_ID}>
+            {entryCount === 0 ? (
+              <p style={{ fontSize: '0.85rem', color: 'var(--ink-muted)', margin: 0 }}>No stage changes yet.</p>
+            ) : (
+              <ul style={{ display: 'flex', flexDirection: 'column', gap: 14, margin: 0, padding: 0 }}>
+                {ordered.map((change) => <HistoryRow key={change.id} change={change} stages={stageNames} />)}
+              </ul>
+            )}
+          </div>
         )}
       </Stack>
     </Card>
