@@ -6,18 +6,20 @@
 
 import { Card, Stack } from '../../../components/ui';
 
+// Matches ApplicantReviewPanel's SectionLabel so "Cover note" reads as a sibling of
+// the "Skills"/"Summary" labels right below it. Spacing is owned by the caller, not here.
 const LABEL_STYLE = {
-  fontSize: 11, textTransform: 'uppercase' as const, letterSpacing: '0.05em',
-  fontWeight: 600, color: 'var(--ink-muted)',
+  fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.06em',
+  textTransform: 'uppercase' as const, color: 'var(--ink-faint)',
 };
 const NOTE_STYLE = {
-  margin: 0, fontSize: 14, lineHeight: 1.55, color: 'var(--ink-2)',
+  margin: 0, fontSize: '0.85rem', lineHeight: 1.5, color: 'var(--ink-2)',
   fontStyle: 'italic' as const, whiteSpace: 'pre-wrap' as const,
 };
 
 export default function ApplicantCoverNote({ coverNote }: { coverNote: string }) {
   return (
-    <Card style={{ marginBottom: 12 }}>
+    <Card>
       <Stack gap={8}>
         <div style={LABEL_STYLE}>Cover note</div>
         <p style={NOTE_STYLE}>&ldquo;{coverNote}&rdquo;</p>

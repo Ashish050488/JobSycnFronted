@@ -161,7 +161,10 @@ export default function ApplicantDetailPage() {
     return (
       <div style={GRID_STYLE}>
         <div style={LEFT_COLUMN_STYLE}>{viewer}</div>
-        <div style={RIGHT_COLUMN_STYLE}>{coverNoteCard}{sidebar}</div>
+        <div style={RIGHT_COLUMN_STYLE}>
+          {coverNoteCard && <div style={{ marginBottom: 16 }}>{coverNoteCard}</div>}
+          {sidebar}
+        </div>
       </div>
     );
   }

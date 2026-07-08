@@ -358,4 +358,13 @@ describe('ApplicantDetail page', () => {
     expect(note.getAttribute('style')).toContain('white-space: pre-wrap');
     expect(note.textContent).toContain('line one\nline two');
   });
+
+  it('mobile: the cover note still renders in the stacked layout', async () => {
+    setViewportWidth(800);
+    api.fetchApplicantDetail.mockResolvedValue(detailWithNote('reach me anytime'));
+    renderPage();
+    await screen.findByText('Asha Rao');
+    expect(screen.getByText('Cover note')).toBeInTheDocument();
+    expect(screen.getByText(/reach me anytime/)).toBeInTheDocument();
+  });
 });
