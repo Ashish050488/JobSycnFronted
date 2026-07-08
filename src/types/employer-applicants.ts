@@ -62,6 +62,8 @@ export interface Applicant {
     stageId: string;
     archived: { at: string; reasonId: string; note?: string } | null;
     appliedAt: string;
+    /** Candidate-written note submitted at apply time (7A). Null when they left it blank. */
+    coverNote: string | null;
     lastStageMovedAt: string;
   };
   contact: {

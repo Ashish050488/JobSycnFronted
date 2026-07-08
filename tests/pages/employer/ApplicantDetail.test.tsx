@@ -35,7 +35,7 @@ const STAGES: Stage[] = [
 
 function listApp(id: string): Applicant {
   return {
-    application: { id, jobId: 'j1', contactId: `c-${id}`, stageId: 's1', archived: null, appliedAt: 't', lastStageMovedAt: 't' },
+    application: { id, jobId: 'j1', contactId: `c-${id}`, stageId: 's1', archived: null, appliedAt: 't', coverNote: null, lastStageMovedAt: 't' },
     contact: { id: `c-${id}`, email: `${id}@x.com`, fullName: id, phone: null },
     score: null,
   };
@@ -44,7 +44,7 @@ const THREE = [listApp('a1'), listApp('a2'), listApp('a3')];
 
 function detail(): ApplicantDetail {
   return {
-    application: { id: 'a1', jobId: 'j1', contactId: 'c1', stageId: 's1', archived: null, appliedAt: 't', lastStageMovedAt: 't' },
+    application: { id: 'a1', jobId: 'j1', contactId: 'c1', stageId: 's1', archived: null, appliedAt: 't', coverNote: null, lastStageMovedAt: 't' },
     contact: { id: 'c1', email: 'asha@x.com', fullName: 'Asha Rao', phone: null },
     score: { id: 'sc1', score: 82, tier: 'good', matchedSkills: [], missingSkills: [], explanation: null, processedAt: 't', processingError: null },
     stageChanges: [],
@@ -312,5 +312,50 @@ describe('ApplicantDetail page', () => {
     await screen.findByText('Asha Rao');
     const outer = container.firstElementChild as HTMLElement | null;
     expect(outer?.getAttribute('style')).not.toContain('overflow: hidden');
+  });
+
+  // ─── Cover note card (fix/cover-note-display) ─────────────────────
+
+  function detailWithNote(coverNote: string | null): ApplicantDetail {
+    const base = detail();
+    return { ...base, application: { ...base.application, coverNote } };
+  }
+
+  it('non-empty coverNote → "Cover note" label and the note text both render', async () => {
+    api.fetchApplicantDetail.mockResolvedValue(detailWithNote('i am very interested in this role'));
+    renderPage();
+    await screen.findByText('Asha Rao');
+    expect(screen.getByText('Cover note')).toBeInTheDocument();
+    expect(screen.getByText(/i am very interested in this role/)).toBeInTheDocument();
+  });
+
+  it('null coverNote → no "Cover note" label anywhere', async () => {
+    api.fetchApplicantDetail.mockResolvedValue(detailWithNote(null));
+    renderPage();
+    await screen.findByText('Asha Rao');
+    expect(screen.queryByText('Cover note')).toBeNull();
+  });
+
+  it('empty-string coverNote → no card (treated the same as null)', async () => {
+    api.fetchApplicantDetail.mockResolvedValue(detailWithNote(''));
+    renderPage();
+    await screen.findByText('Asha Rao');
+    expect(screen.queryByText('Cover note')).toBeNull();
+  });
+
+  it('whitespace-only coverNote → no card rendered', async () => {
+    api.fetchApplicantDetail.mockResolvedValue(detailWithNote('   '));
+    renderPage();
+    await screen.findByText('Asha Rao');
+    expect(screen.queryByText('Cover note')).toBeNull();
+  });
+
+  it('note text preserves line breaks via white-space: pre-wrap', async () => {
+    api.fetchApplicantDetail.mockResolvedValue(detailWithNote('line one\nline two'));
+    renderPage();
+    await screen.findByText('Asha Rao');
+    const note = screen.getByText(/line one/);
+    expect(note.getAttribute('style')).toContain('white-space: pre-wrap');
+    expect(note.textContent).toContain('line one\nline two');
   });
 });
