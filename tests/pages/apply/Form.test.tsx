@@ -1,5 +1,5 @@
 // FILE: tests/pages/apply/Form.test.tsx
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 
@@ -110,5 +110,78 @@ describe('ApplyForm page', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Submit application' }));
     expect(await screen.findByText('That email is invalid.')).toBeInTheDocument();
     expect(screen.queryByText('SUCCESS PAGE')).toBeNull();
+  });
+});
+
+const DEFAULT_VIEWPORT_WIDTH = window.innerWidth;
+const DEFAULT_VIEWPORT_HEIGHT = window.innerHeight;
+const setViewport = (width: number) => {
+  Object.defineProperty(window, 'innerWidth', { value: width, configurable: true });
+  Object.defineProperty(window, 'innerHeight', { value: 900, configurable: true });
+};
+afterEach(() => {
+  Object.defineProperty(window, 'innerWidth', { value: DEFAULT_VIEWPORT_WIDTH, configurable: true });
+  Object.defineProperty(window, 'innerHeight', { value: DEFAULT_VIEWPORT_HEIGHT, configurable: true });
+});
+const jobWithSalary = (salaryMin: number | null, salaryMax: number | null) => ({
+  ...JOB, job: { ...JOB.job, salaryMin, salaryMax },
+});
+
+describe('ApplyForm layout (P-APPLY.1)', () => {
+  it('desktop (>900px): centred max-width wrapper, not a Container size="sm"', async () => {
+    setViewport(1920);
+    fetchPublicJob.mockResolvedValue(JOB);
+    const { container } = renderForm();
+    await screen.findByRole('heading', { name: 'React Developer' });
+    const wrapper = container.querySelector('div[style*="max-width: 1400px"]') as HTMLElement;
+    expect(wrapper).toBeTruthy();
+    // Container size="sm" renders a 640px max-width; it must be gone.
+    expect(container.querySelector('div[style*="max-width: 640px"]')).toBeNull();
+  });
+
+  it('desktop: two-column grid with a sticky form column', async () => {
+    setViewport(1920);
+    fetchPublicJob.mockResolvedValue(JOB);
+    const { container } = renderForm();
+    await screen.findByRole('heading', { name: 'React Developer' });
+    const grid = container.querySelector('div[style*="grid-template-columns"]') as HTMLElement;
+    expect(grid).toBeTruthy();
+    expect(grid.getAttribute('style')).toContain('1.5fr');
+    expect(grid.getAttribute('style')).toContain('minmax(360px');
+    expect(container.querySelector('div[style*="position: sticky"]')).toBeTruthy();
+  });
+
+  it('mobile (≤900px): single-column stack, no grid', async () => {
+    setViewport(600);
+    fetchPublicJob.mockResolvedValue(JOB);
+    const { container } = renderForm();
+    await screen.findByRole('heading', { name: 'React Developer' });
+    expect(container.querySelector('div[style*="grid-template-columns"]')).toBeNull();
+    expect(container.querySelector('div[style*="position: sticky"]')).toBeNull();
+  });
+});
+
+describe('ApplyForm salary meta line (P-APPLY.2)', () => {
+  it('shows a range when both bounds are present', async () => {
+    setViewport(1920);
+    fetchPublicJob.mockResolvedValue(jobWithSalary(5, 9));
+    renderForm();
+    expect(await screen.findByText(/₹5-9 LPA/)).toBeInTheDocument();
+  });
+
+  it('shows a "+" form when only the minimum is present', async () => {
+    setViewport(1920);
+    fetchPublicJob.mockResolvedValue(jobWithSalary(5, null));
+    renderForm();
+    expect(await screen.findByText(/₹5\+ LPA/)).toBeInTheDocument();
+  });
+
+  it('omits salary entirely when both bounds are null', async () => {
+    setViewport(1920);
+    fetchPublicJob.mockResolvedValue(jobWithSalary(null, null));
+    renderForm();
+    await screen.findByRole('heading', { name: 'React Developer' });
+    expect(screen.queryByText(/₹/)).toBeNull();
+    expect(screen.queryByText(/LPA/)).toBeNull();
   });
 });
