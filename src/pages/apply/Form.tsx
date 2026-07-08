@@ -15,7 +15,7 @@ import type { ApplyFormData, PublicCompany, PublicJob } from '../../types/public
 
 type LoadState = 'loading' | 'loaded' | 'not_found' | 'error';
 const EMPTY: ApplyFormData = {
-  firstName: '', lastName: '', email: '', phone: '', yearsExperience: '', coverNote: '',
+  firstName: '', lastName: '', email: '', phone: '', coverNote: '',
   consent_dpdp: false, consent_futureOpportunities: false, resume: null, honeypot: '',
 };
 
@@ -68,7 +68,6 @@ export default function ApplyForm() {
       form.append('lastName', data.lastName.trim());
       form.append('email', data.email.trim());
       form.append('phone', data.phone.trim());
-      form.append('yearsExperience', data.yearsExperience.trim());
       form.append('coverNote', data.coverNote.trim());
       form.append('consent_dpdp', String(data.consent_dpdp));
       form.append('consent_futureOpportunities', String(data.consent_futureOpportunities));

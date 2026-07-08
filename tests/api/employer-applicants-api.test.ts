@@ -3,7 +3,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import {
   listApplicantsForPosting, listStages, listArchiveReasons,
   moveApplicant, archiveApplicant, unarchiveApplicant, EmployerApplicantsApiError,
-  fetchApplicantDetail, refreshResumeUrl,
+  fetchApplicantDetail, refreshResumeUrl, bulkArchiveApplicants,
 } from '../../src/api/employer-applicants-api';
 
 function response(status: number, body: unknown) {
@@ -82,5 +82,23 @@ describe('employer-applicants-api', () => {
     expect(error).toBeInstanceOf(EmployerApplicantsApiError);
     expect(error.status).toBe(409);
     expect(error.code).toBe('CANNOT_MOVE_ARCHIVED');
+  });
+
+  it('bulkArchiveApplicants POSTs the body and resolves to the outcome shape', async () => {
+    const outcome = { succeeded: [{ id: 'a1' }], failed: [], total: 1, successCount: 1, failureCount: 0 };
+    const fetchMock = mockFetch(async () => response(200, outcome));
+    const result = await bulkArchiveApplicants({ applicationIds: ['a1'], reasonId: 'r1', note: 'n' });
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe('/api/employer/applicants/bulk/archive');
+    expect(init?.method).toBe('POST');
+    expect(JSON.parse(init?.body as string)).toEqual({ applicationIds: ['a1'], reasonId: 'r1', note: 'n' });
+    expect(result).toEqual(outcome);
+  });
+
+  it('bulkArchiveApplicants throws EmployerApplicantsApiError with .code on a whole-request failure', async () => {
+    mockFetch(async () => response(400, { error: 'Too many', code: 'BULK_LIMIT_EXCEEDED' }));
+    const error = await bulkArchiveApplicants({ applicationIds: [], reasonId: 'r1' }).catch((caught) => caught);
+    expect(error).toBeInstanceOf(EmployerApplicantsApiError);
+    expect(error.code).toBe('BULK_LIMIT_EXCEEDED');
   });
 });

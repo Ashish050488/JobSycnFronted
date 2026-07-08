@@ -15,13 +15,23 @@ const META: ResumeMeta = {
 beforeEach(() => refreshResumeUrl.mockReset());
 
 describe('ApplicantResumeViewer', () => {
-  it('renders an iframe pointed at the signed URL with the filename', () => {
+  it('renders an iframe with the zoom fragment appended and fills the viewport', () => {
     const { container } = render(
       <ApplicantResumeViewer applicationId="a1" resumeMeta={META} initialUrl="/api/public/resume-download?token=t1" />,
     );
     const iframe = container.querySelector('iframe');
-    expect(iframe?.getAttribute('src')).toBe('/api/public/resume-download?token=t1');
+    expect(iframe?.getAttribute('src')).toBe('/api/public/resume-download?token=t1#zoom=page-width&navpanes=0');
+    // The iframe flexes to fill its bounded full-height column (no unbounded minHeight).
+    expect(iframe?.style.flexGrow).toBe('1');
+    expect(iframe?.style.minHeight).toBe('0');
     expect(screen.getByText('asha-cv.pdf')).toBeInTheDocument();
+  });
+
+  it('appends the zoom fragment with & when the URL already has a #', () => {
+    const { container } = render(
+      <ApplicantResumeViewer applicationId="a1" resumeMeta={META} initialUrl="/api/public/resume-download?token=t1#page=2" />,
+    );
+    expect(container.querySelector('iframe')?.getAttribute('src')).toBe('/api/public/resume-download?token=t1#page=2&zoom=page-width&navpanes=0');
   });
 
   it('shows the not-uploaded fallback when there is no resume', () => {
@@ -36,6 +46,6 @@ describe('ApplicantResumeViewer', () => {
     );
     fireEvent.click(screen.getByRole('button', { name: /Refresh/ }));
     await waitFor(() => expect(refreshResumeUrl).toHaveBeenCalledWith('a1'));
-    await waitFor(() => expect(container.querySelector('iframe')?.getAttribute('src')).toBe('/api/public/resume-download?token=t2'));
+    await waitFor(() => expect(container.querySelector('iframe')?.getAttribute('src')).toBe('/api/public/resume-download?token=t2#zoom=page-width&navpanes=0'));
   });
 });

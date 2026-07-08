@@ -71,6 +71,16 @@ describe('ApplicantActions', () => {
     expect(onDone).toHaveBeenCalled();
   });
 
+  it('renders Move and Archive side by side with a 2-row note textarea (P4.3)', () => {
+    renderActions();
+    expect(screen.getByRole('button', { name: 'Move stage' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Archive applicant' })).toBeInTheDocument();
+    const note = screen.getByLabelText('Note (optional)');
+    expect(note).toHaveAttribute('rows', '2');
+    // P5/D5: caller overrides the primitive's minHeight:88 so rows=2 actually renders short.
+    expect(note.getAttribute('style')).toContain('min-height: auto');
+  });
+
   it('surfaces an API error inline', async () => {
     moveApplicant.mockRejectedValueOnce(new EmployerApplicantsApiError(409, 'CANNOT_MOVE_ARCHIVED', 'Cannot move archived'));
     renderActions();

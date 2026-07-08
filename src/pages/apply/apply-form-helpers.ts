@@ -32,12 +32,6 @@ export function fieldError(field: keyof ApplyFormData, data: ApplyFormData): str
     case 'lastName': return nameError(data.lastName, 'Last name');
     case 'email': return EMAIL_RE.test(data.email.trim()) ? undefined : 'Enter a valid email address.';
     case 'phone': return data.phone.length > 32 ? 'Phone number is too long.' : undefined;
-    case 'yearsExperience': {
-      const raw = data.yearsExperience.trim();
-      if (raw === '') return undefined;
-      const n = Number(raw);
-      return Number.isInteger(n) && n >= 0 && n <= 60 ? undefined : 'Enter a whole number between 0 and 60.';
-    }
     case 'resume': return resumeError(data.resume);
     default: return undefined;
   }
@@ -46,7 +40,7 @@ export function fieldError(field: keyof ApplyFormData, data: ApplyFormData): str
 /** Full validation on submit. Returns an errors object ({} when valid). */
 export function validateApplyForm(data: ApplyFormData): ApplyErrors {
   const errors: ApplyErrors = {};
-  for (const field of ['firstName', 'lastName', 'email', 'phone', 'yearsExperience', 'resume'] as const) {
+  for (const field of ['firstName', 'lastName', 'email', 'phone', 'resume'] as const) {
     const msg = fieldError(field, data);
     if (msg) errors[field] = msg;
   }
@@ -56,7 +50,7 @@ export function validateApplyForm(data: ApplyFormData): ApplyErrors {
 
 const CODE_TO_FIELD: Record<string, keyof ApplyFormData> = {
   INVALID_FIRST_NAME: 'firstName', INVALID_LAST_NAME: 'lastName', INVALID_EMAIL: 'email',
-  INVALID_PHONE: 'phone', INVALID_YEARS_EXPERIENCE: 'yearsExperience', CONSENT_REQUIRED: 'consent_dpdp',
+  INVALID_PHONE: 'phone', CONSENT_REQUIRED: 'consent_dpdp',
   NO_FILE: 'resume', INVALID_FILE_TYPE: 'resume', FILE_TOO_LARGE: 'resume',
 };
 

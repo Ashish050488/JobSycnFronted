@@ -13,6 +13,15 @@ import type { ResumeMeta } from '../../../types/employer-applicants';
 
 const REFRESH_ERROR = 'Could not refresh the resume link.';
 
+// Default the browser PDF viewer to fit-width + no thumbnail/nav pane — best for a
+// full-page portrait resume (P2.3, R1). navpanes=0 hides the left thumbnail rail.
+// Chrome/Firefox/Safari honour these hash fragments; append with & if the URL already
+// carries a fragment so we never produce a double '#'.
+const PDF_VIEW_FRAGMENT = 'zoom=page-width&navpanes=0';
+function appendPdfZoomFragment(url: string): string {
+  return url.includes('#') ? `${url}&${PDF_VIEW_FRAGMENT}` : `${url}#${PDF_VIEW_FRAGMENT}`;
+}
+
 function formatBytes(bytes: number | null): string {
   if (!bytes || bytes <= 0) return '';
   const units = ['B', 'KB', 'MB'];
@@ -60,8 +69,8 @@ export default function ApplicantResumeViewer({
   const size = formatBytes(resumeMeta.sizeBytes);
 
   return (
-    <Card padding="sm">
-      <Stack gap={12}>
+    <Card padding="sm" style={{ height: '100%', display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, height: '100%', minHeight: 0 }}>
         <Stack gap={8} dir="row" align="center" justify="space-between" wrap>
           <div style={{ minWidth: 0 }}>
             <div style={{ fontWeight: 600, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{filename}</div>
@@ -87,12 +96,12 @@ export default function ApplicantResumeViewer({
           <iframe
             key={url}
             title={`Resume — ${filename}`}
-            src={url}
+            src={appendPdfZoomFragment(url)}
             onError={() => setLoadFailed(true)}
-            style={{ width: '100%', minHeight: 800, border: '1px solid var(--border)', borderRadius: 8, background: 'var(--paper-2)' }}
+            style={{ flex: 1, minHeight: 0, width: '100%', border: '1px solid var(--border)', borderRadius: 8, background: 'var(--paper-2)' }}
           />
         )}
-      </Stack>
+      </div>
     </Card>
   );
 }

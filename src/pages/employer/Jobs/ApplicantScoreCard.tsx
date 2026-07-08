@@ -1,13 +1,24 @@
 // FILE: src/pages/employer/Jobs/ApplicantScoreCard.tsx
 // AI score panel: numeric score + tier badge, matched/missing/bonus skill chips
-// (R5 colour language), the fit rows (experience / location / notice period), and
-// the explanation. When no score exists — or scoring errored — it degrades to a
-// "Not scored" card with a human reason (D5) instead of a blank space.
+// (R5 colour language), dense fit rows, and the summary — all always visible (P4).
+// When no score exists — or scoring errored — it degrades to a "Not scored" card
+// with a human reason (D5) instead of a blank space.
 
-import type { ReactNode } from 'react';
 import { Card, Badge, Stack } from '../../../components/ui';
 import type { ApplicantScore } from '../../../types/employer-applicants';
 import { tierBadgeVariant } from './applicant-view-helpers';
+
+const SKILL_LABELS = {
+  matched: 'MATCHED',
+  missing: 'MISSING',
+  bonus: 'BONUS',
+} as const;
+
+const FIT_LABELS = {
+  experience: 'Experience',
+  location: 'Location',
+  notice: 'Notice period',
+} as const;
 
 /** Human reason for an absent/failed score (D5). */
 function notScoredReason(score: ApplicantScore | null): string {
@@ -22,39 +33,36 @@ function notScoredReason(score: ApplicantScore | null): string {
   return score.processingError || 'Scoring pending — check back shortly.';
 }
 
-function SectionTitle({ children }: { children: ReactNode }) {
-  return (
-    <div style={{ fontSize: '0.72rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>{children}</div>
-  );
-}
-
-function SkillChips({ label, skills, variant }: { label: string; skills: string[]; variant: 'success' | 'warning' | 'info' }) {
+// Inline category label + chips on one wrapping row (D1/R3): ~24px vs ~48px stacked.
+function SkillLine({ label, skills, variant }: {
+  label: string; skills: string[]; variant: 'success' | 'warning' | 'info';
+}) {
   if (skills.length === 0) return null;
   return (
-    <Stack gap={6}>
-      <SectionTitle>{label}</SectionTitle>
-      <Stack gap={6} dir="row" wrap>
-        {skills.map((skill) => <Badge key={skill} variant={variant}>{skill}</Badge>)}
-      </Stack>
-    </Stack>
+    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6 }}>
+      <span style={{ fontSize: '0.72rem', fontWeight: 600, letterSpacing: '0.03em', color: 'var(--ink-muted)', marginRight: 2 }}>
+        {label} ({skills.length})
+      </span>
+      {skills.map((skill) => <Badge key={skill} variant={variant}>{skill}</Badge>)}
+    </div>
   );
 }
 
+// Dense 2-col row (D1/R4): label 90px, value flows; ~22px vs ~34px sectioned.
 function FitRow({ label, value }: { label: string; value: string | null | undefined }) {
   return (
-    <Stack gap={12} dir="row" align="baseline" justify="space-between">
-      <span style={{ fontSize: '0.82rem', color: 'var(--ink-muted)' }}>{label}</span>
-      <span style={{ fontSize: '0.82rem', color: 'var(--ink)', textAlign: 'right' }}>{value || '—'}</span>
-    </Stack>
+    <div style={{ display: 'grid', gridTemplateColumns: '90px 1fr', fontSize: '0.85rem', gap: 8, padding: '3px 0' }}>
+      <span style={{ color: 'var(--ink-muted)' }}>{label}</span>
+      <span style={{ color: 'var(--ink)' }}>{value || '—'}</span>
+    </div>
   );
 }
 
 export default function ApplicantScoreCard({ score }: { score: ApplicantScore | null }) {
   if (!score || score.processingError || score.score == null) {
     return (
-      <Card padding="md">
+      <Card padding="sm">
         <Stack gap={8}>
-          <SectionTitle>AI score</SectionTitle>
           <div style={{ fontWeight: 600, color: 'var(--ink)' }}>Not scored</div>
           <p style={{ fontSize: '0.82rem', color: 'var(--ink-muted)', lineHeight: 1.5, margin: 0 }}>{notScoredReason(score)}</p>
         </Stack>
@@ -63,29 +71,25 @@ export default function ApplicantScoreCard({ score }: { score: ApplicantScore | 
   }
 
   return (
-    <Card padding="md">
-      <Stack gap={16}>
+    <Card padding="sm">
+      <Stack gap={10}>
         <Stack gap={10} dir="row" align="center">
           <span className="font-display" style={{ fontSize: '2rem', fontWeight: 600, color: 'var(--ink)', lineHeight: 1 }}>{score.score}</span>
           <Badge variant={tierBadgeVariant(score.tier)}>{score.tier}</Badge>
         </Stack>
 
-        <SkillChips label="Matched skills" skills={score.matchedSkills} variant="success" />
-        <SkillChips label="Missing skills" skills={score.missingSkills} variant="warning" />
-        <SkillChips label="Bonus skills" skills={score.bonusSkills ?? []} variant="info" />
+        <SkillLine label={SKILL_LABELS.matched} skills={score.matchedSkills} variant="success" />
+        <SkillLine label={SKILL_LABELS.missing} skills={score.missingSkills} variant="warning" />
+        <SkillLine label={SKILL_LABELS.bonus} skills={score.bonusSkills ?? []} variant="info" />
 
-        <Stack gap={8}>
-          <SectionTitle>Fit</SectionTitle>
-          <FitRow label="Experience" value={score.experienceFit} />
-          <FitRow label="Location" value={score.locationFit} />
-          <FitRow label="Notice period" value={score.noticePeriodFit} />
-        </Stack>
+        <div>
+          <FitRow label={FIT_LABELS.experience} value={score.experienceFit} />
+          <FitRow label={FIT_LABELS.location} value={score.locationFit} />
+          <FitRow label={FIT_LABELS.notice} value={score.noticePeriodFit} />
+        </div>
 
         {score.explanation && (
-          <Stack gap={6}>
-            <SectionTitle>Summary</SectionTitle>
-            <p style={{ fontSize: '0.85rem', color: 'var(--ink-2)', lineHeight: 1.55, margin: 0 }}>{score.explanation}</p>
-          </Stack>
+          <p style={{ fontSize: '0.8125rem', color: 'var(--ink-2)', lineHeight: 1.45, margin: 0 }}>{score.explanation}</p>
         )}
       </Stack>
     </Card>

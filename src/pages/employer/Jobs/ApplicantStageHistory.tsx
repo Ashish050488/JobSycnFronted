@@ -1,12 +1,22 @@
 // FILE: src/pages/employer/Jobs/ApplicantStageHistory.tsx
-// Stage-history timeline (D7). Renders each stage_change newest-first as a row with
-// "from → to", relative time, and an optional note. Archive rows (note starts with
-// "Archived:") get a distinct danger colour so a terminal move reads at a glance.
-// Empty state when the applicant has never moved.
+// Stage history (P4.4). Default view is a single factual line — latest stage + when —
+// that reads at a glance during shortlist review. When there is more than one change,
+// a trailing inline link expands the full newest-first timeline in place (one click,
+// only ever needed for the rare candidate with real history). Archive rows (note starts
+// with "Archived:") get a distinct danger colour so a terminal move reads at a glance.
 
+import { useState } from 'react';
 import { Card, Stack } from '../../../components/ui';
 import type { Stage, StageChange } from '../../../types/employer-applicants';
 import { formatRelativeTime } from './applicant-view-helpers';
+
+const HISTORY_LABELS = {
+  empty: 'No stage changes yet.',
+  expand: (n: number) => `${n} more change${n > 1 ? 's' : ''}`,
+  collapse: 'Hide changes',
+} as const;
+
+const HISTORY_LIST_ID = 'applicant-stage-history-list';
 
 function stageName(stages: Map<string, string>, id: string | null): string {
   if (!id) return '—';
@@ -50,15 +60,33 @@ export default function ApplicantStageHistory({
   const ordered = [...stageChanges].sort(
     (a, b) => new Date(b.movedAt ?? 0).getTime() - new Date(a.movedAt ?? 0).getTime(),
   );
+  const [isExpanded, setIsExpanded] = useState(false);
+  const latest = ordered[0];
+  const extraCount = ordered.length - 1;
 
   return (
     <Card padding="md">
-      <Stack gap={14}>
-        <div style={{ fontSize: '0.72rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>Stage history</div>
-        {ordered.length === 0 ? (
-          <p style={{ fontSize: '0.85rem', color: 'var(--ink-muted)', margin: 0 }}>No stage changes yet.</p>
+      <Stack gap={8}>
+        {latest ? (
+          <div style={{ fontSize: '0.85rem', color: 'var(--ink-2)' }}>
+            {stageName(stageNames, latest.toStageId)} · {latest.movedAt ? formatRelativeTime(latest.movedAt) : '—'}
+            {extraCount > 0 && (
+              <button
+                type="button"
+                onClick={() => setIsExpanded((open) => !open)}
+                aria-expanded={isExpanded}
+                aria-controls={HISTORY_LIST_ID}
+                style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', padding: 0, marginLeft: 8, fontSize: '0.85rem' }}
+              >
+                {isExpanded ? HISTORY_LABELS.collapse : HISTORY_LABELS.expand(extraCount)}
+              </button>
+            )}
+          </div>
         ) : (
-          <ul style={{ display: 'flex', flexDirection: 'column', gap: 14, margin: 0, padding: 0 }}>
+          <p style={{ fontSize: '0.85rem', color: 'var(--ink-muted)', margin: 0 }}>{HISTORY_LABELS.empty}</p>
+        )}
+        {isExpanded && (
+          <ul id={HISTORY_LIST_ID} style={{ display: 'flex', flexDirection: 'column', gap: 12, margin: 0, padding: 0 }}>
             {ordered.map((change) => <HistoryRow key={change.id} change={change} stages={stageNames} />)}
           </ul>
         )}

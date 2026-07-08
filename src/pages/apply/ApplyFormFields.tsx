@@ -39,9 +39,6 @@ export default function ApplyFormFields({ data, errors, companyName, set, onBlur
       <Input label="Phone" type="text" inputMode="tel" value={data.phone} error={errors.phone}
         onChange={(e) => set('phone', e.target.value)} onBlur={() => onBlur('phone')} />
 
-      <Input label="Years of experience" type="number" value={data.yearsExperience} error={errors.yearsExperience}
-        onChange={(e) => set('yearsExperience', e.target.value)} onBlur={() => onBlur('yearsExperience')} />
-
       <div>
         <p style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--ink-muted)', marginBottom: 6 }}>Resume (PDF) *</p>
         <Stack gap={8} dir="row" align="center" wrap>

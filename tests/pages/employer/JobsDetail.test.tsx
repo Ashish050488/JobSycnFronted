@@ -27,9 +27,9 @@ function stubFetch(impl: () => Promise<Response>) {
   vi.stubGlobal('fetch', vi.fn(impl));
 }
 
-function renderDetail() {
+function renderDetail(path = '/employer/jobs/p1') {
   return render(
-    <MemoryRouter initialEntries={['/employer/jobs/p1']}>
+    <MemoryRouter initialEntries={[path]}>
       <ToastProvider>
         <Routes>
           <Route path="/employer/jobs/:postingId" element={<EmployerJobsDetail />} />
@@ -38,6 +38,16 @@ function renderDetail() {
       </ToastProvider>
     </MemoryRouter>,
   );
+}
+
+// Stubs the posting fetch plus the empty applicant/stage lists the Pipeline/Ranked
+// tabs fire on mount, so tabs can render their real content.
+function stubDetailWithTabs() {
+  stubFetch((async (url: string) => {
+    if (url.includes('/applicants')) return response(200, { applicants: [] });
+    if (url.includes('/stages')) return response(200, { stages: [] });
+    return response(200, { posting: POSTING });
+  }) as unknown as () => Promise<Response>);
 }
 
 afterEach(() => vi.unstubAllGlobals());
@@ -76,21 +86,48 @@ describe('EmployerJobsDetail', () => {
     expect(screen.getByRole('tab', { name: 'Settings' })).toBeInTheDocument();
   });
 
-  it('Pipeline + Ranked tabs mount their real content; Stats stays a placeholder', async () => {
-    // Route each request by URL: posting for the detail fetch, empty lists for the
-    // applicant/stage fetches the Pipeline and Ranked tabs fire on mount.
-    stubFetch((async (url: string) => {
-      if (url.includes('/applicants')) return response(200, { applicants: [] });
-      if (url.includes('/stages')) return response(200, { stages: [] });
-      return response(200, { posting: POSTING });
-    }) as unknown as () => Promise<Response>);
+  it('Pipeline + Ranked tabs mount their real content', async () => {
+    stubDetailWithTabs();
     renderDetail();
     await screen.findByRole('heading', { name: 'React Developer' });
 
     fireEvent.click(screen.getByRole('tab', { name: 'Ranked' }));
     await waitFor(() => expect(screen.getByText('No applications yet')).toBeInTheDocument());
+  });
 
-    fireEvent.click(screen.getByRole('tab', { name: 'Stats' }));
-    await waitFor(() => expect(screen.getByText(/Ships in Step 8/)).toBeInTheDocument());
+  it('does NOT render the Stats tab (P1.2 regression guard)', async () => {
+    stubDetailWithTabs();
+    renderDetail();
+    await screen.findByRole('heading', { name: 'React Developer' });
+    expect(screen.queryByRole('tab', { name: 'Stats' })).toBeNull();
+    expect(screen.queryByText(/Ships in Step 8/)).toBeNull();
+  });
+
+  it('?tab=pipeline selects the Pipeline tab by default', async () => {
+    stubDetailWithTabs();
+    renderDetail('/employer/jobs/p1?tab=pipeline');
+    await screen.findByRole('heading', { name: 'React Developer' });
+    expect(screen.getByRole('tab', { name: 'Pipeline' })).toHaveAttribute('aria-selected', 'true');
+  });
+
+  it('?tab=ranked selects the Ranked tab by default', async () => {
+    stubDetailWithTabs();
+    renderDetail('/employer/jobs/p1?tab=ranked');
+    await screen.findByRole('heading', { name: 'React Developer' });
+    expect(screen.getByRole('tab', { name: 'Ranked' })).toHaveAttribute('aria-selected', 'true');
+  });
+
+  it('?tab=badvalue falls back to the Settings tab', async () => {
+    stubDetailWithTabs();
+    renderDetail('/employer/jobs/p1?tab=badvalue');
+    await screen.findByRole('heading', { name: 'React Developer' });
+    expect(screen.getByRole('tab', { name: 'Settings' })).toHaveAttribute('aria-selected', 'true');
+  });
+
+  it('no ?tab defaults to the Settings tab', async () => {
+    stubDetailWithTabs();
+    renderDetail();
+    await screen.findByRole('heading', { name: 'React Developer' });
+    expect(screen.getByRole('tab', { name: 'Settings' })).toHaveAttribute('aria-selected', 'true');
   });
 });

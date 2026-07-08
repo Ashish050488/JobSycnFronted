@@ -1,19 +1,25 @@
 // FILE: src/pages/employer/Jobs/RankedTab.tsx
-// Ranked applicant table for a posting. Fetches applicants (sorted server-side by
-// score or date) + stages in parallel on mount and whenever the sort changes.
-// Score renders as a tier-coloured Badge; a null score shows a muted "Not scored".
-// Each row links to the applicant detail route (lands in Step 7C).
+// Ranked applicant table: applicants (sorted by score/date) + stages + archive reasons
+// fetched in parallel. Score → tier Badge; null → "Scoring…"/"Not scored" (P1). PP3 adds
+// row selection + a floating bulk-archive bar wired to the PP1 endpoint (partial success).
 
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Card, Badge, Button, Alert, Stack, Select, EmptyState, SkeletonCard,
+  Card, Badge, Button, Alert, Stack, Select, EmptyState, SkeletonCard, useToast,
 } from '../../../components/ui';
 import { Table } from '../../../components/ui';
 import type { Column } from '../../../components/ui';
-import { listApplicantsForPosting, listStages, EmployerApplicantsApiError } from '../../../api/employer-applicants-api';
-import type { Applicant, Stage, ApplicantSort } from '../../../types/employer-applicants';
+import {
+  listApplicantsForPosting, listStages, listArchiveReasons,
+  bulkArchiveApplicants, EmployerApplicantsApiError,
+} from '../../../api/employer-applicants-api';
+import type { Applicant, ArchiveReason, Stage, ApplicantSort } from '../../../types/employer-applicants';
 import { tierBadgeVariant, formatRelativeTime } from './applicant-view-helpers';
+import { formatRankedScoreLabel, isScoringInProgress, SCORING_STATE_LABEL } from './pipeline-tab-helpers';
+import { summarizeBulkResult, resolveBulkErrorMessage } from './ranked-bulk-helpers';
+import BulkArchiveBar from './BulkArchiveBar';
+import BulkArchiveDialog from './BulkArchiveDialog';
 
 type LoadState = 'loading' | 'loaded' | 'error';
 const LOAD_ERROR_MESSAGE = 'Could not load applicants.';
@@ -25,28 +31,40 @@ const SORT_OPTIONS = [
 
 function ScoreCell({ applicant }: { applicant: Applicant }) {
   if (!applicant.score || applicant.score.processingError) {
-    return <span style={{ color: 'var(--ink-muted)', fontSize: '0.8125rem' }}>Not scored</span>;
+    const label = isScoringInProgress(applicant.application.appliedAt)
+      ? SCORING_STATE_LABEL.IN_PROGRESS : SCORING_STATE_LABEL.NOT_SCORED;
+    return <span style={{ color: 'var(--ink-muted)', fontSize: '0.8125rem' }}>{label}</span>;
   }
   const { score, tier } = applicant.score;
-  return <Badge variant={tierBadgeVariant(tier)}>{score} · {tier}</Badge>;
+  return <Badge variant={tierBadgeVariant(tier)}>{formatRankedScoreLabel(score, tier)}</Badge>;
 }
 
 export default function RankedTab({ postingId }: { postingId: string }) {
   const [applicants, setApplicants] = useState<Applicant[]>([]);
   const [stages, setStages] = useState<Stage[]>([]);
+  const [reasons, setReasons] = useState<ArchiveReason[]>([]);
   const [sort, setSort] = useState<ApplicantSort>('score');
   const [loadState, setLoadState] = useState<LoadState>('loading');
   const [lastError, setLastError] = useState<string>(LOAD_ERROR_MESSAGE);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { showToast } = useToast();
 
   const load = useCallback(async (activeSort: ApplicantSort) => {
     setLoadState('loading');
     try {
-      const [applicantsResult, stagesResult] = await Promise.all([
+      const [applicantsResult, stagesResult, reasonsResult] = await Promise.all([
         listApplicantsForPosting(postingId, { sort: activeSort }),
         listStages(),
+        listArchiveReasons(),
       ]);
       setApplicants(applicantsResult);
       setStages(stagesResult);
+      setReasons(reasonsResult);
+      // Prune selection to ids still present after a reload (hygiene, D5).
+      const presentIds = new Set(applicantsResult.map((item) => item.application.id));
+      setSelectedIds((prev) => new Set([...prev].filter((id) => presentIds.has(id))));
       setLoadState('loaded');
     } catch (error) {
       setLastError(error instanceof EmployerApplicantsApiError ? error.message : LOAD_ERROR_MESSAGE);
@@ -56,9 +74,54 @@ export default function RankedTab({ postingId }: { postingId: string }) {
 
   useEffect(() => { void load(sort); }, [load, sort]);
 
+  function handleToggleRow(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+  const visibleIds = applicants.map((item) => item.application.id);
+  const allSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id));
+  const someSelected = visibleIds.some((id) => selectedIds.has(id));
+  const handleTogglePage = () => setSelectedIds(allSelected ? new Set() : new Set(visibleIds));
+
+  async function handleConfirmArchive({ reasonId, note }: { reasonId: string; note: string }) {
+    try {
+      setIsSubmitting(true);
+      const result = await bulkArchiveApplicants({ applicationIds: [...selectedIds], reasonId, note });
+      const { variant, message, nextSelection } = summarizeBulkResult(result, selectedIds);
+      showToast(variant, message);
+      setSelectedIds(nextSelection);
+      setIsDialogOpen(false);
+      void load(sort);
+    } catch (error) {
+      showToast('error', resolveBulkErrorMessage(error)); // selection + dialog intact for retry
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   const stageNameById = new Map(stages.map((stage) => [stage.id, stage.text]));
 
   const columns: Column<Applicant>[] = [
+    {
+      key: 'select',
+      header: '',
+      render: (applicant) => {
+        const id = applicant.application.id;
+        const isSelected = selectedIds.has(id);
+        return (
+          <div style={{ background: isSelected ? 'var(--paper-2)' : 'transparent', margin: '-10px -14px', padding: '10px 14px' }}>
+            <input
+              type="checkbox" checked={isSelected}
+              aria-label={`Select ${applicant.contact?.fullName ?? 'applicant'}`}
+              onClick={(event) => event.stopPropagation()} onChange={() => handleToggleRow(id)}
+            />
+          </div>
+        );
+      },
+    },
     {
       key: 'applicant',
       header: 'Applicant',
@@ -70,21 +133,13 @@ export default function RankedTab({ postingId }: { postingId: string }) {
       ),
     },
     { key: 'score', header: 'Score', render: (applicant) => <ScoreCell applicant={applicant} /> },
-    {
-      key: 'stage',
-      header: 'Stage',
-      render: (applicant) => stageNameById.get(applicant.application.stageId) ?? '—',
-    },
-    {
-      key: 'applied',
-      header: 'Applied',
-      render: (applicant) => formatRelativeTime(applicant.application.appliedAt),
-    },
+    { key: 'stage', header: 'Stage', render: (applicant) => stageNameById.get(applicant.application.stageId) ?? '—' },
+    { key: 'applied', header: 'Applied', render: (applicant) => formatRelativeTime(applicant.application.appliedAt) },
     {
       key: 'actions',
       header: '',
       render: (applicant) => (
-        <Link to={`/employer/jobs/${postingId}/applicants/${applicant.application.id}`}>
+        <Link to={`/employer/jobs/${postingId}/applicants/${applicant.application.id}?from=ranked`}>
           <Button variant="ghost" size="sm">View</Button>
         </Link>
       ),
@@ -103,27 +158,41 @@ export default function RankedTab({ postingId }: { postingId: string }) {
     );
   }
   if (applicants.length === 0) {
-    return (
-      <EmptyState
-        title="No applications yet"
-        description="Share your apply URL to start receiving applications."
-      />
-    );
+    return <EmptyState title="No applications yet" description="Share your apply URL to start receiving applications." />;
   }
 
   return (
     <Stack gap={12}>
-      <div style={{ maxWidth: 240 }}>
-        <Select
-          aria-label="Sort applicants"
-          value={sort}
-          options={SORT_OPTIONS}
-          onChange={(event) => setSort(event.target.value as ApplicantSort)}
-        />
-      </div>
+      <Stack gap={16} dir="row" align="center" wrap>
+        <div style={{ maxWidth: 240 }}>
+          <Select aria-label="Sort applicants" value={sort} options={SORT_OPTIONS} onChange={(event) => setSort(event.target.value as ApplicantSort)} />
+        </div>
+        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: '0.8125rem', color: 'var(--ink-muted)', cursor: 'pointer' }}>
+          <input
+            type="checkbox" checked={allSelected} aria-label="Select all applicants on this page"
+            ref={(el) => { if (el) el.indeterminate = someSelected && !allSelected; }}
+            onChange={handleTogglePage}
+          />
+          Select all
+        </label>
+      </Stack>
       <Card padding="sm">
         <Table columns={columns} data={applicants} />
       </Card>
+      <BulkArchiveBar
+        selectedCount={selectedIds.size}
+        onClear={() => setSelectedIds(new Set())}
+        onArchive={() => setIsDialogOpen(true)}
+        isSubmitting={isSubmitting}
+      />
+      <BulkArchiveDialog
+        open={isDialogOpen}
+        selectedCount={selectedIds.size}
+        reasons={reasons}
+        isSubmitting={isSubmitting}
+        onCancel={() => setIsDialogOpen(false)}
+        onConfirm={handleConfirmArchive}
+      />
     </Stack>
   );
 }

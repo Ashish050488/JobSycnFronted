@@ -1,12 +1,12 @@
 // FILE: src/pages/employer/Jobs/Detail.tsx
 // Posting detail page. Fetches the posting by :postingId on mount and renders the
-// Settings tab (view/edit/close/reopen) plus placeholder tabs for Pipeline /
-// Ranked / Stats (they land in later steps). Loading / error / not-found states
-// are distinct; not-found does NOT auto-redirect (R5) so a stale bookmark is
-// explained rather than silently bounced.
+// Settings, Pipeline and Ranked tabs (all live). The initial tab honours a ?tab=
+// query param (P1.4) so a "Back to posting" link can return the user to where they
+// were. Loading / error / not-found states are distinct; not-found does NOT
+// auto-redirect (R5) so a stale bookmark is explained rather than silently bounced.
 
 import { useCallback, useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import {
   Container, Card, Button, Alert, PageHeader, Stack, Tabs, SkeletonCard,
 } from '../../../components/ui';
@@ -20,16 +20,15 @@ import type { Posting } from '../../../types/employer-jobs';
 type LoadState = 'loading' | 'loaded' | 'error' | 'not_found';
 const LOAD_ERROR_MESSAGE = 'Could not load this posting.';
 
-function PlaceholderTab({ children }: { children: React.ReactNode }) {
-  return (
-    <Card>
-      <p style={{ fontSize: '0.875rem', color: 'var(--ink-muted)', lineHeight: 1.55 }}>{children}</p>
-    </Card>
-  );
-}
+// No magic strings for tab ids (C2) — shared with the ?tab query-param plumbing.
+const TAB_IDS = { SETTINGS: 'settings', PIPELINE: 'pipeline', RANKED: 'ranked' } as const;
+const VALID_TAB_IDS: string[] = Object.values(TAB_IDS);
 
 export default function EmployerJobsDetail() {
   const { postingId } = useParams<{ postingId: string }>();
+  const [searchParams] = useSearchParams();
+  const tabFromUrl = searchParams.get('tab');
+  const defaultTabId = tabFromUrl && VALID_TAB_IDS.includes(tabFromUrl) ? tabFromUrl : TAB_IDS.SETTINGS;
   const [posting, setPosting] = useState<Posting | null>(null);
   const [loadState, setLoadState] = useState<LoadState>('loading');
   const [lastError, setLastError] = useState<string>(LOAD_ERROR_MESSAGE);
@@ -81,12 +80,11 @@ export default function EmployerJobsDetail() {
     }
 
     const tabs: TabItem[] = [
-      { id: 'settings', label: 'Settings', content: <DetailSettings posting={posting} onReload={loadPosting} /> },
-      { id: 'pipeline', label: 'Pipeline', content: <PipelineTab postingId={posting.id} /> },
-      { id: 'ranked', label: 'Ranked', content: <RankedTab postingId={posting.id} /> },
-      { id: 'stats', label: 'Stats', content: <PlaceholderTab>Ships in Step 8 — the posting funnel stats live here.</PlaceholderTab> },
+      { id: TAB_IDS.SETTINGS, label: 'Settings', content: <DetailSettings posting={posting} onReload={loadPosting} /> },
+      { id: TAB_IDS.PIPELINE, label: 'Pipeline', content: <PipelineTab postingId={posting.id} /> },
+      { id: TAB_IDS.RANKED, label: 'Ranked', content: <RankedTab postingId={posting.id} /> },
     ];
-    return <Tabs tabs={tabs} defaultTabId="settings" />;
+    return <Tabs tabs={tabs} defaultTabId={defaultTabId} />;
   }
 
   return (
