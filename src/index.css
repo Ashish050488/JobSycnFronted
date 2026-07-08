@@ -47,11 +47,24 @@ a { color: inherit; }
 /* Selection */
 ::selection { background: var(--accent-soft); color: var(--ink); }
 
-/* ── Custom scrollbar ────────────────────────────────────── */
-.thin-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
-.thin-scroll::-webkit-scrollbar-track { background: transparent; }
-.thin-scroll::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
-.thin-scroll::-webkit-scrollbar-thumb:hover { background: var(--ink-faint); }
+/* ── Custom scrollbar ──────────────────────────────────────
+   Applied globally so every scroll area gets the same floating-pill
+   look — no opt-in class needed. `.no-scrollbar`/`.snap-carousel`
+   (higher specificity) still win where a scrollbar must stay hidden. */
+* { scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }
+*::-webkit-scrollbar { width: 12px; height: 12px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-corner { background: transparent; }
+/* Transparent border + padding-box clip floats the thumb as a slim pill. */
+*::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border: 3px solid transparent;
+  background-clip: padding-box;
+  border-radius: 999px;
+}
+*::-webkit-scrollbar-thumb:hover { background: var(--ink-faint); background-clip: padding-box; }
+
+/* Kept for explicit callers; identical to the global default above. */
 .thin-scroll { scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }
 
 /* ── Display type (used sparingly, like Notion serif titles) ──── */
