@@ -71,6 +71,14 @@ export interface Applicant {
     email: string;
     fullName: string;
     phone: string | null;
+    /** Parsed-profile enrichment (7A). Optional: the apply flow only fills email/phone
+     *  today, so these are usually null/absent until the backend wires the resume parser
+     *  in. github/portfolio aren't extracted yet — declared here so the UI lights up
+     *  automatically once they are. */
+    linkedinUrl?: string | null;
+    githubUrl?: string | null;
+    portfolioUrl?: string | null;
+    location?: string | null;
   } | null;
   score: ApplicantScore | null;
 }

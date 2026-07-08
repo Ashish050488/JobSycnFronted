@@ -92,10 +92,10 @@ export default function ApplicantReviewPanel({
   const changeCount = stageChanges.length;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, height: '100%', background: 'var(--surface-raised)', border: '1px solid var(--border)', borderRadius: 16, boxShadow: 'var(--shadow-sm)', padding: 16, boxSizing: 'border-box' }}>
-      {/* Info region — flexes to fill and scrolls internally ONLY if content overflows, so
-          nothing is ever clipped; the action bar + history below always stay visible. */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, background: 'var(--surface-raised)', border: '1px solid var(--border)', borderRadius: 16, boxShadow: 'var(--shadow-sm)', padding: 16, boxSizing: 'border-box' }}>
+      {/* Info region flows naturally — the sidebar column scrolls as one if anything, so the
+          action bar sits right after the summary instead of being pushed below the fold. */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {/* Score hero */}
         {hasScore && score ? (
           <div style={{ background: 'var(--surface-sunken)', borderRadius: 14, padding: '14px 16px' }}>

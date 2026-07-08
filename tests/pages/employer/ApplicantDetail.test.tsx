@@ -96,7 +96,8 @@ describe('ApplicantDetail page', () => {
     api.fetchApplicantDetail.mockResolvedValue(detail());
     const { container } = renderPage();
     expect(await screen.findByText('Asha Rao')).toBeInTheDocument();
-    expect(screen.getByText('asha@x.com')).toBeInTheDocument();
+    // Email shows in both the sticky header (glance) and the contact card (copyable).
+    expect(screen.getAllByText('asha@x.com').length).toBeGreaterThan(0);
     expect(container.querySelector('iframe')?.getAttribute('src')).toBe('/api/public/resume-download?token=t1#zoom=page-width&navpanes=0');
     expect(screen.getByText('82')).toBeInTheDocument(); // ApplicantReviewPanel score hero
     // The review panel renders its one-line history footer; detail() has no changes.
@@ -357,6 +358,18 @@ describe('ApplicantDetail page', () => {
     const note = screen.getByText(/line one/);
     expect(note.getAttribute('style')).toContain('white-space: pre-wrap');
     expect(note.textContent).toContain('line one\nline two');
+  });
+
+  it('renders the contact card with phone and LinkedIn from the loaded applicant', async () => {
+    api.fetchApplicantDetail.mockResolvedValue({
+      ...detail(),
+      contact: { id: 'c1', email: 'asha@x.com', fullName: 'Asha Rao', phone: '+91 99999 00000', linkedinUrl: 'linkedin.com/in/asha', location: 'Pune' },
+    });
+    renderPage();
+    await screen.findByText('Asha Rao');
+    expect(screen.getByText('Contact')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '+91 99999 00000' })).toHaveAttribute('href', 'tel:+919999900000');
+    expect(screen.getByRole('link', { name: 'LinkedIn profile' })).toHaveAttribute('href', 'https://linkedin.com/in/asha');
   });
 
   it('mobile: the cover note still renders in the stacked layout', async () => {

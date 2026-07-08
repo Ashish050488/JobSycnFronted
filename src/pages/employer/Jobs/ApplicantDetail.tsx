@@ -12,6 +12,7 @@ import { useViewport } from '../../../hooks/shared/useViewport';
 import { useApplicantKeyboardNav } from '../../../hooks/employer/useApplicantKeyboardNav';
 import ApplicantResumeViewer from './ApplicantResumeViewer';
 import ApplicantReviewPanel from './ApplicantReviewPanel';
+import ApplicantContactCard from './ApplicantContactCard';
 import ApplicantCoverNote from './ApplicantCoverNote';
 import ApplicantStickyHeader from './ApplicantStickyHeader';
 
@@ -151,19 +152,21 @@ export default function ApplicantDetailPage() {
         onDone={load}
       />
     );
+    // Contact "business card" at the very top of the sidebar — what the employer reaches
+    // for first, visible on load without scrolling. Renders nothing if there's no contact.
+    const contactCard = detail.contact ? <ApplicantContactCard contact={detail.contact} /> : null;
     // Candidate-voiced note (R1/R2): shown above the review panel, only when non-empty (R3).
     const coverNote = detail.application.coverNote?.trim() || null;
     const coverNoteCard = coverNote ? <ApplicantCoverNote coverNote={coverNote} /> : null;
 
     if (!twoColumn) {
-      return <Stack gap={16}>{viewer}{coverNoteCard}{sidebar}</Stack>;
+      return <Stack gap={16}>{viewer}{contactCard}{coverNoteCard}{sidebar}</Stack>;
     }
     return (
       <div style={GRID_STYLE}>
         <div style={LEFT_COLUMN_STYLE}>{viewer}</div>
         <div style={RIGHT_COLUMN_STYLE}>
-          {coverNoteCard && <div style={{ marginBottom: 16 }}>{coverNoteCard}</div>}
-          {sidebar}
+          <Stack gap={16}>{contactCard}{coverNoteCard}{sidebar}</Stack>
         </div>
       </div>
     );
