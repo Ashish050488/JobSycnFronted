@@ -5,9 +5,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Container, Card, Button, Alert, Stack, SkeletonCard } from '../../components/ui';
+import { Card, Button, Alert, Stack, SkeletonCard } from '../../components/ui';
 import PublicLayout from '../../components/layouts/PublicLayout';
 import ApplyFormFields from './ApplyFormFields';
+import { useViewport } from '../../hooks/shared/useViewport';
 import { fetchPublicJob, submitApplication, PublicApiError } from '../../api/public-api';
 import { validateApplyForm, fieldError, mapServerError } from './apply-form-helpers';
 import type { ApplyErrors } from './apply-form-helpers';
@@ -19,9 +20,28 @@ const EMPTY: ApplyFormData = {
   consent_dpdp: false, consent_futureOpportunities: false, resume: null, honeypot: '',
 };
 
+// Every major ATS (LinkedIn, Greenhouse, Lever, Ashby) puts the JD on the left and
+// keeps the form visible on the right (R1). We opt out of Container size="sm" (640px,
+// which wastes ~1280px on desktop) for a wider centred wrapper (P-APPLY.1).
+const APPLY_PAGE_MAX_WIDTH_PIXELS = 1400;
+const APPLY_PAGE_HORIZONTAL_PADDING_PIXELS = 24;
+const APPLY_PAGE_STICKY_TOP_PIXELS = 20;
+const APPLY_PAGE_TWO_COLUMN_BREAKPOINT_PIXELS = 900;
+
+// Indian job postings show salary in lakhs-per-annum with a ₹ prefix (R5). Only render
+// when at least one bound is present (P-APPLY.2).
+function formatSalaryLPA(min: number | null, max: number | null): string | null {
+  if (min == null && max == null) return null;
+  if (min != null && max != null) return `₹${min}-${max} LPA`;
+  if (min != null) return `₹${min}+ LPA`;
+  return `up to ₹${max} LPA`;
+}
+
 export default function ApplyForm() {
   const { companySlug = '', jobSlug = '' } = useParams();
   const navigate = useNavigate();
+  const { w } = useViewport();
+  const twoColumn = w > APPLY_PAGE_TWO_COLUMN_BREAKPOINT_PIXELS;
   const [company, setCompany] = useState<PublicCompany | null>(null);
   const [job, setJob] = useState<PublicJob | null>(null);
   const [loadState, setLoadState] = useState<LoadState>('loading');
@@ -86,9 +106,35 @@ export default function ApplyForm() {
     }
   };
 
+  const jdBlock = job && company && (
+    <div>
+      <h1 className="font-display" style={{ fontSize: 'clamp(1.4rem, 4vw, 1.9rem)', fontWeight: 600, color: 'var(--ink)' }}>{job.title}</h1>
+      <p style={{ fontSize: '0.9rem', color: 'var(--ink-muted)', marginTop: 4 }}>
+        {[company.name, job.location, job.employmentType, formatSalaryLPA(job.salaryMin, job.salaryMax)].filter(Boolean).join(' · ')}
+      </p>
+      <p style={{ fontSize: '0.875rem', color: 'var(--ink)', marginTop: 12, whiteSpace: 'pre-wrap', lineHeight: 1.55 }}>{job.description}</p>
+    </div>
+  );
+
+  const formCard = company && (
+    <Card>
+      <Stack gap={16}>
+        {errors._form && <Alert type="error">{errors._form}</Alert>}
+        <ApplyFormFields data={data} errors={errors} companyName={company.name} set={set} onBlur={onBlur} />
+        <Button loading={submitting} disabled={!canSubmit} onClick={handleSubmit}>Submit application</Button>
+      </Stack>
+    </Card>
+  );
+
   return (
     <PublicLayout companyName={company?.name}>
-      <Container size="sm" style={{ paddingTop: 24, paddingBottom: 60 }}>
+      <div
+        style={{
+          maxWidth: APPLY_PAGE_MAX_WIDTH_PIXELS, margin: '0 auto',
+          paddingLeft: APPLY_PAGE_HORIZONTAL_PADDING_PIXELS, paddingRight: APPLY_PAGE_HORIZONTAL_PADDING_PIXELS,
+          paddingTop: 24, paddingBottom: 60, boxSizing: 'border-box',
+        }}
+      >
         {loadState === 'loading' && <SkeletonCard lines={4} />}
         {loadState === 'not_found' && (
           <Card>
@@ -101,24 +147,18 @@ export default function ApplyForm() {
         {loadState === 'error' && <Alert type="error">Could not load this position. Please try again.</Alert>}
 
         {loadState === 'loaded' && job && company && (
-          <Stack gap={20}>
-            <div>
-              <h1 className="font-display" style={{ fontSize: 'clamp(1.4rem, 4vw, 1.9rem)', fontWeight: 600, color: 'var(--ink)' }}>{job.title}</h1>
-              <p style={{ fontSize: '0.9rem', color: 'var(--ink-muted)', marginTop: 4 }}>
-                {[company.name, job.location, job.employmentType].filter(Boolean).join(' · ')}
-              </p>
-              <p style={{ fontSize: '0.875rem', color: 'var(--ink)', marginTop: 12, whiteSpace: 'pre-wrap', lineHeight: 1.55 }}>{job.description}</p>
+          twoColumn ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.5fr) minmax(360px, 1fr)', gap: 32, alignItems: 'start' }}>
+              <div>{jdBlock}</div>
+              <div tabIndex={0} style={{ position: 'sticky', top: APPLY_PAGE_STICKY_TOP_PIXELS, maxHeight: `calc(100vh - ${APPLY_PAGE_STICKY_TOP_PIXELS * 2}px)`, overflowY: 'auto' }}>
+                {formCard}
+              </div>
             </div>
-            <Card>
-              <Stack gap={16}>
-                {errors._form && <Alert type="error">{errors._form}</Alert>}
-                <ApplyFormFields data={data} errors={errors} companyName={company.name} set={set} onBlur={onBlur} />
-                <Button loading={submitting} disabled={!canSubmit} onClick={handleSubmit}>Submit application</Button>
-              </Stack>
-            </Card>
-          </Stack>
+          ) : (
+            <Stack gap={20}>{jdBlock}{formCard}</Stack>
+          )
         )}
-      </Container>
+      </div>
     </PublicLayout>
   );
 }
