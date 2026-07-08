@@ -58,8 +58,8 @@ export default function ApplicantActions({
   }
 
   return (
-    <Card padding="md">
-      <Stack gap={14}>
+    <Card padding="sm">
+      <Stack gap={10}>
         <SectionTitle>Actions</SectionTitle>
         {error && <Alert type="error">{error}</Alert>}
 
@@ -79,10 +79,15 @@ export default function ApplicantActions({
               <Textarea
                 label="Note (optional)"
                 rows={2}
+                style={{ minHeight: 'auto', resize: 'vertical' }}
                 value={moveNote}
                 onChange={(event) => setMoveNote(event.target.value)}
               />
+            </Stack>
+
+            <Stack dir="row" gap={8} justify="space-between" wrap>
               <Button
+                style={{ flex: 1 }}
                 loading={busy}
                 disabled={stageId === currentStageId}
                 onClick={() => void run(async () => {
@@ -92,9 +97,8 @@ export default function ApplicantActions({
               >
                 Move stage
               </Button>
+              <Button style={{ flex: 1 }} variant="danger" onClick={() => setConfirmOpen(true)}>Archive applicant</Button>
             </Stack>
-
-            <Button variant="danger" onClick={() => setConfirmOpen(true)}>Archive applicant</Button>
           </>
         )}
       </Stack>

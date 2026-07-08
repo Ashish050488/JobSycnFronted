@@ -4,7 +4,7 @@
 // non-2xx. Pipeline/Ranked pages call only this module — never fetch() directly.
 
 import type {
-  Applicant, ApplicantDetail, ResumeUrl, Stage, ArchiveReason, ApplicantSort,
+  Applicant, ApplicantDetail, ResumeUrl, Stage, ArchiveReason, ApplicantSort, BulkArchiveResult,
 } from '../types/employer-applicants';
 
 export class EmployerApplicantsApiError extends Error {
@@ -92,4 +92,18 @@ export async function unarchiveApplicant(
   applicationId: string,
 ): Promise<{ application: Applicant['application'] }> {
   return request(`${applicantPath(applicationId)}/unarchive`, { method: 'POST' });
+}
+
+/**
+ * Bulk-archive many applications (PP1/PP3). Resolves with the per-item outcome body on
+ * 200 (including partial success); throws EmployerApplicantsApiError with .code on a
+ * whole-request failure (BULK_EMPTY / BULK_LIMIT_EXCEEDED / REASON_NOT_FOUND / 401 / 403).
+ */
+export async function bulkArchiveApplicants(
+  input: { applicationIds: string[]; reasonId: string; note?: string },
+): Promise<BulkArchiveResult> {
+  return request<BulkArchiveResult>('/api/employer/applicants/bulk/archive', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
 }

@@ -2,38 +2,38 @@
 // Custom drag-and-drop resume uploader (no third-party lib, C7/R1). Two tabs:
 // a PDF drop zone (native HTML5 drag events + hidden file input) and a paste-text
 // fallback (R4). Client-side validates PDF mimetype + 5MB before hitting the API.
-// While the ~15-30s Gemma parse runs, it shows a clear parsing state (R3).
+// Parsing state lives on the page now (F2) — this zone only owns the pre-submit
+// validation Alert and a brief in-flight disable while the enqueue POST runs.
 
 import { useRef, useState } from 'react';
 import { UploadCloud } from 'lucide-react';
-import { Tabs, Button, Textarea, Alert, Spinner, Stack } from '../../components/ui';
+import { Tabs, Button, Textarea, Alert, Stack } from '../../components/ui';
 import type { TabItem } from '../../components/ui';
 import { uploadResume, uploadResumeText, SeekerApiError } from '../../api/seeker-api';
-import type { ParsedProfile } from '../../types/seeker-profile';
+import type { ResumeUploadResult } from '../../types/seeker-profile';
 
 const MAX_BYTES = 5 * 1024 * 1024;
 
 interface Props {
-  onUploadComplete: (profile: ParsedProfile, isUnchanged: boolean) => void;
+  onUploadComplete: (result: ResumeUploadResult) => void;
 }
 
 export default function ResumeUploadZone({ onUploadComplete }: Props) {
-  const [uploading, setUploading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [text, setText] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const run = async (fn: () => Promise<{ profile: ParsedProfile; isUnchanged: boolean }>) => {
-    setUploading(true);
+  const run = async (fn: () => Promise<ResumeUploadResult>) => {
+    setIsSubmitting(true);
     setError(null);
     try {
-      const { profile, isUnchanged } = await fn();
-      onUploadComplete(profile, isUnchanged);
+      onUploadComplete(await fn());
     } catch (err) {
       setError(err instanceof SeekerApiError ? err.message : 'Something went wrong. Please try again.');
     } finally {
-      setUploading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -44,22 +44,13 @@ export default function ResumeUploadZone({ onUploadComplete }: Props) {
     void run(() => uploadResume(file));
   };
 
-  if (uploading) {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: 40 }}>
-        <Spinner size={26} />
-        <p style={{ fontSize: '0.9rem', color: 'var(--ink-muted)' }}>Parsing your resume… This takes 15–30 seconds.</p>
-      </div>
-    );
-  }
-
   const dropZone = (
     <div>
       <div
         role="button"
         tabIndex={0}
-        onClick={() => inputRef.current?.click()}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') inputRef.current?.click(); }}
+        onClick={() => { if (!isSubmitting) inputRef.current?.click(); }}
+        onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && !isSubmitting) inputRef.current?.click(); }}
         onDragEnter={(e) => { e.preventDefault(); setDragging(true); }}
         onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
         onDragLeave={(e) => { e.preventDefault(); setDragging(false); }}
@@ -91,7 +82,7 @@ export default function ResumeUploadZone({ onUploadComplete }: Props) {
         onChange={(e) => setText(e.target.value)}
       />
       <div>
-        <Button disabled={text.trim().length < 200} onClick={() => void run(() => uploadResumeText(text.trim()))}>
+        <Button disabled={isSubmitting || text.trim().length < 200} onClick={() => void run(() => uploadResumeText(text.trim()))}>
           Parse resume
         </Button>
       </div>

@@ -13,8 +13,14 @@ import ProfileContact from './ProfileContact';
 import ProfileSkills from './ProfileSkills';
 import ProfilePreferences from './ProfilePreferences';
 import { ProfileExperience, ProfileEducation } from './ProfileReadonly';
+import ProfileReviewCard from '../../components/seeker/ProfileReviewCard';
+import ProfileMarketCard from '../../components/seeker/ProfileMarketCard';
 
 type LoadState = 'loading' | 'loaded' | 'empty' | 'error';
+
+// profileUpdatedAt lives on the seeker user doc (F3a helpers), not inside the
+// parsedProfile envelope; read it defensively and fall back to parsedAt.
+type ProfileWithMeta = ParsedProfile & { profileUpdatedAt?: string | null };
 
 function relTime(iso: string | null): string {
   if (!iso) return 'recently';
@@ -80,6 +86,8 @@ export default function Profile() {
         actions={<Link to="/resume"><Button variant="ghost">Re-upload resume</Button></Link>}
       />
       <Stack gap={16}>
+        <ProfileReviewCard profileUpdatedAt={(profile as ProfileWithMeta).profileUpdatedAt ?? profile.parsedAt} />
+        <ProfileMarketCard />
         <ProfileContact profile={profile} onSaved={setProfile} />
         <ProfileSkills profile={profile} onSaved={setProfile} />
         <ProfilePreferences profile={profile} onSaved={setProfile} />

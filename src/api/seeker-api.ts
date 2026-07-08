@@ -4,7 +4,24 @@
 // throws SeekerApiError (status + code) on non-2xx. Resume/profile UI calls only
 // this module — never fetch() directly.
 
-import type { ParsedProfile, ResumeUploadResult } from '../types/seeker-profile';
+import type {
+  ParsedProfile, ResumeParseJob, ResumeUploadResult,
+  ResumeReview, MatchCount, SalaryBenchmark,
+} from '../types/seeker-profile';
+
+// Raw backend envelope for /upload + /text: either a queued job or the dedup
+// fast-path ({ profile, isUnchanged: true, jobId: null }). normalized below (D1).
+type RawUploadResponse = {
+  jobId?: string | null;
+  status?: string;
+  profile?: ParsedProfile;
+  isUnchanged?: boolean;
+};
+
+function normalizeUpload(body: RawUploadResponse): ResumeUploadResult {
+  if (body.isUnchanged && body.profile) return { kind: 'unchanged', profile: body.profile };
+  return { kind: 'queued', jobId: String(body.jobId) };
+}
 
 export class SeekerApiError extends Error {
   status: number;
@@ -32,16 +49,25 @@ export async function uploadResume(file: File): Promise<ResumeUploadResult> {
   const form = new FormData();
   form.append('resume', file);
   // No Content-Type header — the browser sets the multipart boundary.
-  return request<ResumeUploadResult>('/api/seeker/resume/upload', { method: 'POST', body: form });
+  const body = await request<RawUploadResponse>('/api/seeker/resume/upload', { method: 'POST', body: form });
+  return normalizeUpload(body);
 }
 
 /** Parse a pasted resume-text fallback. */
 export async function uploadResumeText(text: string): Promise<ResumeUploadResult> {
-  return request<ResumeUploadResult>('/api/seeker/resume/text', {
+  const body = await request<RawUploadResponse>('/api/seeker/resume/text', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ text }),
   });
+  return normalizeUpload(body);
+}
+
+/** Poll one parse job's status. Unwraps the { job } envelope (D2). The optional
+ * signal lets the polling hook abort an in-flight request on unmount (R1/R2). */
+export async function fetchResumeJob(jobId: string, signal?: AbortSignal): Promise<ResumeParseJob> {
+  const body = await request<{ job: ResumeParseJob }>(`/api/seeker/resume/jobs/${jobId}`, { signal });
+  return body.job;
 }
 
 /** The caller's parsed profile, or null when not parsed yet. */
@@ -58,4 +84,26 @@ export async function patchProfile(patch: Partial<ParsedProfile>): Promise<Parse
     body: JSON.stringify(patch),
   });
   return body.profile;
+}
+
+/** The caller's cached resume review, or null when none has run yet (D2). */
+export async function fetchResumeReview(signal?: AbortSignal): Promise<ResumeReview | null> {
+  const body = await request<{ review: ResumeReview | null }>('/api/seeker/resume/review', { signal });
+  return body.review ?? null;
+}
+
+/** Run a fresh review and return it. Propagates SeekerApiError (.code) on failure. */
+export async function runResumeReview(signal?: AbortSignal): Promise<ResumeReview> {
+  const body = await request<{ review: ResumeReview }>('/api/seeker/resume/review', { method: 'POST', signal });
+  return body.review;
+}
+
+/** Live count of postings matching the caller's profile (direct shape). */
+export async function fetchMatchCount(signal?: AbortSignal): Promise<MatchCount> {
+  return request<MatchCount>('/api/seeker/market/match-count', { signal });
+}
+
+/** Salary benchmark band for the caller's seniority slice (direct shape). */
+export async function fetchSalaryBenchmark(signal?: AbortSignal): Promise<SalaryBenchmark> {
+  return request<SalaryBenchmark>('/api/seeker/market/salary-benchmark', { signal });
 }

@@ -62,6 +62,12 @@ describe('EmployerDashboard', () => {
     expect(ctxValue.refreshEmployerSession).toHaveBeenCalledTimes(1);
   });
 
+  it('does NOT render the stale "Steps 4–7" placeholder copy (P1.1 regression guard)', () => {
+    renderDashboard();
+    expect(screen.queryByText(/Steps 4/)).toBeNull();
+    expect(screen.queryByText(/land in Steps/i)).toBeNull();
+  });
+
   it('sign-out triggers logout', () => {
     renderDashboard();
     fireEvent.click(screen.getByRole('button', { name: 'Sign out' }));
