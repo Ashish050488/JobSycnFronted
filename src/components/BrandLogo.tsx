@@ -14,28 +14,13 @@ const SIZES = {
 
 function Mark({ size }: { size: number }) {
   return (
-    <svg
+    <img
+      src="/logo.jpg"
+      alt="Jobmesh"
       width={size}
       height={size}
-      viewBox="0 0 32 32"
-      fill="none"
-      style={{ flexShrink: 0, display: 'block' }}
-    >
-      {/* Rounded square base */}
-      <rect x="2" y="2" width="28" height="28" rx="7" fill="var(--accent)" />
-      {/* Subtle highlight edge */}
-      <rect x="2" y="2" width="28" height="28" rx="7" fill="none" stroke="rgba(255,255,255,0.18)" strokeWidth="1" />
-      {/* Diamond mesh nodes */}
-      <circle cx="16" cy="9" r="1.6" fill="#fff" />
-      <circle cx="23" cy="16" r="1.6" fill="#fff" />
-      <circle cx="16" cy="23" r="1.6" fill="#fff" />
-      <circle cx="9" cy="16" r="1.6" fill="#fff" />
-      {/* Connecting lines */}
-      <path d="M16 10.6 L23 14.4 M23 17.6 L16 21.4 M14.4 22.5 L10 17.5 M10 14.5 L14.4 9.5"
-            stroke="rgba(255,255,255,0.85)" strokeWidth="1.3" strokeLinecap="round" />
-      {/* Center dot */}
-      <circle cx="16" cy="16" r="2.2" fill="#fff" />
-    </svg>
+      style={{ flexShrink: 0, display: 'block', borderRadius: 7, objectFit: 'contain' }}
+    />
   );
 }
 
