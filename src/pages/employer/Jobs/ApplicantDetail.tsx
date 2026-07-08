@@ -12,6 +12,7 @@ import { useViewport } from '../../../hooks/shared/useViewport';
 import { useApplicantKeyboardNav } from '../../../hooks/employer/useApplicantKeyboardNav';
 import ApplicantResumeViewer from './ApplicantResumeViewer';
 import ApplicantReviewPanel from './ApplicantReviewPanel';
+import ApplicantCoverNote from './ApplicantCoverNote';
 import ApplicantStickyHeader from './ApplicantStickyHeader';
 
 type LoadState = 'loading' | 'loaded' | 'error' | 'not_found';
@@ -150,14 +151,17 @@ export default function ApplicantDetailPage() {
         onDone={load}
       />
     );
+    // Candidate-voiced note (R1/R2): shown above the review panel, only when non-empty (R3).
+    const coverNote = detail.application.coverNote?.trim() || null;
+    const coverNoteCard = coverNote ? <ApplicantCoverNote coverNote={coverNote} /> : null;
 
     if (!twoColumn) {
-      return <Stack gap={16}>{viewer}{sidebar}</Stack>;
+      return <Stack gap={16}>{viewer}{coverNoteCard}{sidebar}</Stack>;
     }
     return (
       <div style={GRID_STYLE}>
         <div style={LEFT_COLUMN_STYLE}>{viewer}</div>
-        <div style={RIGHT_COLUMN_STYLE}>{sidebar}</div>
+        <div style={RIGHT_COLUMN_STYLE}>{coverNoteCard}{sidebar}</div>
       </div>
     );
   }
