@@ -5,6 +5,7 @@
 
 import type {
   Applicant, ApplicantDetail, ResumeUrl, Stage, ArchiveReason, ApplicantSort, BulkArchiveResult,
+  RescoreResult,
 } from '../types/employer-applicants';
 
 export class EmployerApplicantsApiError extends Error {
@@ -92,6 +93,15 @@ export async function unarchiveApplicant(
   applicationId: string,
 ): Promise<{ application: Applicant['application'] }> {
   return request(`${applicantPath(applicationId)}/unarchive`, { method: 'POST' });
+}
+
+/**
+ * Requeue AI scoring for one applicant. Resolves on both 202 (a job was reset or
+ * inserted) and 200 (one was already in flight — `rescored: false`); the caller
+ * distinguishes them via the returned flag rather than the status code.
+ */
+export async function rescoreApplicant(applicationId: string): Promise<RescoreResult> {
+  return request<RescoreResult>(`${applicantPath(applicationId)}/rescore`, { method: 'POST' });
 }
 
 /**

@@ -143,6 +143,7 @@ export default function ApplicantDetailPage() {
     const sidebar = (
       <ApplicantReviewPanel
         score={detail.score}
+        scoreJobStatus={detail.scoreJobStatus}
         applicationId={detail.application.id}
         currentStageId={detail.application.stageId}
         archived={Boolean(detail.application.archived)}

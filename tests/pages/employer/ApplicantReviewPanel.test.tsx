@@ -1,17 +1,17 @@
 // FILE: tests/pages/employer/ApplicantReviewPanel.test.tsx
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
-import type { ApplicantScore, Stage, ArchiveReason, StageChange } from '../../../src/types/employer-applicants';
+import type { ApplicantScore, Stage, ArchiveReason, StageChange, ScoreJobStatus } from '../../../src/types/employer-applicants';
 
-const { moveApplicant, archiveApplicant, unarchiveApplicant, EmployerApplicantsApiError } = vi.hoisted(() => {
+const { moveApplicant, archiveApplicant, unarchiveApplicant, rescoreApplicant, EmployerApplicantsApiError } = vi.hoisted(() => {
   class EmployerApplicantsApiError extends Error {
     status: number; code: string | null;
     constructor(status: number, code: string | null, message: string) { super(message); this.status = status; this.code = code; }
   }
-  return { moveApplicant: vi.fn(), archiveApplicant: vi.fn(), unarchiveApplicant: vi.fn(), EmployerApplicantsApiError };
+  return { moveApplicant: vi.fn(), archiveApplicant: vi.fn(), unarchiveApplicant: vi.fn(), rescoreApplicant: vi.fn(), EmployerApplicantsApiError };
 });
 
-vi.mock('../../../src/api/employer-applicants-api', () => ({ moveApplicant, archiveApplicant, unarchiveApplicant, EmployerApplicantsApiError }));
+vi.mock('../../../src/api/employer-applicants-api', () => ({ moveApplicant, archiveApplicant, unarchiveApplicant, rescoreApplicant, EmployerApplicantsApiError }));
 
 import ApplicantReviewPanel from '../../../src/pages/employer/Jobs/ApplicantReviewPanel';
 
@@ -41,10 +41,16 @@ function renderPanel(props: Partial<React.ComponentProps<typeof ApplicantReviewP
   );
 }
 
+function jobStatus(status: ScoreJobStatus['status']): ScoreJobStatus {
+  return { jobId: 'j1', status, attemptCount: 0, errorCode: null, nextTryAt: null, completedAt: null };
+}
+const rescoreButton = () => screen.getByRole('button', { name: /^Rescor(e|ing…)$/ });
+
 beforeEach(() => {
   moveApplicant.mockReset().mockResolvedValue({});
   archiveApplicant.mockReset().mockResolvedValue({});
   unarchiveApplicant.mockReset().mockResolvedValue({});
+  rescoreApplicant.mockReset().mockResolvedValue({ rescored: true, jobStatus: 'queued', jobId: 'j1', attemptCount: 0 });
 });
 
 describe('ApplicantReviewPanel', () => {
@@ -133,5 +139,72 @@ describe('ApplicantReviewPanel', () => {
     fireEvent.change(screen.getByLabelText('Move to'), { target: { value: 's2' } });
     fireEvent.click(screen.getByRole('button', { name: 'Move stage' }));
     expect(await screen.findByText('Cannot move archived')).toBeInTheDocument();
+  });
+
+  // ---- Rescore (T1.2 D16) ------------------------------------------------
+
+  // D16(q)
+  it('shows an enabled Rescore button when no score job exists', () => {
+    renderPanel({ scoreJobStatus: null });
+    const button = rescoreButton();
+    expect(button).toHaveTextContent('Rescore');
+    expect(button).not.toBeDisabled();
+    expect(screen.queryByText('Rescoring…')).toBeNull();
+  });
+
+  it('offers Rescore even when the applicant was never scored', () => {
+    renderPanel({ score: null, scoreJobStatus: null });
+    expect(screen.getByText('Not scored yet')).toBeInTheDocument();
+    expect(rescoreButton()).not.toBeDisabled();
+  });
+
+  // D16(r)
+  it('disables the button and labels it "Rescoring…" while the job is queued', () => {
+    renderPanel({ scoreJobStatus: jobStatus('queued') });
+    expect(rescoreButton()).toBeDisabled();
+    expect(rescoreButton()).toHaveTextContent('Rescoring…');
+  });
+
+  it('is also in-flight while the job is processing, but idle for done/failed', () => {
+    const { rerender } = renderPanel({ scoreJobStatus: jobStatus('processing') });
+    expect(rescoreButton()).toBeDisabled();
+    for (const status of ['done', 'failed'] as const) {
+      rerender(
+        <ApplicantReviewPanel score={score()} scoreJobStatus={jobStatus(status)} applicationId="a1"
+          currentStageId="s1" archived={false} stages={STAGES} reasons={REASONS} stageChanges={[]} onDone={vi.fn()} />,
+      );
+      expect(rescoreButton()).not.toBeDisabled();
+    }
+  });
+
+  // D16(s)
+  it('clicking Rescore calls rescoreApplicant then refetches via onDone', async () => {
+    const onDone = vi.fn();
+    renderPanel({ onDone, scoreJobStatus: null });
+    fireEvent.click(rescoreButton());
+    await waitFor(() => expect(rescoreApplicant).toHaveBeenCalledWith('a1'));
+    expect(onDone).toHaveBeenCalledTimes(1);
+  });
+
+  // D16(t)
+  it('an error from rescoreApplicant surfaces inline and re-enables the button', async () => {
+    rescoreApplicant.mockRejectedValueOnce(new EmployerApplicantsApiError(500, 'RESCORE_ENQUEUE_FAILED', 'Could not queue a rescore.'));
+    const onDone = vi.fn();
+    renderPanel({ onDone, scoreJobStatus: null });
+    fireEvent.click(rescoreButton());
+    expect(await screen.findByText('Could not queue a rescore.')).toBeInTheDocument();
+    expect(onDone).not.toHaveBeenCalled();
+    await waitFor(() => expect(rescoreButton()).not.toBeDisabled());
+  });
+
+  // D16(u) — regression: never blank the score mid-rescore (C13).
+  it('keeps the score number, tier badge and skills visible while rescoring', () => {
+    renderPanel({ scoreJobStatus: jobStatus('queued') });
+    expect(screen.getByText('35')).toBeInTheDocument();
+    expect(screen.getByText('/ 100')).toBeInTheDocument();
+    expect(screen.getByText('weak')).toBeInTheDocument();
+    expect(screen.getByText('React')).toBeInTheDocument();
+    expect(screen.getByText('Junior but promising.')).toBeInTheDocument();
+    expect(screen.getByText('Rescoring…', { selector: 'span' })).toBeInTheDocument();
   });
 });

@@ -1,15 +1,16 @@
 // FILE: src/pages/employer/Jobs/ApplicantReviewPanel.tsx
-// Redesigned applicant review rail. One elevated surface, no internal scroll on desktop:
-// score hero (tier-tinted meter) → skill chips → fit tiles → summary → action bar → history
-// footer. Move (non-destructive) is inline; archive (destructive) opens a confirm Modal.
-// Move-note and archive-note are separate fields so a move note never leaks into an archive.
+// Applicant review rail: score hero (tier-tinted meter, Rescore action) → skill chips →
+// fit tiles → summary → action bar → history footer. Move is inline; archive opens a
+// confirm Modal. Move-note and archive-note are separate fields so a move note never
+// leaks into an archive. Rescore requeues AI scoring; while a job is queued/processing
+// the old score stays on screen behind a "Rescoring…" chip (C13) — no polling (C12).
 
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { Briefcase, MapPin, Clock } from 'lucide-react';
 import { Button, Select, Input, Textarea, Modal, Alert, Stack, Badge } from '../../../components/ui';
-import { moveApplicant, archiveApplicant, unarchiveApplicant, EmployerApplicantsApiError } from '../../../api/employer-applicants-api';
-import type { ApplicantScore, Stage, ArchiveReason, StageChange } from '../../../types/employer-applicants';
+import { moveApplicant, archiveApplicant, unarchiveApplicant, rescoreApplicant, EmployerApplicantsApiError } from '../../../api/employer-applicants-api';
+import type { ApplicantScore, Stage, ArchiveReason, StageChange, ScoreJobStatus } from '../../../types/employer-applicants';
 import { formatRelativeTime } from './applicant-view-helpers';
 
 const ACTION_ERROR = 'Something went wrong. Please try again.';
@@ -37,6 +38,15 @@ function SkillRow({ label, skills, variant }: { label: string; skills: string[];
   );
 }
 
+/** Tertiary action in the score hero. Reads "Rescoring…" and locks while a job is in flight. */
+function RescoreButton({ isRescoring, disabled, onClick }: { isRescoring: boolean; disabled: boolean; onClick: () => void }) {
+  return (
+    <Button variant="ghost" disabled={disabled} onClick={onClick} style={{ padding: '2px 8px', fontSize: '0.72rem', fontWeight: 600 }}>
+      {isRescoring ? 'Rescoring…' : 'Rescore'}
+    </Button>
+  );
+}
+
 function FitTile({ icon, label, value }: { icon: ReactNode; label: string; value: string | null | undefined }) {
   return (
     <div style={{ flex: 1, minWidth: 0, background: 'var(--surface-sunken)', border: '1px solid var(--border)', borderRadius: 12, padding: '10px 12px' }}>
@@ -49,9 +59,10 @@ function FitTile({ icon, label, value }: { icon: ReactNode; label: string; value
 }
 
 export default function ApplicantReviewPanel({
-  score, applicationId, currentStageId, archived, stages, reasons, stageChanges, onDone,
+  score, scoreJobStatus = null, applicationId, currentStageId, archived, stages, reasons, stageChanges, onDone,
 }: {
   score: ApplicantScore | null;
+  scoreJobStatus?: ScoreJobStatus | null;
   applicationId: string;
   currentStageId: string;
   archived: boolean;
@@ -85,6 +96,10 @@ export default function ApplicantReviewPanel({
     if (ok) { setConfirmOpen(false); setArchiveNote(''); }
   }
 
+  // A queued/processing job means the worker owns this application right now (C11).
+  const isRescoring = scoreJobStatus?.status === 'queued' || scoreJobStatus?.status === 'processing';
+  const handleRescore = () => void run(() => rescoreApplicant(applicationId));
+
   const hasScore = Boolean(score && score.processingError == null && score.score != null);
   const tint = score ? (TIER_COLOR[score.tier] ?? 'var(--accent)') : 'var(--ink-muted)';
   const stageName = (id: string | null): string => (id ? stages.find((s) => s.id === id)?.text ?? EMPTY_VALUE : EMPTY_VALUE);
@@ -93,26 +108,29 @@ export default function ApplicantReviewPanel({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12, background: 'var(--surface-raised)', border: '1px solid var(--border)', borderRadius: 16, boxShadow: 'var(--shadow-sm)', padding: 16, boxSizing: 'border-box' }}>
-      {/* Info region flows naturally — the sidebar column scrolls as one if anything, so the
-          action bar sits right after the summary instead of being pushed below the fold. */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {/* Score hero */}
         {hasScore && score ? (
           <div style={{ background: 'var(--surface-sunken)', borderRadius: 14, padding: '14px 16px' }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
               <span className="font-display" style={{ fontSize: '2.6rem', fontWeight: 700, color: 'var(--ink)', lineHeight: 1 }}>{score.score}</span>
               <span style={{ fontSize: '0.9rem', color: 'var(--ink-muted)' }}>/ 100</span>
-              <div style={{ marginLeft: 'auto' }}><Badge variant="neutral" style={{ background: tint, color: 'var(--text-on-accent)' }}>{score.tier}</Badge></div>
+              <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
+                {isRescoring && <Badge variant="neutral">Rescoring…</Badge>}
+                <Badge variant="neutral" style={{ background: tint, color: 'var(--text-on-accent)' }}>{score.tier}</Badge>
+                <RescoreButton isRescoring={isRescoring} disabled={isRescoring || busy} onClick={handleRescore} />
+              </div>
             </div>
             <div style={{ marginTop: 10, height: 6, borderRadius: 999, background: 'var(--border)', overflow: 'hidden' }}>
               <div style={{ width: `${Math.max(0, Math.min(100, score.score))}%`, height: '100%', background: tint, borderRadius: 999 }} />
             </div>
           </div>
         ) : (
-          <div style={{ background: 'var(--surface-sunken)', borderRadius: 14, padding: '14px 16px', color: 'var(--ink-muted)', fontWeight: 600 }}>Not scored yet</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--surface-sunken)', borderRadius: 14, padding: '14px 16px', color: 'var(--ink-muted)', fontWeight: 600 }}>
+            <span>{isRescoring ? 'Scoring in progress' : 'Not scored yet'}</span>
+            <span style={{ marginLeft: 'auto' }}><RescoreButton isRescoring={isRescoring} disabled={isRescoring || busy} onClick={handleRescore} /></span>
+          </div>
         )}
 
-        {/* Skills */}
         {hasScore && score && (
           <Stack gap={8}>
             <SectionLabel>Skills</SectionLabel>
@@ -122,7 +140,6 @@ export default function ApplicantReviewPanel({
           </Stack>
         )}
 
-        {/* Fit tiles */}
         {hasScore && score && (
           <div style={{ display: 'flex', gap: 8 }}>
             <FitTile icon={<Briefcase size={13} />} label="Experience" value={score.experienceFit} />
@@ -131,7 +148,6 @@ export default function ApplicantReviewPanel({
           </div>
         )}
 
-        {/* Summary */}
         {score?.explanation && (
           <Stack gap={6}>
             <SectionLabel>Summary</SectionLabel>
@@ -168,12 +184,10 @@ export default function ApplicantReviewPanel({
         isOpen={confirmOpen}
         onClose={() => setConfirmOpen(false)}
         title="Archive applicant"
-        footer={(
-          <>
-            <Button variant="ghost" onClick={() => setConfirmOpen(false)}>Cancel</Button>
-            <Button variant="danger" loading={busy} disabled={!reasonId} onClick={() => void handleConfirmArchive()}>Confirm archive</Button>
-          </>
-        )}
+        footer={(<>
+          <Button variant="ghost" onClick={() => setConfirmOpen(false)}>Cancel</Button>
+          <Button variant="danger" loading={busy} disabled={!reasonId} onClick={() => void handleConfirmArchive()}>Confirm archive</Button>
+        </>)}
       >
         <Stack gap={12}>
           <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--ink-2)' }}>Archiving removes this applicant from the active pipeline. You can unarchive later.</p>

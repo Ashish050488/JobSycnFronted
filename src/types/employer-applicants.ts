@@ -42,10 +42,32 @@ export interface StageChange {
 
 /** Full applicant detail payload (7A endpoint) consumed by the ApplicantDetail page. */
 export interface ApplicantDetail extends Applicant {
+  scoreJobStatus: ScoreJobStatus | null;
   stageChanges: StageChange[];
   resumeMeta: ResumeMeta | null;
   resumeDownloadUrl: string | null;
   resumeDownloadExpiresAt: string | null;
+}
+
+/**
+ * Queue lifecycle of the AI scoring job — a separate axis from score.processingError.
+ * 'queued' | 'processing' mean a rescore is in flight; the old score stays visible.
+ */
+export interface ScoreJobStatus {
+  jobId: string;
+  status: 'queued' | 'processing' | 'done' | 'failed';
+  attemptCount: number;
+  errorCode: string | null;
+  nextTryAt: string | null;
+  completedAt: string | null;
+}
+
+/** Response of POST /api/employer/applicants/:id/rescore. */
+export interface RescoreResult {
+  rescored: boolean;
+  jobStatus: ScoreJobStatus['status'];
+  jobId: string;
+  attemptCount: number;
 }
 
 /** Refreshed signed resume URL (7A resume-url endpoint). */
