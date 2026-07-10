@@ -81,7 +81,8 @@ describe('RankedTab', () => {
     expect(await screen.findByText('Asha Rao')).toBeInTheDocument();
     expect(screen.getByText('asha@x.com')).toBeInTheDocument();
     expect(screen.getByText('AI Score 82/100 · good match')).toBeInTheDocument();
-    expect(screen.getByText('Screening')).toBeInTheDocument(); // stage name
+    // Scoped to the table: "Screening" also names a stage filter chip now.
+    expect(within(screen.getByRole('table')).getByText('Screening')).toBeInTheDocument();
   });
 
   it('shows "Not scored" when score is null and the application is old (P1.5)', async () => {
@@ -227,5 +228,109 @@ describe('RankedTab', () => {
     fireEvent.change(screen.getByLabelText('Sort applicants'), { target: { value: 'date' } });
     await waitFor(() => expect(screen.queryByText('Name a1')).toBeNull());
     expect(screen.queryByText('1 selected')).toBeNull();
+  });
+
+  // ─── Chunk 1: search + filter chips ───────────────────────────────
+
+  /**
+   * Type into the debounced search box and wait for the 200ms timer to settle.
+   * "Clear filters" appearing is the signal that the search reached RankedTab —
+   * queryAll because the no-match empty state renders a second one.
+   */
+  async function typeSearch(text: string) {
+    fireEvent.change(screen.getByLabelText('Search name or email'), { target: { value: text } });
+    await waitFor(() => expect(screen.queryAllByRole('button', { name: 'Clear filters' }).length).toBeGreaterThan(0));
+  }
+
+  // T21
+  it('renders every applicant when no filter is active', async () => {
+    listApplicantsForPosting.mockResolvedValue([appAt('a1'), appAt('a2')]);
+    renderTab();
+    expect(await screen.findByText('Name a1')).toBeInTheDocument();
+    expect(screen.getByText('Name a2')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Clear filters' })).toBeNull();
+  });
+
+  // T22
+  it('typing in search filters the visible rows after the debounce', async () => {
+    listApplicantsForPosting.mockResolvedValue([appAt('a1'), appAt('a2')]);
+    renderTab();
+    await screen.findByText('Name a1');
+    await typeSearch('a2');
+    await waitFor(() => expect(screen.queryByText('Name a1')).toBeNull());
+    expect(screen.getByText('Name a2')).toBeInTheDocument();
+  });
+
+  // T23
+  it('clicking a stage chip filters the visible rows', async () => {
+    const inOtherStage = { ...appAt('a2') };
+    inOtherStage.application = { ...inOtherStage.application, stageId: 's2' };
+    listApplicantsForPosting.mockResolvedValue([appAt('a1'), inOtherStage]);
+    renderTab();
+    await screen.findByText('Name a1');
+    fireEvent.click(screen.getByRole('button', { name: 'Screening' })); // only s1
+    await waitFor(() => expect(screen.queryByText('Name a2')).toBeNull());
+    expect(screen.getByText('Name a1')).toBeInTheDocument();
+  });
+
+  it('score chips filter on the derived bucket, including Unscored', async () => {
+    const scored = applicant(); // tier 'good', Asha Rao
+    listApplicantsForPosting.mockResolvedValue([scored, appAt('a2')]); // appAt has score: null
+    renderTab();
+    await screen.findByText('Asha Rao');
+    fireEvent.click(screen.getByRole('button', { name: 'Unscored' }));
+    await waitFor(() => expect(screen.queryByText('Asha Rao')).toBeNull());
+    expect(screen.getByText('Name a2')).toBeInTheDocument();
+  });
+
+  it('archived applicants are hidden until Include archived is switched on', async () => {
+    const archived = { ...appAt('a2') };
+    archived.application = { ...archived.application, archived: { at: 't', reasonId: 'r1' } };
+    listApplicantsForPosting.mockResolvedValue([appAt('a1'), archived]);
+    renderTab();
+    await screen.findByText('Name a1');
+    expect(screen.queryByText('Name a2')).toBeNull();
+    fireEvent.click(screen.getByLabelText('Include archived'));
+    expect(await screen.findByText('Name a2')).toBeInTheDocument();
+  });
+
+  // T24
+  it('shows the no-match empty state (not the no-applicants one) when filters exclude everything', async () => {
+    listApplicantsForPosting.mockResolvedValue([appAt('a1')]);
+    renderTab();
+    await screen.findByText('Name a1');
+    await typeSearch('zzzz-no-such-person');
+    expect(await screen.findByText('No applicants match these filters')).toBeInTheDocument();
+    expect(screen.queryByText('No applications yet')).toBeNull();
+    expect(screen.getAllByRole('button', { name: 'Clear filters' }).length).toBeGreaterThan(0);
+  });
+
+  // T25
+  it('Clear filters restores full visibility', async () => {
+    listApplicantsForPosting.mockResolvedValue([appAt('a1')]);
+    renderTab();
+    await screen.findByText('Name a1');
+    await typeSearch('zzzz');
+    await screen.findByText('No applicants match these filters');
+    fireEvent.click(screen.getAllByRole('button', { name: 'Clear filters' })[0]);
+    expect(await screen.findByText('Name a1')).toBeInTheDocument();
+  });
+
+  // T26 — selection survives a filter that hides the selected row (C11/R3).
+  it('keeps a selection across filter changes, even while the row is hidden', async () => {
+    listApplicantsForPosting.mockResolvedValue([appAt('a1'), appAt('a2')]);
+    renderTab();
+    await screen.findByText('Name a1');
+    fireEvent.click(screen.getByLabelText('Select Name a1'));
+    expect(screen.getByText('1 selected')).toBeInTheDocument();
+
+    await typeSearch('a2'); // hides a1
+    await waitFor(() => expect(screen.queryByText('Name a1')).toBeNull());
+    expect(screen.getByText('1 selected')).toBeInTheDocument(); // still selected while hidden
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Clear filters' })[0]);
+    const box = (await screen.findByLabelText('Select Name a1')) as HTMLInputElement;
+    expect(box.checked).toBe(true);
+    expect(screen.getByText('1 selected')).toBeInTheDocument();
   });
 });
