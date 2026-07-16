@@ -3,7 +3,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import {
   listApplicantsForPosting, listStages, listArchiveReasons,
   moveApplicant, archiveApplicant, unarchiveApplicant, EmployerApplicantsApiError,
-  fetchApplicantDetail, refreshResumeUrl, bulkArchiveApplicants,
+  fetchApplicantDetail, refreshResumeUrl, bulkArchiveApplicants, rescoreApplicant,
   listApplicantNotes, createApplicantNote,
 } from '../../src/api/employer-applicants-api';
 
@@ -101,6 +101,39 @@ describe('employer-applicants-api', () => {
     const error = await bulkArchiveApplicants({ applicationIds: [], reasonId: 'r1' }).catch((caught) => caught);
     expect(error).toBeInstanceOf(EmployerApplicantsApiError);
     expect(error.code).toBe('BULK_LIMIT_EXCEEDED');
+  });
+
+  // D15(o)
+  it('rescoreApplicant POSTs to the rescore endpoint with credentials and no body', async () => {
+    const fetchMock = mockFetch(async () => response(202, { rescored: true, jobStatus: 'queued', jobId: 'j1', attemptCount: 0 }));
+    const result = await rescoreApplicant('a1');
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/employer/applicants/a1/rescore');
+    expect(fetchMock.mock.calls[0][1]?.method).toBe('POST');
+    expect(fetchMock.mock.calls[0][1]?.credentials).toBe('include');
+    expect(fetchMock.mock.calls[0][1]?.body).toBeUndefined();
+    expect(result).toEqual({ rescored: true, jobStatus: 'queued', jobId: 'j1', attemptCount: 0 });
+  });
+
+  it('rescoreApplicant resolves on a 200 no-op (already in flight)', async () => {
+    mockFetch(async () => response(200, { rescored: false, jobStatus: 'processing', jobId: 'j1', attemptCount: 1 }));
+    const result = await rescoreApplicant('a1');
+    expect(result.rescored).toBe(false);
+    expect(result.jobStatus).toBe('processing');
+  });
+
+  // D15(p)
+  it('rescoreApplicant throws EmployerApplicantsApiError on 500', async () => {
+    mockFetch(async () => response(500, { error: 'Could not queue a rescore.', code: 'RESCORE_ENQUEUE_FAILED' }));
+    const error = await rescoreApplicant('a1').catch((caught) => caught);
+    expect(error).toBeInstanceOf(EmployerApplicantsApiError);
+    expect(error.status).toBe(500);
+    expect(error.code).toBe('RESCORE_ENQUEUE_FAILED');
+  });
+
+  it('rescoreApplicant encodes the applicationId', async () => {
+    const fetchMock = mockFetch(async () => response(202, {}));
+    await rescoreApplicant('a/1');
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/employer/applicants/a%2F1/rescore');
   });
 
   // ── Notes (C3) ──────────────────────────────────────────────────────────────
