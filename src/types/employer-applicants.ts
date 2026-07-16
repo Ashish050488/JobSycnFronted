@@ -40,6 +40,23 @@ export interface StageChange {
   movedAt: string | null;
 }
 
+/**
+ * One employer-written note on an application (C3). Append-only: there is no edit or
+ * delete endpoint, and updatedAt always equals createdAt today. The author fields are
+ * a snapshot taken at write time (R2) — they are NOT a live join onto the employer
+ * user, so a later rename leaves historical notes reading as they did when written.
+ */
+export interface ApplicantNote {
+  id: string;
+  applicationId: string;
+  authorEmployerUserId: string | null;
+  authorName: string | null;
+  authorEmail: string;
+  body: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 /** Full applicant detail payload (7A endpoint) consumed by the ApplicantDetail page. */
 export interface ApplicantDetail extends Applicant {
   scoreJobStatus: ScoreJobStatus | null;

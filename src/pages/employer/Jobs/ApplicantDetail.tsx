@@ -14,6 +14,7 @@ import ApplicantResumeViewer from './ApplicantResumeViewer';
 import ApplicantReviewPanel from './ApplicantReviewPanel';
 import ApplicantContactCard from './ApplicantContactCard';
 import ApplicantCoverNote from './ApplicantCoverNote';
+import ApplicantNotesCard from './ApplicantNotesCard';
 import ApplicantStickyHeader from './ApplicantStickyHeader';
 
 type LoadState = 'loading' | 'loaded' | 'error' | 'not_found';
@@ -159,15 +160,18 @@ export default function ApplicantDetailPage() {
     // Candidate-voiced note (R1/R2): shown above the review panel, only when non-empty (R3).
     const coverNote = detail.application.coverNote?.trim() || null;
     const coverNoteCard = coverNote ? <ApplicantCoverNote coverNote={coverNote} /> : null;
+    // Notes (C3) sit last in the sidebar and fetch their own list (D8). The card grows
+    // inside RIGHT_COLUMN_STYLE's own overflow-y region, so the page still never scrolls (P8).
+    const notesCard = <ApplicantNotesCard applicationId={detail.application.id} />;
 
     if (!twoColumn) {
-      return <Stack gap={16}>{viewer}{contactCard}{coverNoteCard}{sidebar}</Stack>;
+      return <Stack gap={16}>{viewer}{contactCard}{coverNoteCard}{sidebar}{notesCard}</Stack>;
     }
     return (
       <div style={GRID_STYLE}>
         <div style={LEFT_COLUMN_STYLE}>{viewer}</div>
         <div style={RIGHT_COLUMN_STYLE}>
-          <Stack gap={16}>{contactCard}{coverNoteCard}{sidebar}</Stack>
+          <Stack gap={16}>{contactCard}{coverNoteCard}{sidebar}{notesCard}</Stack>
         </div>
       </div>
     );

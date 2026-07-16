@@ -4,6 +4,7 @@ import {
   listApplicantsForPosting, listStages, listArchiveReasons,
   moveApplicant, archiveApplicant, unarchiveApplicant, EmployerApplicantsApiError,
   fetchApplicantDetail, refreshResumeUrl, bulkArchiveApplicants, rescoreApplicant,
+  listApplicantNotes, createApplicantNote,
 } from '../../src/api/employer-applicants-api';
 
 function response(status: number, body: unknown) {
@@ -133,5 +134,49 @@ describe('employer-applicants-api', () => {
     const fetchMock = mockFetch(async () => response(202, {}));
     await rescoreApplicant('a/1');
     expect(fetchMock.mock.calls[0][0]).toBe('/api/employer/applicants/a%2F1/rescore');
+  });
+
+  // ── Notes (C3) ──────────────────────────────────────────────────────────────
+  it('listApplicantNotes GETs the notes endpoint with credentials and unwraps { notes }', async () => {
+    const notes = [{ id: 'n1', body: 'hi' }];
+    const fetchMock = mockFetch(async () => response(200, { notes }));
+    const result = await listApplicantNotes('a1');
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/employer/applicants/a1/notes');
+    expect(fetchMock.mock.calls[0][1]?.credentials).toBe('include');
+    expect(result).toEqual(notes);
+  });
+
+  it('createApplicantNote POSTs a JSON body with credentials and unwraps { note }', async () => {
+    const note = { id: 'n1', body: 'Strong on backend.' };
+    const fetchMock = mockFetch(async () => response(201, { note }));
+    const result = await createApplicantNote('a1', { body: 'Strong on backend.' });
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe('/api/employer/applicants/a1/notes');
+    expect(init?.method).toBe('POST');
+    expect(init?.credentials).toBe('include');
+    expect((init?.headers as Record<string, string>)['Content-Type']).toBe('application/json');
+    expect(JSON.parse(init?.body as string)).toEqual({ body: 'Strong on backend.' });
+    expect(result).toEqual(note);
+  });
+
+  it('listApplicantNotes and createApplicantNote both throw EmployerApplicantsApiError on 500', async () => {
+    mockFetch(async () => response(500, { error: 'Server exploded' }));
+    const listError = await listApplicantNotes('a1').catch((caught) => caught);
+    expect(listError).toBeInstanceOf(EmployerApplicantsApiError);
+    expect(listError.status).toBe(500);
+    expect(listError.message).toBe('Server exploded');
+
+    mockFetch(async () => response(500, {}));
+    const createError = await createApplicantNote('a1', { body: 'x' }).catch((caught) => caught);
+    expect(createError).toBeInstanceOf(EmployerApplicantsApiError);
+    expect(createError.status).toBe(500);
+    expect(createError.message).toBe('Request failed (500)'); // falls back when no error field
+  });
+
+  it('createApplicantNote surfaces the INVALID_NOTE_BODY code on a 400', async () => {
+    mockFetch(async () => response(400, { error: 'Note must be plain text', code: 'INVALID_NOTE_BODY' }));
+    const error = await createApplicantNote('a1', { body: '<script>' }).catch((caught) => caught);
+    expect(error.status).toBe(400);
+    expect(error.code).toBe('INVALID_NOTE_BODY');
   });
 });

@@ -4,8 +4,8 @@
 // non-2xx. Pipeline/Ranked pages call only this module — never fetch() directly.
 
 import type {
-  Applicant, ApplicantDetail, ResumeUrl, Stage, ArchiveReason, ApplicantSort, BulkArchiveResult,
-  RescoreResult,
+  Applicant, ApplicantDetail, ApplicantNote, ResumeUrl, Stage, ArchiveReason,
+  ApplicantSort, BulkArchiveResult, RescoreResult,
 } from '../types/employer-applicants';
 
 export class EmployerApplicantsApiError extends Error {
@@ -93,6 +93,27 @@ export async function unarchiveApplicant(
   applicationId: string,
 ): Promise<{ application: Applicant['application'] }> {
   return request(`${applicantPath(applicationId)}/unarchive`, { method: 'POST' });
+}
+
+/** An application's notes, newest first (C3). Empty array when there are none. */
+export async function listApplicantNotes(applicationId: string): Promise<ApplicantNote[]> {
+  const body = await request<{ notes: ApplicantNote[] }>(`${applicantPath(applicationId)}/notes`);
+  return body.notes;
+}
+
+/**
+ * Append one note (C3). Throws EmployerApplicantsApiError with code INVALID_NOTE_BODY
+ * when the server rejects the body (empty / >4000 chars / not plain text).
+ */
+export async function createApplicantNote(
+  applicationId: string,
+  input: { body: string },
+): Promise<ApplicantNote> {
+  const body = await request<{ note: ApplicantNote }>(`${applicantPath(applicationId)}/notes`, {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return body.note;
 }
 
 /**

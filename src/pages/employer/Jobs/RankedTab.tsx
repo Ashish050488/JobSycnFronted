@@ -2,8 +2,10 @@
 // Ranked applicant table: applicants (sorted by score/date) + stages + archive reasons
 // fetched in parallel. Score → tier Badge; null → "Scoring…"/"Not scored" (P1). PP3 adds
 // row selection + a floating bulk-archive bar wired to the PP1 endpoint (partial success).
+// T1.5 adds purely client-side search/stage/score/archived filtering over the fetched
+// list — no new query params. Selection survives filter changes (C11).
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Card, Badge, Button, Alert, Stack, Select, EmptyState, SkeletonCard, useToast,
@@ -18,6 +20,9 @@ import type { Applicant, ArchiveReason, Stage, ApplicantSort } from '../../../ty
 import { tierBadgeVariant, formatRelativeTime } from './applicant-view-helpers';
 import { formatRankedScoreLabel, isScoringInProgress, SCORING_STATE_LABEL } from './pipeline-tab-helpers';
 import { summarizeBulkResult, resolveBulkErrorMessage } from './ranked-bulk-helpers';
+import { filterRankedApplicants, createInitialRankedFilterState, toggleSetValue } from './ranked-filter-helpers';
+import type { RankedFilterState } from './ranked-filter-helpers';
+import RankedFilterBar from './RankedFilterBar';
 import BulkArchiveBar from './BulkArchiveBar';
 import BulkArchiveDialog from './BulkArchiveDialog';
 
@@ -47,6 +52,7 @@ export default function RankedTab({ postingId }: { postingId: string }) {
   const [loadState, setLoadState] = useState<LoadState>('loading');
   const [lastError, setLastError] = useState<string>(LOAD_ERROR_MESSAGE);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [filterState, setFilterState] = useState<RankedFilterState>(createInitialRankedFilterState);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { showToast } = useToast();
@@ -74,17 +80,20 @@ export default function RankedTab({ postingId }: { postingId: string }) {
 
   useEffect(() => { void load(sort); }, [load, sort]);
 
-  function handleToggleRow(id: string) {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
-  }
-  const visibleIds = applicants.map((item) => item.application.id);
+  const handleToggleRow = (id: string) => setSelectedIds((prev) => toggleSetValue(prev, id));
+  const filteredApplicants = useMemo(
+    () => filterRankedApplicants(applicants, filterState), [applicants, filterState],
+  );
+
+  // "Select all" acts only on what is currently visible; filtering never prunes an
+  // existing selection, so a selected-but-hidden row still bulk-archives (C11/R3).
+  const visibleIds = filteredApplicants.map((item) => item.application.id);
   const allSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id));
   const someSelected = visibleIds.some((id) => selectedIds.has(id));
-  const handleTogglePage = () => setSelectedIds(allSelected ? new Set() : new Set(visibleIds));
+  const handleTogglePage = () => setSelectedIds((prev) => {
+    if (!allSelected) return new Set([...prev, ...visibleIds]);
+    return new Set([...prev].filter((id) => !visibleIds.includes(id)));
+  });
 
   async function handleConfirmArchive({ reasonId, note }: { reasonId: string; note: string }) {
     try {
@@ -105,45 +114,33 @@ export default function RankedTab({ postingId }: { postingId: string }) {
   const stageNameById = new Map(stages.map((stage) => [stage.id, stage.text]));
 
   const columns: Column<Applicant>[] = [
-    {
-      key: 'select',
-      header: '',
-      render: (applicant) => {
-        const id = applicant.application.id;
-        const isSelected = selectedIds.has(id);
-        return (
-          <div style={{ background: isSelected ? 'var(--paper-2)' : 'transparent', margin: '-10px -14px', padding: '10px 14px' }}>
-            <input
-              type="checkbox" checked={isSelected}
-              aria-label={`Select ${applicant.contact?.fullName ?? 'applicant'}`}
-              onClick={(event) => event.stopPropagation()} onChange={() => handleToggleRow(id)}
-            />
-          </div>
-        );
-      },
-    },
-    {
-      key: 'applicant',
-      header: 'Applicant',
-      render: (applicant) => (
-        <div>
-          <div style={{ fontWeight: 600, color: 'var(--ink)' }}>{applicant.contact?.fullName ?? '—'}</div>
-          <div style={{ fontSize: '0.78rem', color: 'var(--ink-muted)' }}>{applicant.contact?.email ?? ''}</div>
+    { key: 'select', header: '', render: (applicant) => {
+      const id = applicant.application.id;
+      const isSelected = selectedIds.has(id);
+      return (
+        <div style={{ background: isSelected ? 'var(--paper-2)' : 'transparent', margin: '-10px -14px', padding: '10px 14px' }}>
+          <input
+            type="checkbox" checked={isSelected}
+            aria-label={`Select ${applicant.contact?.fullName ?? 'applicant'}`}
+            onClick={(event) => event.stopPropagation()} onChange={() => handleToggleRow(id)}
+          />
         </div>
-      ),
-    },
+      );
+    } },
+    { key: 'applicant', header: 'Applicant', render: (applicant) => (
+      <div>
+        <div style={{ fontWeight: 600, color: 'var(--ink)' }}>{applicant.contact?.fullName ?? '—'}</div>
+        <div style={{ fontSize: '0.78rem', color: 'var(--ink-muted)' }}>{applicant.contact?.email ?? ''}</div>
+      </div>
+    ) },
     { key: 'score', header: 'Score', render: (applicant) => <ScoreCell applicant={applicant} /> },
     { key: 'stage', header: 'Stage', render: (applicant) => stageNameById.get(applicant.application.stageId) ?? '—' },
     { key: 'applied', header: 'Applied', render: (applicant) => formatRelativeTime(applicant.application.appliedAt) },
-    {
-      key: 'actions',
-      header: '',
-      render: (applicant) => (
-        <Link to={`/employer/jobs/${postingId}/applicants/${applicant.application.id}?from=ranked`}>
-          <Button variant="ghost" size="sm">View</Button>
-        </Link>
-      ),
-    },
+    { key: 'actions', header: '', render: (applicant) => (
+      <Link to={`/employer/jobs/${postingId}/applicants/${applicant.application.id}?from=ranked`}>
+        <Button variant="ghost" size="sm">View</Button>
+      </Link>
+    ) },
   ];
 
   if (loadState === 'loading') return <SkeletonCard lines={5} />;
@@ -176,9 +173,14 @@ export default function RankedTab({ postingId }: { postingId: string }) {
           Select all
         </label>
       </Stack>
-      <Card padding="sm">
-        <Table columns={columns} data={applicants} />
-      </Card>
+      <RankedFilterBar value={filterState} stages={stages} onChange={setFilterState} />
+      {filteredApplicants.length === 0 ? (
+        <EmptyState title="No applicants match these filters"
+          description="Try a different search term, or clear the filters to see everyone."
+          action={{ label: 'Clear filters', onClick: () => setFilterState(createInitialRankedFilterState()) }} />
+      ) : (
+        <Card padding="sm"><Table columns={columns} data={filteredApplicants} /></Card>
+      )}
       <BulkArchiveBar
         selectedCount={selectedIds.size}
         onClear={() => setSelectedIds(new Set())}
